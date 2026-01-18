@@ -27,9 +27,10 @@ export default async function SkillPostPage({
     notFound();
   }
 
-  function formatDate(dateString?: string) {
-    if (!dateString) return "";
-    const date = new Date(dateString);
+  function formatDate(dateValue?: string | Date) {
+    if (!dateValue) return "";
+    const date = typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+    if (isNaN(date.getTime())) return "";
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
