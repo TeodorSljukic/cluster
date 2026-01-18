@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user (first user is admin, rest are regular users)
-    const userCount = await collection.countDocuments();
-    const role = userCount === 0 ? "admin" : "user";
+    // Create user:
+    // - if there is no admin in DB (common after migrations), make this user admin
+    // - otherwise normal user
+    const adminExists = (await collection.countDocuments({ role: "admin" })) > 0;
+    const role = adminExists ? "user" : "admin";
 
     const now = new Date();
     const user: Omit<User, "_id"> = {

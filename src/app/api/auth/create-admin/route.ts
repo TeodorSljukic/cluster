@@ -7,8 +7,8 @@ export async function POST() {
   try {
     const collection = await getCollection("users");
 
-    // Check if admin already exists
-    const existingAdmin = await collection.findOne({ username: "admin" });
+    // Check if any admin already exists
+    const existingAdmin = await collection.findOne({ role: "admin" });
     if (existingAdmin) {
       return NextResponse.json(
         { message: "Admin user already exists" },
