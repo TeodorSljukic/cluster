@@ -10,10 +10,10 @@ import Link from "next/link";
 export default async function Home({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: string }>;
 }) {
   const resolvedParams = params instanceof Promise ? await params : params;
-  const locale = resolvedParams.locale || "me";
+  const locale = (resolvedParams.locale as Locale) || "me";
   const t = getTranslations(locale);
 
   return (

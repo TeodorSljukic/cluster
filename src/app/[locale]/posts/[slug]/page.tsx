@@ -36,11 +36,11 @@ function getBackLink(type: string, locale: Locale): { href: string; label: strin
 export default async function PostPage({
   params,
 }: {
-  params: Promise<{ locale: Locale; slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
   // Handle params as Promise (Next.js 16) or direct object
   const resolvedParams = params instanceof Promise ? await params : params;
-  const locale = resolvedParams.locale || "me";
+  const locale = (resolvedParams.locale as Locale) || "me";
   const post = await getPostBySlug(resolvedParams.slug);
 
   if (!post || post.status !== "published") {

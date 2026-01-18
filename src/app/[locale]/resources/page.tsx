@@ -20,10 +20,10 @@ async function getResources() {
 export default async function ResourcesPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: string }>;
 }) {
   const resolvedParams = params instanceof Promise ? await params : params;
-  const locale = resolvedParams.locale || "me";
+  const locale = (resolvedParams.locale as Locale) || "me";
   const posts = await getResources();
 
   function formatDate(dateString?: string) {

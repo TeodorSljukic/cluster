@@ -20,10 +20,10 @@ async function getSkills() {
 export default async function SkillsPage({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: string }>;
 }) {
   const resolvedParams = params instanceof Promise ? await params : params;
-  const locale = resolvedParams.locale || "me";
+  const locale = (resolvedParams.locale as Locale) || "me";
   const posts = await getSkills();
 
   function formatDate(dateString?: string) {
