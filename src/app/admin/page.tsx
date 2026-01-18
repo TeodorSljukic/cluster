@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
+import type { Post } from "@/models/Post";
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<any>({});
