@@ -1,4 +1,5 @@
-import { Locale } from "./i18n";
+import { type Locale } from "./i18n";
+export type { Locale };
 import me from "@/messages/me.json";
 import en from "@/messages/en.json";
 import it from "@/messages/it.json";
