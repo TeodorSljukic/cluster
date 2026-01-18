@@ -1,5 +1,8 @@
 import { type Locale } from "./i18n";
 
+// Re-export Locale type for convenience
+export type { Locale };
+
 /**
  * Helper function to create locale-aware links
  * @param path - Path without locale (e.g., "/about", "/posts/slug", "/chat?userId=123")
