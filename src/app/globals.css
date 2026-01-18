@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Admin bar spacing */
+#main-content {
+  margin-top: 0;
+  transition: margin-top 0.2s;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Ensure main content wrapper takes full height */
+#main-content > * {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Footer sticky to bottom */
+.site-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+body:has([data-admin-bar="true"]) #main-content {
+  margin-top: 32px;
+}
+
+/* Chat page - no scroll on main-content */
+body:has(main[data-chat-page="true"]) #main-content {
+  overflow: hidden !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  position: relative !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  padding-top: 20px !important;
+}
+
+/* If admin bar is present, add extra spacing */
+body:has(main[data-chat-page="true"]):has([data-admin-bar="true"]) #main-content {
+  padding-top: 52px !important; /* 20px + 32px for admin bar */
+}
+
+/* Loading animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chat page specific - only apply to chat page */
+html:has(main[data-chat-page="true"]) {
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body:has(main[data-chat-page="true"]) {
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative !important;
+  display: block !important; /* Override flex for chat page */
+}
+
+body:has(main[data-chat-page="true"]) #main-content {
+  overflow: hidden !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  position: relative !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: none !important; /* Override flex for chat page */
+  display: block !important; /* Override flex for chat page */
+}
+
+body:has(main[data-chat-page="true"]) header.site-header {
+  position: relative !important;
+  z-index: 10;
+  flex-shrink: 0;
+  margin-top: 0 !important;
+  padding-top: 15px !important;
+  padding-bottom: 15px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eee !important;
+}
+
+/* Add spacing for admin bar if present */
+body:has(main[data-chat-page="true"]):has([data-admin-bar="true"]) header.site-header {
+  margin-top: 0 !important;
+}
+
+/* Prevent any scrolling on chat page */
+body:has(main[data-chat-page="true"]) * {
+  max-height: 100vh;
+}
+
+main[data-chat-page="true"] {
+  height: calc(100vh - 120px) !important; /* Adjusted for header + padding */
+  max-height: calc(100vh - 120px) !important;
+  overflow: hidden !important;
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Ensure no scroll on chat page wrapper */
+body:has(main[data-chat-page="true"]) > * {
+  overflow: hidden !important;
+}
+
+/* Ensure other pages can scroll */
+html:not(:has(main[data-chat-page="true"])) {
+  overflow-y: auto;
+  height: auto;
+  position: static;
+}
+
+body:not(:has(main[data-chat-page="true"])) {
+  overflow-y: auto;
+  height: auto;
+  position: static;
+  min-height: 100vh;
+}

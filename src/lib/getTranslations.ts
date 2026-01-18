@@ -1,0 +1,18 @@
+import { Locale } from "./i18n";
+import me from "@/messages/me.json";
+import en from "@/messages/en.json";
+import it from "@/messages/it.json";
+import sq from "@/messages/sq.json";
+
+const translations = {
+  me,
+  en,
+  it,
+  sq,
+};
+
+export function getTranslations(locale: Locale = "me") {
+  return translations[locale] || translations.me;
+}
+
+export type Translations = typeof me;
