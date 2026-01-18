@@ -39,6 +39,7 @@ interface Group {
   _id: string;
   name: string;
   description?: string;
+  createdBy?: string;
   members: any[];
 }
 
@@ -2069,7 +2070,7 @@ export default function ChatPage() {
                 {(currentGroup.members || []).map((member: any) => {
                   if (!member) return null;
                   const isCreator = currentGroup.createdBy === member._id;
-                  const canRemove = currentUserId === currentGroup.createdBy && member._id !== currentUserId;
+                  const canRemove = currentUserId === currentGroup.createdBy && member._id !== currentUserId && currentGroup.createdBy;
                   
                   return (
                     <div
