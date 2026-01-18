@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: any = await request.json();
     const collection = await getCollection("posts");
+    const locale = body.locale || "me";
 
     // Validate required fields
     if (!body.title || !body.type || !body.slug) {
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if slug already exists for this locale
-    const existing = await collection.findOne({ slug: body.slug, locale: locale });
+    const existing = await collection.findOne({ slug: body.slug, locale });
     if (existing) {
       return NextResponse.json(
         { error: `Slug already exists for ${locale} locale` },
@@ -103,10 +104,7 @@ export async function POST(request: NextRequest) {
         : body.eventDate;
     }
 
-    // Get locale from body or default to "me"
-    const locale = body.locale || "me";
-
-    const post: Post = {
+    const post: Omit<Post, "_id"> = {
       title: body.title,
       slug: body.slug,
       content: body.content,
@@ -114,7 +112,7 @@ export async function POST(request: NextRequest) {
       featuredImage: body.featuredImage || "",
       type: body.type,
       status: body.status || "draft",
-      locale: locale,
+      locale,
       createdAt: now,
       updatedAt: now,
       publishedAt: body.status === "published" ? now : undefined,

@@ -9,8 +9,8 @@ export async function GET() {
     const interestCounts: Record<string, number> = {};
     users.forEach((user) => {
       if (user.interests) {
-        const interests = user.interests.split(",").map((i) => i.trim());
-        interests.forEach((interest) => {
+        const interests = user.interests.split(",").map((i: string) => i.trim());
+        interests.forEach((interest: string) => {
           if (interest) {
             interestCounts[interest] = (interestCounts[interest] || 0) + 1;
           }

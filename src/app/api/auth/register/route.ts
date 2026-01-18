@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const role = userCount === 0 ? "admin" : "user";
 
     const now = new Date();
-    const user: User = {
+    const user: Omit<User, "_id"> = {
       username,
       email,
       password: hashedPassword,

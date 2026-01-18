@@ -23,7 +23,7 @@ export default function SearchPage() {
   const [connectionStatuses, setConnectionStatuses] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
   const router = useRouter();
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Debounce search

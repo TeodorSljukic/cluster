@@ -7,6 +7,8 @@ import { getTranslations, type Locale } from "@/lib/getTranslations";
 import { localeLink } from "@/lib/localeLink";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home({
   params,
 }: {

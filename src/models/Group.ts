@@ -1,23 +1,15 @@
-import { Schema, model, models, Document } from "mongoose";
+/**
+ * NOTE:
+ * This project uses the native MongoDB driver (not Mongoose).
+ * These model files are kept as plain TypeScript interfaces for shared typing.
+ */
 
-export interface IGroup extends Document {
+export interface Group {
+  _id?: string;
   name: string;
   description?: string;
-  createdBy: Schema.Types.ObjectId;
-  members: Schema.Types.ObjectId[];
+  createdBy: string;
+  members: string[];
   createdAt: Date;
   updatedAt: Date;
 }
-
-const GroupSchema = new Schema<IGroup>({
-  name: { type: String, required: true },
-  description: { type: String },
-  createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  members: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
-
-const Group = models.Group || model<IGroup>("Group", GroupSchema);
-
-export default Group;

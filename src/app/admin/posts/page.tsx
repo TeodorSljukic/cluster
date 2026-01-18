@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Post } from "@/models/Post";
 import { CMSLayout } from "@/components/CMSLayout";
@@ -10,7 +10,7 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { locales, localeNames, localeFlags, type Locale, defaultLocale } from "@/lib/i18n";
 import { getTranslations } from "@/lib/getTranslations";
 
-export default function PostsPage() {
+function PostsPageInner() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -392,6 +392,15 @@ export default function PostsPage() {
       </div>
       </CMSLayout>
     </AdminGuard>
+  );
+}
+
+export default function PostsPage() {
+  // Next.js requires useSearchParams() to be used under a Suspense boundary
+  return (
+    <Suspense fallback={null}>
+      <PostsPageInner />
+    </Suspense>
   );
 }
 

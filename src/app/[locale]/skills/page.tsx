@@ -3,6 +3,8 @@ import Link from "next/link";
 import { type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
 
+export const dynamic = "force-dynamic";
+
 async function getSkills() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";

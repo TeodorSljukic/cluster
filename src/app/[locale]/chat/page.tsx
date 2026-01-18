@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search } from "lucide-react";
@@ -43,7 +43,7 @@ interface Group {
   members: any[];
 }
 
-export default function ChatPage() {
+function ChatPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -2240,5 +2240,14 @@ export default function ChatPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ChatPage() {
+  // Next.js requires useSearchParams() to be used under a Suspense boundary
+  return (
+    <Suspense fallback={null}>
+      <ChatPageInner />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { UserStatus } from "@/components/UserStatus";
@@ -28,7 +28,7 @@ interface User {
   twitter?: string;
 }
 
-export default function UserProfilePage() {
+function UserProfilePageInner() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("id");
   const router = useRouter();
@@ -533,5 +533,14 @@ export default function UserProfilePage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function UserProfilePage() {
+  // Next.js requires useSearchParams() to be used under a Suspense boundary
+  return (
+    <Suspense fallback={null}>
+      <UserProfilePageInner />
+    </Suspense>
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Post } from "@/models/Post";
 
-export default function NewPostPage() {
+function NewPostPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = (searchParams.get("type") || "news") as "news" | "event" | "resource" | "skill";
@@ -297,5 +297,14 @@ export default function NewPostPage() {
       </div>
       </CMSLayout>
     </AdminGuard>
+  );
+}
+
+export default function NewPostPage() {
+  // Next.js requires useSearchParams() to be used under a Suspense boundary
+  return (
+    <Suspense fallback={null}>
+      <NewPostPageInner />
+    </Suspense>
   );
 }

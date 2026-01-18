@@ -45,7 +45,7 @@ export async function POST(
     await db.collection("groups").updateOne(
       { _id: new ObjectId(id) },
       {
-        $push: { members: newMemberObjectId },
+        $push: { members: newMemberObjectId } as any,
         $set: { updatedAt: new Date() },
       }
     );
@@ -92,7 +92,7 @@ export async function DELETE(
     await db.collection("groups").updateOne(
       { _id: new ObjectId(id) },
       {
-        $pull: { members: new ObjectId(memberId) },
+        $pull: { members: new ObjectId(memberId) } as any,
         $set: { updatedAt: new Date() },
       }
     );

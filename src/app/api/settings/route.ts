@@ -10,7 +10,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const collection = await getCollection("settings");
+    // settings documents use a string _id ("main"), so we keep this collection untyped
+    const collection = (await getCollection("settings")) as any;
     const settings = await collection.findOne({ _id: "main" });
 
     return NextResponse.json({
@@ -39,7 +40,8 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const collection = await getCollection("settings");
+    // settings documents use a string _id ("main"), so we keep this collection untyped
+    const collection = (await getCollection("settings")) as any;
 
     const settingsData = {
       _id: "main",

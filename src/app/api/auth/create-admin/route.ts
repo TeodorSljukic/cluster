@@ -20,7 +20,7 @@ export async function POST() {
     const hashedPassword = await bcrypt.hash("admin", 10);
 
     const now = new Date();
-    const adminUser: User = {
+    const adminUser: Omit<User, "_id"> = {
       username: "admin",
       email: "admin@abgc.local",
       password: hashedPassword,

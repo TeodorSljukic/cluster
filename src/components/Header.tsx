@@ -17,7 +17,7 @@ export function Header() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -116,20 +116,6 @@ export function Header() {
       setUser(null);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function searchUsers(query: string) {
-    try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSearchResults(data.users || []);
-      }
-    } catch (error) {
-      console.error("Error searching users:", error);
-    } finally {
-      setSearchLoading(false);
     }
   }
 
