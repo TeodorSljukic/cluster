@@ -1,7 +1,7 @@
-import clientPromise from "./mongodb";
+import { getMongoClientPromise } from "./mongodb";
 
 export async function getDb() {
-  const client = await clientPromise;
+  const client = await getMongoClientPromise();
   // Extract database name from URI or use default
   const dbName = process.env.MONGODB_DB || "abgc";
   return client.db(dbName);

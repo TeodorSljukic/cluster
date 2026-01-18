@@ -1,29 +1,29 @@
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI;
-
-if (!uri) {
-  throw new Error("Missing MONGODB_URI. Add it to nextjs/.env.local");
-}
-
 declare global {
   // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+/**
+ * Lazily creates (and caches) the MongoDB client promise.
+ *
+ * Important:
+ * - We avoid throwing and connecting at module scope, because that can cause
+ *   Next.js route modules to fail to load and return a generic 500 (text/plain)
+ *   instead of our JSON error response.
+ */
+export function getMongoClientPromise(): Promise<MongoClient> {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    return Promise.reject(new Error("Missing MONGODB_URI environment variable"));
+  }
 
-if (process.env.NODE_ENV === "development") {
   if (!global._mongoClientPromise) {
-    client = new MongoClient(uri);
+    const client = new MongoClient(uri);
     global._mongoClientPromise = client.connect();
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  client = new MongoClient(uri);
-  clientPromise = client.connect();
-}
 
-export default clientPromise;
+  return global._mongoClientPromise;
+}
 
