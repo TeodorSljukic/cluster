@@ -106,6 +106,16 @@ function ChatPageInner() {
   const lastMessageIdRef = useRef<string>("");
 
   useEffect(() => {
+    // Detect mobile device
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
     setLoadingChats(true);
     // Load data in parallel for better performance
     Promise.all([
