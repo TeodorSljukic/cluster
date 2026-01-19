@@ -1505,10 +1505,55 @@ function ChatPageInner() {
                   padding: "16px",
                   borderTop: "1px solid #e0e0e0",
                   display: "flex",
+                  flexDirection: "column",
                   gap: "8px",
-                  alignItems: "flex-end",
                 }}
               >
+                {/* Reply preview */}
+                {replyingTo && (
+                  <div
+                    style={{
+                      background: "#f0f7ff",
+                      border: "1px solid #0a66c2",
+                      borderRadius: "8px",
+                      padding: "8px 12px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "12px", fontWeight: "600", color: "#0a66c2", marginBottom: "4px" }}>
+                        Replying to {replyingTo.sender?.displayName || replyingTo.sender?.username || "User"}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#666",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {replyingTo.message || (replyingTo.fileUrl ? "[File]" : "")}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setReplyingTo(null)}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <X size={16} color="#666" />
+                    </button>
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
                 <input
                   type="file"
                   ref={fileInputRef}
