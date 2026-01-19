@@ -95,7 +95,9 @@ function ChatPageInner() {
   const [forwardingTo, setForwardingTo] = useState<Message | null>(null);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [tappedMessageId, setTappedMessageId] = useState<string | null>(null);
   const [messageMenuOpen, setMessageMenuOpen] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -1206,8 +1208,13 @@ function ChatPageInner() {
                     return (
                       <div
                         key={msg._id}
-                        onMouseEnter={() => setHoveredMessageId(msg._id)}
-                        onMouseLeave={() => setHoveredMessageId(null)}
+                        onMouseEnter={() => !isMobile && setHoveredMessageId(msg._id)}
+                        onMouseLeave={() => !isMobile && setHoveredMessageId(null)}
+                        onClick={() => {
+                          if (isMobile) {
+                            setTappedMessageId(tappedMessageId === msg._id ? null : msg._id);
+                          }
+                        }}
                         style={{
                           display: "flex",
                           justifyContent: isOwn ? "flex-end" : "flex-start",
@@ -1218,10 +1225,11 @@ function ChatPageInner() {
                           minWidth: 0,
                           boxSizing: "border-box",
                           position: "relative",
+                          cursor: isMobile ? "pointer" : "default",
                         }}
                       >
                         {/* Action buttons - right side for received messages (after message) */}
-                        {!isOwn && hoveredMessageId === msg._id && (
+                        {!isOwn && (hoveredMessageId === msg._id || (isMobile && tappedMessageId === msg._id)) && (
                           <div style={{ display: "flex", gap: "4px", alignSelf: "center", order: 2 }}>
                             <button
                               onClick={(e) => {
@@ -1366,7 +1374,7 @@ function ChatPageInner() {
                           </div>
                         )}
                         {/* Action buttons - left side for sent messages (before message) */}
-                        {isOwn && hoveredMessageId === msg._id && (
+                        {isOwn && (hoveredMessageId === msg._id || (isMobile && tappedMessageId === msg._id)) && (
                           <div style={{ display: "flex", gap: "4px", alignSelf: "center" }}>
                             <button
                               onClick={(e) => {
