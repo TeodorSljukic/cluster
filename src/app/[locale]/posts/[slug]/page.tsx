@@ -3,24 +3,31 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
+import { getCollection } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
-    // For server-side fetch, use absolute URL with environment variable or fallback
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
-      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-      || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/posts/slug/${slug}`, {
-      cache: "no-store",
+    const collection = await getCollection("posts");
+    
+    const post = await collection.findOne({
+      slug: slug,
+      status: "published",
     });
-    if (res.status === 404) return null;
-    if (!res.ok) {
-      console.error("Failed to fetch post:", res.status);
+
+    if (!post) {
       return null;
     }
-    return await res.json();
+
+    return {
+      ...post,
+      _id: post._id.toString(),
+      createdAt: post.createdAt?.toISOString(),
+      updatedAt: post.updatedAt?.toISOString(),
+      publishedAt: post.publishedAt?.toISOString(),
+      eventDate: post.eventDate?.toISOString(),
+    } as Post;
   } catch (error) {
     console.error("Error fetching post:", error);
     return null;
