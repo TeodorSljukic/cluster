@@ -1220,7 +1220,13 @@ export default function ProfilePage() {
                     >
                       <div style={{ marginBottom: "8px" }}>
                         <Link
-                          href={`/user-profile?id=${conn.user?._id}`}
+                          href={localeLink(`/user-profile?id=${conn.user?._id}`, (() => {
+                            const match = pathname?.match(/^\/([^\/]+)/);
+                            if (match && ["me", "en", "it", "sq"].includes(match[1])) {
+                              return match[1] as Locale;
+                            }
+                            return "me";
+                          })())}
                           style={{
                             fontSize: "14px",
                             fontWeight: "600",
@@ -1355,7 +1361,13 @@ export default function ProfilePage() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <Link
-                          href={`/user-profile?id=${conn.user?._id}`}
+                          href={localeLink(`/user-profile?id=${conn.user?._id}`, (() => {
+                            const match = pathname?.match(/^\/([^\/]+)/);
+                            if (match && ["me", "en", "it", "sq"].includes(match[1])) {
+                              return match[1] as Locale;
+                            }
+                            return "me";
+                          })())}
                           style={{
                             fontSize: "14px",
                             fontWeight: "600",

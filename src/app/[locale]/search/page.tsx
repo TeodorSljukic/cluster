@@ -17,24 +17,28 @@ interface User {
   location?: string;
 }
 
-export default function SearchPage() {
+export default function SearchPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [connectionStatuses, setConnectionStatuses] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
+  const [locale, setLocale] = useState<Locale>("me");
   const router = useRouter();
   const pathname = usePathname();
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
-  // Extract locale from pathname
-  const locale: Locale = (() => {
-    const match = pathname?.match(/^\/([^\/]+)/);
-    if (match && ["me", "en", "it", "sq"].includes(match[1])) {
-      return match[1] as Locale;
-    }
-    return "me";
-  })();
+
+  // Extract locale from params
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      const loc = (resolvedParams.locale as Locale) || "me";
+      setLocale(loc);
+    });
+  }, [params]);
 
   useEffect(() => {
     // Debounce search

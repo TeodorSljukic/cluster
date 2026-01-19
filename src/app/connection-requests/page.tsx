@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { UserStatus } from "@/components/UserStatus";
+import { localeLink, type Locale } from "@/lib/localeLink";
 
 interface Connection {
   _id: string;
@@ -24,6 +25,16 @@ export default function ConnectionRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+  
+  // Extract locale from pathname
+  const locale: Locale = (() => {
+    const match = pathname?.match(/^\/([^\/]+)/);
+    if (match && ["me", "en", "it", "sq"].includes(match[1])) {
+      return match[1] as Locale;
+    }
+    return "me";
+  })();
 
   useEffect(() => {
     loadConnections();
@@ -33,7 +44,7 @@ export default function ConnectionRequestsPage() {
     try {
       const res = await fetch("/api/connections");
       if (res.status === 401) {
-        router.push("/login");
+        router.push(localeLink("/login", locale));
         return;
       }
       const data = await res.json();
@@ -183,7 +194,7 @@ export default function ConnectionRequestsPage() {
                     </div>
                     <div>
                       <Link
-                        href={`/user-profile?id=${conn.user?._id}`}
+                        href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
                         style={{
                           fontSize: "16px",
                           fontWeight: "600",
@@ -330,7 +341,7 @@ export default function ConnectionRequestsPage() {
                     </div>
                     <div>
                       <Link
-                        href={`/user-profile?id=${conn.user?._id}`}
+                        href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
                         style={{
                           fontSize: "16px",
                           fontWeight: "600",
@@ -421,7 +432,7 @@ export default function ConnectionRequestsPage() {
                     </div>
                     <div>
                       <Link
-                        href={`/user-profile?id=${conn.user?._id}`}
+                        href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
                         style={{
                           fontSize: "16px",
                           fontWeight: "600",

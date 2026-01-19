@@ -303,7 +303,7 @@ export function Header() {
                       {searchResults.map((user) => (
                         <Link
                           key={user._id}
-                          href={`/user-profile?id=${user._id}`}
+                          href={localeLink(`/user-profile?id=${user._id}`, currentLocale)}
                           onClick={() => {
                             setShowSearch(false);
                             setSearchQuery("");

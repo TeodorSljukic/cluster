@@ -28,7 +28,11 @@ interface User {
   twitter?: string;
 }
 
-function UserProfilePageInner() {
+function UserProfilePageInner({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const searchParams = useSearchParams();
   const userId = searchParams.get("id");
   const router = useRouter();
@@ -37,15 +41,15 @@ function UserProfilePageInner() {
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [locale, setLocale] = useState<Locale>("me");
 
-  // Extract locale from pathname
-  const locale: Locale = (() => {
-    const match = pathname?.match(/^\/([^\/]+)/);
-    if (match && ["me", "en", "it", "sq"].includes(match[1])) {
-      return match[1] as Locale;
-    }
-    return "me";
-  })();
+  // Extract locale from params
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      const loc = (resolvedParams.locale as Locale) || "me";
+      setLocale(loc);
+    });
+  }, [params]);
 
   useEffect(() => {
     if (userId) {
@@ -536,11 +540,15 @@ function UserProfilePageInner() {
   );
 }
 
-export default function UserProfilePage() {
+export default async function UserProfilePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   // Next.js requires useSearchParams() to be used under a Suspense boundary
   return (
     <Suspense fallback={null}>
-      <UserProfilePageInner />
+      <UserProfilePageInner params={params} />
     </Suspense>
   );
 }

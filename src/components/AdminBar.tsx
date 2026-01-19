@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { localeLink, type Locale } from "@/lib/localeLink";
 
 interface User {
   _id: string;
@@ -40,7 +41,15 @@ export function AdminBar() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
-      router.push("/login");
+      // Extract locale from pathname
+      const locale: Locale = (() => {
+        const match = pathname?.match(/^\/([^\/]+)/);
+        if (match && ["me", "en", "it", "sq"].includes(match[1])) {
+          return match[1] as Locale;
+        }
+        return "me";
+      })();
+      router.push(localeLink("/login", locale));
       router.refresh();
     } catch (error) {
       console.error("Error logging out:", error);
