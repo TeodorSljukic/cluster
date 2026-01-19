@@ -1213,35 +1213,35 @@ function ChatPageInner() {
                           position: "relative",
                         }}
                       >
-                        {!isOwn && msg.sender && (
-                          <div
-                            style={{
-                              width: "32px",
-                              height: "32px",
-                              borderRadius: "50%",
-                              background: msg.sender.profilePicture
-                                ? `url(${msg.sender.profilePicture}) center/cover`
-                                : "#e4e4e4",
-                              flexShrink: 0,
-                            }}
-                          />
-                        )}
-                        <div
-                          style={{
-                            maxWidth: "70%",
-                            minWidth: 0,
-                            width: "fit-content",
-                            padding: "8px 12px",
-                            borderRadius: "12px",
-                            background: isOwn ? "#0a66c2" : "#f0f0f0",
-                            color: isOwn ? "white" : "inherit",
-                            boxSizing: "border-box",
-                            overflow: "hidden",
-                            wordBreak: "break-word",
-                            overflowWrap: "break-word",
-                            position: "relative",
-                          }}
-                        >
+                        <div style={{ display: "flex", flexDirection: "column", maxWidth: "70%", minWidth: 0, width: "fit-content" }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                            {!isOwn && msg.sender && (
+                              <div
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  borderRadius: "50%",
+                                  background: msg.sender.profilePicture
+                                    ? `url(${msg.sender.profilePicture}) center/cover`
+                                    : "#e4e4e4",
+                                  flexShrink: 0,
+                                }}
+                              />
+                            )}
+                            <div
+                              style={{
+                                width: "fit-content",
+                                padding: "8px 12px",
+                                borderRadius: "12px",
+                                background: isOwn ? "#0a66c2" : "#f0f0f0",
+                                color: isOwn ? "white" : "inherit",
+                                boxSizing: "border-box",
+                                overflow: "hidden",
+                                wordBreak: "break-word",
+                                overflowWrap: "break-word",
+                                position: "relative",
+                              }}
+                            >
                           {!isOwn && msg.sender && (
                             <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "4px", color: "#0a66c2" }}>
                               {msg.sender.displayName || msg.sender.username}
@@ -1292,6 +1292,7 @@ function ChatPageInner() {
                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </div>
                         </div>
+                        </div>
                         {/* Reply and Forward buttons - shown on hover, below message */}
                         {hoveredMessageId === msg._id && (
                           <div
@@ -1305,6 +1306,7 @@ function ChatPageInner() {
                               borderRadius: "8px",
                               padding: "4px",
                               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                              width: "fit-content",
                             }}
                           >
                             <button
