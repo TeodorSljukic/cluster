@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search } from "lucide-react";
+import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile } from "lucide-react";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
 
@@ -16,6 +16,10 @@ interface Message {
   fileUrl?: string;
   isRead: boolean;
   createdAt: string;
+  reactions?: {
+    emoji: string;
+    userId: string;
+  }[];
   sender?: {
     _id: string;
     username: string;
@@ -86,6 +90,7 @@ function ChatPageInner() {
   const [hasMore, setHasMore] = useState(true);
   const [firstMessageIdRef, setFirstMessageIdRef] = useState<string>("");
   const [loadingChats, setLoadingChats] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -381,12 +386,6 @@ function ChatPageInner() {
   async function sendMessage() {
     if (!messageText.trim() && !selectedFile) return;
 
-    // Only groups can send images
-    if (selectedFile && !groupId) {
-      alert("File uploads are only allowed in groups");
-      return;
-    }
-
     setSending(true);
     try {
       const formData = new FormData();
@@ -396,7 +395,7 @@ function ChatPageInner() {
         formData.append("groupId", groupId);
       }
       formData.append("message", messageText);
-      if (selectedFile && groupId) {
+      if (selectedFile) {
         formData.append("file", selectedFile);
       }
 
@@ -589,6 +588,47 @@ function ChatPageInner() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "auto" });
     }
+  }
+
+  async function toggleReaction(messageId: string, emoji: string) {
+    if (!currentUserId) return;
+
+    try {
+      const res = await fetch(`/api/messages/${messageId}/reactions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emoji }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update message in state
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === messageId ? { ...msg, reactions: data.reactions } : msg
+          )
+        );
+        setShowEmojiPicker(null);
+      }
+    } catch (error) {
+      console.error("Error toggling reaction:", error);
+    }
+  }
+
+  const commonEmojis = ["👍", "❤️", "😂", "😮", "😢", "🙏", "🔥", "👏"];
+
+  function getReactionCounts(reactions: { emoji: string; userId: string }[] | undefined) {
+    if (!reactions || reactions.length === 0) return {};
+    const counts: Record<string, number> = {};
+    reactions.forEach((r) => {
+      counts[r.emoji] = (counts[r.emoji] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function hasUserReacted(reactions: { emoji: string; userId: string }[] | undefined, emoji: string) {
+    if (!reactions || !currentUserId) return false;
+    return reactions.some((r) => r.emoji === emoji && r.userId === currentUserId);
   }
 
   const currentUser = connections.find((c) => c.user._id === userId)?.user;
@@ -1216,14 +1256,123 @@ function ChatPageInner() {
                               )}
                             </div>
                           )}
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              opacity: 0.7,
-                              marginTop: "4px",
-                            }}
-                          >
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "4px", gap: "8px" }}>
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                opacity: 0.7,
+                              }}
+                            >
+                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px", position: "relative" }}>
+                              {msg.reactions && msg.reactions.length > 0 && (
+                                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                              {Object.entries(getReactionCounts(msg.reactions)).map(([emoji, count]) => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => toggleReaction(msg._id, emoji)}
+                                  style={{
+                                    background: hasUserReacted(msg.reactions, emoji) 
+                                      ? (isOwn ? "rgba(255,255,255,0.3)" : "#e3f2fd")
+                                      : "transparent",
+                                    border: `1px solid ${hasUserReacted(msg.reactions, emoji) 
+                                      ? (isOwn ? "rgba(255,255,255,0.5)" : "#0a66c2")
+                                      : "transparent"}`,
+                                    borderRadius: "12px",
+                                    padding: "2px 6px",
+                                    fontSize: "12px",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    transition: "all 0.2s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = "scale(1.1)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = "scale(1)";
+                                  }}
+                                >
+                                  <span>{emoji}</span>
+                                  <span style={{ fontSize: "11px", opacity: 0.8 }}>{count}</span>
+                                </button>
+                              ))}
+                            </div>
+                              )}
+                              <button
+                                onClick={() => setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id)}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  padding: "4px",
+                                  borderRadius: "50%",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  opacity: 0.6,
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.opacity = "1";
+                                  e.currentTarget.style.background = isOwn ? "rgba(255,255,255,0.2)" : "#f0f0f0";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.opacity = "0.6";
+                                  e.currentTarget.style.background = "transparent";
+                                }}
+                                title="Add reaction"
+                              >
+                                <Smile size={14} color={isOwn ? "white" : "#666"} />
+                              </button>
+                              {showEmojiPicker === msg._id && (
+                                <div
+                                  className="emoji-picker-container"
+                                  style={{
+                                    position: "absolute",
+                                    bottom: "100%",
+                                    left: "0",
+                                    background: "white",
+                                    borderRadius: "8px",
+                                    padding: "8px",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                    display: "flex",
+                                    gap: "4px",
+                                    zIndex: 1000,
+                                    marginBottom: "4px",
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {commonEmojis.map((emoji) => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => toggleReaction(msg._id, emoji)}
+                                      style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        padding: "4px 8px",
+                                        borderRadius: "4px",
+                                        fontSize: "18px",
+                                        transition: "all 0.2s ease",
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = "#f0f0f0";
+                                        e.currentTarget.style.transform = "scale(1.2)";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = "transparent";
+                                        e.currentTarget.style.transform = "scale(1)";
+                                      }}
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                         {isOwn && msg.sender && (
@@ -1260,7 +1409,7 @@ function ChatPageInner() {
                 <input
                   type="file"
                   ref={fileInputRef}
-                  accept="image/*"
+                  accept="image/*,application/pdf,.doc,.docx,.txt"
                   onChange={(e) => {
                     const file = e.target.files?.[0] || null;
                     setSelectedFile(file);
@@ -1276,28 +1425,27 @@ function ChatPageInner() {
                   }}
                   style={{ display: "none" }}
                 />
-                {groupId && (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      padding: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      transition: "transform 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "scale(1.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
-                  >
-                    <Paperclip size={20} color="#666" />
-                  </button>
-                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    padding: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    transition: "transform 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "scale(1.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                  title="Attach file"
+                >
+                  <Paperclip size={20} color="#666" />
+                </button>
                 {imagePreview && (
                   <div
                     style={{

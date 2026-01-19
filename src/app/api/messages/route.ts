@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
       fileUrl: msg.fileUrl,
       isRead: msg.isRead,
       createdAt: msg.createdAt,
+      reactions: msg.reactions || [],
       sender: senderMap.get(msg.senderId.toString())
         ? {
             _id: senderMap.get(msg.senderId.toString())!._id.toString(),
@@ -124,11 +125,8 @@ export async function POST(request: NextRequest) {
 
     let fileUrl = "";
 
-    // Upload file if provided - only for groups
+    // Upload file if provided - allowed in both private chats and groups
     if (file && file.size > 0) {
-      if (!groupId) {
-        return NextResponse.json({ error: "File uploads are only allowed in groups" }, { status: 400 });
-      }
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -157,6 +155,7 @@ export async function POST(request: NextRequest) {
       fileUrl: fileUrl || undefined,
       isRead: false,
       createdAt: new Date(),
+      reactions: [],
     };
 
     if (groupId) {

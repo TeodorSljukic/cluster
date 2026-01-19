@@ -13,4 +13,8 @@ export interface Message {
   fileUrl?: string;
   isRead: boolean;
   createdAt: Date;
+  reactions?: {
+    emoji: string;
+    userId: string;
+  }[];
 }
