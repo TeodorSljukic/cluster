@@ -47,9 +47,12 @@ export function Footer() {
       <footer className="site-footer">
         <div className="footer-top container">
           <div className="footer-left">
-            {/* If you copy WP logo into /public/wp-content/uploads/... you can swap this to <img /> */}
             <Link href={localeLink("/", locale)} className="site-title">
-              ABGC
+              <img 
+                src="/wp-content/uploads/2025/09/cropped-Frame-1000002133.webp" 
+                alt="Adriatic Blue Growth Cluster"
+                style={{ height: "80px", width: "auto", objectFit: "contain" }}
+              />
             </Link>
           </div>
 
