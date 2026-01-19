@@ -115,6 +115,21 @@ function ChatPageInner() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Close tapped message on outside click (mobile)
+  useEffect(() => {
+    if (isMobile && tappedMessageId) {
+      const handleClickOutside = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        // Don't close if clicking on action buttons or emoji picker
+        if (!target.closest('[data-message-actions]') && !target.closest('.emoji-picker-container')) {
+          setTappedMessageId(null);
+        }
+      };
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isMobile, tappedMessageId]);
+
   useEffect(() => {
     setLoadingChats(true);
     // Load data in parallel for better performance
@@ -1240,7 +1255,7 @@ function ChatPageInner() {
                       >
                         {/* Action buttons - right side for received messages (after message) */}
                         {!isOwn && (hoveredMessageId === msg._id || (isMobile && tappedMessageId === msg._id)) && (
-                          <div style={{ display: "flex", gap: "4px", alignSelf: "center", order: 2 }}>
+                          <div data-message-actions style={{ display: "flex", gap: isMobile ? "6px" : "4px", alignSelf: "center", order: 2 }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -1253,13 +1268,15 @@ function ChatPageInner() {
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "6px",
+                                padding: isMobile ? "8px" : "6px",
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                minWidth: isMobile ? "36px" : "auto",
+                                minHeight: isMobile ? "36px" : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f0f0f0";
@@ -1283,13 +1300,15 @@ function ChatPageInner() {
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "6px",
+                                padding: isMobile ? "8px" : "6px",
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                minWidth: isMobile ? "36px" : "auto",
+                                minHeight: isMobile ? "36px" : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f0f0f0";
@@ -1313,13 +1332,15 @@ function ChatPageInner() {
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "6px",
+                                padding: isMobile ? "8px" : "6px",
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                minWidth: isMobile ? "36px" : "auto",
+                                minHeight: isMobile ? "36px" : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f0f0f0";
@@ -1385,7 +1406,7 @@ function ChatPageInner() {
                         )}
                         {/* Action buttons - left side for sent messages (before message) */}
                         {isOwn && (hoveredMessageId === msg._id || (isMobile && tappedMessageId === msg._id)) && (
-                          <div style={{ display: "flex", gap: "4px", alignSelf: "center" }}>
+                          <div data-message-actions style={{ display: "flex", gap: isMobile ? "6px" : "4px", alignSelf: "center" }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -1398,13 +1419,15 @@ function ChatPageInner() {
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "6px",
+                                padding: isMobile ? "8px" : "6px",
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                minWidth: isMobile ? "36px" : "auto",
+                                minHeight: isMobile ? "36px" : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f0f0f0";
@@ -1428,13 +1451,15 @@ function ChatPageInner() {
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "6px",
+                                padding: isMobile ? "8px" : "6px",
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                minWidth: isMobile ? "36px" : "auto",
+                                minHeight: isMobile ? "36px" : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f0f0f0";
@@ -1457,13 +1482,15 @@ function ChatPageInner() {
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "6px",
+                                padding: isMobile ? "8px" : "6px",
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                minWidth: isMobile ? "36px" : "auto",
+                                minHeight: isMobile ? "36px" : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f0f0f0";
@@ -1487,13 +1514,15 @@ function ChatPageInner() {
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "6px",
+                                padding: isMobile ? "8px" : "6px",
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 transition: "all 0.2s ease",
                                 boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                minWidth: isMobile ? "36px" : "auto",
+                                minHeight: isMobile ? "36px" : "auto",
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "#f0f0f0";
