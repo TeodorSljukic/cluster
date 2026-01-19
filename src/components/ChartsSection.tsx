@@ -109,11 +109,11 @@ export function ChartsSection() {
   };
 
   const interestsChartData = {
-    labels: interests.slice(0, 10).map((item) => item.interest),
+    labels: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.interest),
     datasets: [
       {
         label: "Users",
-        data: interests.slice(0, 10).map((item) => item.count),
+        data: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.count),
         backgroundColor: "rgba(0, 119, 204, 0.7)",
         borderColor: "rgba(0, 119, 204, 1)",
         borderWidth: 2,

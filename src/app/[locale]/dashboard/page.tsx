@@ -219,13 +219,13 @@ export default function DashboardPage() {
     }
   }
 
-  // Chart configurations
-  const cityChartData = {
-    labels: usersByCity.slice(0, 10).map((item) => item.city || "Unknown"),
-    datasets: [
-      {
-        label: "Users",
-        data: usersByCity.slice(0, 10).map((item) => parseInt(item.total)),
+      // Chart configurations
+      const cityChartData = {
+        labels: (Array.isArray(usersByCity) ? usersByCity.slice(0, 10) : []).map((item) => item.city || "Unknown"),
+        datasets: [
+          {
+            label: "Users",
+            data: (Array.isArray(usersByCity) ? usersByCity.slice(0, 10) : []).map((item) => parseInt(item.total)),
         backgroundColor: "rgba(0, 95, 153, 0.7)",
         borderColor: "rgba(0, 95, 153, 1)",
         borderWidth: 2,
@@ -234,12 +234,12 @@ export default function DashboardPage() {
     ],
   };
 
-  const regionChartData = {
-    labels: usersByRegion.slice(0, 10).map((item) => item.region || "Unknown"),
-    datasets: [
-      {
-        label: "Users",
-        data: usersByRegion.slice(0, 10).map((item) => parseInt(item.total)),
+      const regionChartData = {
+        labels: (Array.isArray(usersByRegion) ? usersByRegion.slice(0, 10) : []).map((item) => item.region || "Unknown"),
+        datasets: [
+          {
+            label: "Users",
+            data: (Array.isArray(usersByRegion) ? usersByRegion.slice(0, 10) : []).map((item) => parseInt(item.total)),
         backgroundColor: "rgba(0, 153, 76, 0.7)",
         borderColor: "rgba(0, 153, 76, 1)",
         borderWidth: 2,
@@ -249,11 +249,11 @@ export default function DashboardPage() {
   };
 
   const countryChartData = {
-    labels: usersByCountry.map((item) => item.country || "Unknown"),
+    labels: (Array.isArray(usersByCountry) ? usersByCountry : []).map((item) => item.country || "Unknown"),
     datasets: [
       {
         label: "Users",
-        data: usersByCountry.map((item) => parseInt(item.total)),
+        data: (Array.isArray(usersByCountry) ? usersByCountry : []).map((item) => parseInt(item.total)),
         backgroundColor: "rgba(255, 165, 0, 0.7)",
         borderColor: "rgba(255, 165, 0, 1)",
         borderWidth: 2,
@@ -292,11 +292,11 @@ export default function DashboardPage() {
   };
 
   const interestsChartData = {
-    labels: interests.slice(0, 10).map((item) => item.interest),
+    labels: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.interest),
     datasets: [
       {
         label: "Users",
-        data: interests.slice(0, 10).map((item) => item.count),
+        data: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.count),
         backgroundColor: "rgba(0, 119, 204, 0.7)",
         borderColor: "rgba(0, 119, 204, 1)",
         borderWidth: 2,

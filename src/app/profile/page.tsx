@@ -1323,7 +1323,7 @@ export default function ProfilePage() {
                   My Connections ({acceptedConnections.length})
                 </h2>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {acceptedConnections.slice(0, 5).map((conn) => (
+                  {(Array.isArray(acceptedConnections) ? acceptedConnections.slice(0, 5) : []).map((conn) => (
                     <div
                       key={conn._id}
                       style={{

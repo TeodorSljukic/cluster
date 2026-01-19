@@ -57,7 +57,7 @@ export function UserStatus({ userId, size = "medium" }: UserStatusProps) {
         right: 0,
         boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
       }}
-      title={status.charAt(0).toUpperCase() + status.slice(1)}
+      title={status && typeof status === "string" ? status.charAt(0).toUpperCase() + status.slice(1) : "Offline"}
     />
   );
 }

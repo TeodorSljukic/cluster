@@ -10,8 +10,20 @@ export type { Locale };
  * @returns Path with locale prefix (e.g., "/me/about", "/en/posts/slug", "/me/chat?userId=123")
  */
 export function localeLink(path: string, locale: Locale): string {
+  // Guard against invalid input
+  if (!path || typeof path !== "string") {
+    console.warn("localeLink: Invalid path provided", path);
+    return `/${locale || "me"}`;
+  }
+  
   // Split path and query string
   const [pathPart, queryPart] = path.split("?");
+  
+  // Guard against invalid pathPart
+  if (!pathPart || typeof pathPart !== "string") {
+    console.warn("localeLink: Invalid pathPart", pathPart);
+    return `/${locale || "me"}`;
+  }
   
   // Remove leading slash if present
   const cleanPath = pathPart.startsWith("/") ? pathPart.slice(1) : pathPart;
