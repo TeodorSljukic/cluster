@@ -297,6 +297,17 @@ export default function ProfilePage({
     }
   }
 
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push(localeLink("/login", locale));
+      router.refresh();
+    } catch (error) {
+      console.error("Error logging out:", error);
+      alert("Error logging out");
+    }
+  }
+
   const pendingRequests = connections.filter(
     (conn) => conn.status === "pending" && conn.isIncoming === true
   );
@@ -643,36 +654,68 @@ export default function ProfilePage({
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setEditing(true)}
-                    style={{
-                      padding: "8px 24px",
-                      border: "1px solid #0a66c2",
-                      background: "white",
-                      color: "#0a66c2",
-                      borderRadius: "24px",
-                      cursor: "pointer",
-                      fontSize: "16px",
-                      fontWeight: "600",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#e3f0ff";
-                      e.currentTarget.style.transform = "scale(1.05)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "white";
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
-                    onMouseDown={(e) => {
-                      e.currentTarget.style.transform = "scale(0.95)";
-                    }}
-                    onMouseUp={(e) => {
-                      e.currentTarget.style.transform = "scale(1.05)";
-                    }}
-                  >
-                    {t.profile.editProfile}
-                  </button>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    <button
+                      onClick={() => setEditing(true)}
+                      style={{
+                        padding: "8px 24px",
+                        border: "1px solid #0a66c2",
+                        background: "white",
+                        color: "#0a66c2",
+                        borderRadius: "24px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#e3f0ff";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                      onMouseDown={(e) => {
+                        e.currentTarget.style.transform = "scale(0.95)";
+                      }}
+                      onMouseUp={(e) => {
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                    >
+                      {t.profile.editProfile}
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      style={{
+                        padding: "8px 24px",
+                        border: "1px solid #dc3545",
+                        background: "white",
+                        color: "#dc3545",
+                        borderRadius: "24px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#ffe3e3";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                      onMouseDown={(e) => {
+                        e.currentTarget.style.transform = "scale(0.95)";
+                      }}
+                      onMouseUp={(e) => {
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                    >
+                      {t.common.logout}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
