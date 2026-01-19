@@ -209,6 +209,19 @@ function ChatPageInner() {
     setShowSidebar(false);
   }, [userId, groupId, pathname]);
 
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showEmojiPicker && !(e.target as HTMLElement).closest('.emoji-picker-container')) {
+        setShowEmojiPicker(null);
+      }
+    };
+    if (showEmojiPicker) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showEmojiPicker]);
+
   // Close chat sidebar when hamburger menu is opened (check for mobile menu)
   useEffect(() => {
     const checkMobileMenu = () => {
