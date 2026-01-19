@@ -1,28 +1,38 @@
-export default function ContactPage() {
+import { use } from "react";
+import { getTranslations } from "@/lib/getTranslations";
+import { type Locale } from "@/lib/localeLink";
+
+export default function ContactPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const resolvedParams = use(params);
+  const locale = (resolvedParams.locale as Locale) || "me";
+  const t = getTranslations(locale);
+
   return (
     <main className="contact-page">
       <div className="container contact-info" data-aos="fade-up">
-        <h2>Feel free to Call &amp; Write us</h2>
+        <h2>{t.contact.title}</h2>
 
         <div className="info-cards">
           <div className="card" data-aos="zoom-in" data-aos-delay="100">
-            <h4>📞 Phone</h4>
+            <h4>📞 {t.contact.phone}</h4>
             <p>+012 8237 2934</p>
           </div>
           <div className="card" data-aos="zoom-in" data-aos-delay="200">
-            <h4>✉️ Email</h4>
+            <h4>✉️ {t.contact.email}</h4>
             <p>info@bluegrowth-adriatic.org</p>
           </div>
           <div className="card" data-aos="zoom-in" data-aos-delay="300">
-            <h4>🏢 Company info</h4>
+            <h4>🏢 {t.contact.companyInfo}</h4>
             <p>
-              Registered as a non-governmental organization (NVO) in Montenegro
-              in accordance with the Law on NGOs (&quot;Official Gazette of
-              Montenegro&quot;, Nos. 39/11 and 37/17)
+              {t.contact.companyInfoText}
             </p>
           </div>
           <div className="card" data-aos="zoom-in" data-aos-delay="400">
-            <h4>📍 Address</h4>
+            <h4>📍 {t.contact.address}</h4>
             <p>
               Adriatic Blue Growth Cluster (ABGC)
               <br />
@@ -46,8 +56,8 @@ export default function ContactPage() {
       </div>
 
       <div className="container contact-form" data-aos="fade-up">
-        <h2>Message us and let&apos;s work together</h2>
-        <p>(Contact form will be wired later.)</p>
+        <h2>{t.contact.messageUs}</h2>
+        <p>{t.contact.formComingSoon}</p>
       </div>
     </main>
   );

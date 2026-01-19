@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { localeLink, type Locale } from "@/lib/localeLink";
+import { getTranslations } from "@/lib/getTranslations";
 
 interface User {
   _id?: string;
@@ -27,7 +28,15 @@ interface User {
   twitter?: string;
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const resolvedParams = use(params);
+  const locale = (resolvedParams.locale as Locale) || "me";
+  const t = getTranslations(locale);
+  
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -43,16 +52,6 @@ export default function ProfilePage() {
   const [loadingConnections, setLoadingConnections] = useState(false);
   const [processingConnection, setProcessingConnection] = useState<string | null>(null);
   const router = useRouter();
-  const pathname = usePathname();
-
-  // Extract locale from pathname
-  const locale: Locale = (() => {
-    const match = pathname?.match(/^\/([^\/]+)/);
-    if (match && ["me", "en", "it", "sq"].includes(match[1])) {
-      return match[1] as Locale;
-    }
-    return "me";
-  })();
 
   // Helper function for button animations
   const buttonAnimations = {
@@ -327,8 +326,8 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div style={{ padding: "40px", textAlign: "center" }}>
-        <p>Please log in to view your profile.</p>
-        <Link href="/login">Login</Link>
+        <p>{t.profile.pleaseLogin}</p>
+        <Link href={localeLink("/login", locale)}>{t.common.login}</Link>
       </div>
     );
   }
@@ -370,7 +369,7 @@ export default function ProfilePage() {
                     opacity: uploadingCover ? 0.6 : 1,
                   }}
                 >
-                  {uploadingCover ? "Uploading..." : "Change cover"}
+                  {uploadingCover ? t.profile.uploading : t.profile.changeCover}
                   <input
                     type="file"
                     accept="image/*"
@@ -504,7 +503,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setFormData({ ...formData, displayName: e.target.value })
                       }
-                      placeholder="Full Name"
+                      placeholder={t.join.fullName}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -535,7 +534,7 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, headline: e.target.value })
                     }
-                    placeholder="Headline (e.g., Software Engineer at Company)"
+                    placeholder={t.profile.headline}
                     style={{
                       width: "100%",
                       padding: "8px",
@@ -600,7 +599,7 @@ export default function ProfilePage() {
                         e.currentTarget.style.transform = "scale(1.05)";
                       }}
                     >
-                      Cancel
+                      {t.profile.cancel}
                     </button>
                     <button
                       onClick={handleSave}
@@ -640,7 +639,7 @@ export default function ProfilePage() {
                         }
                       }}
                     >
-                      {saving ? "Saving..." : "Save"}
+                      {saving ? t.profile.saving : t.profile.saveProfile}
                     </button>
                   </div>
                 ) : (
@@ -672,7 +671,7 @@ export default function ProfilePage() {
                       e.currentTarget.style.transform = "scale(1.05)";
                     }}
                   >
-                    Edit profile
+                    {t.profile.editProfile}
                   </button>
                 )}
               </div>
@@ -694,13 +693,13 @@ export default function ProfilePage() {
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-                About
+                {t.profile.about}
               </h2>
               {editing ? (
                 <textarea
                   value={formData.about || ""}
                   onChange={(e) => setFormData({ ...formData, about: e.target.value })}
-                  placeholder="Tell us about yourself..."
+                  placeholder={t.profile.aboutPlaceholder}
                   rows={6}
                   style={{
                     width: "100%",
@@ -714,7 +713,7 @@ export default function ProfilePage() {
                 />
               ) : (
                 <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#666" }}>
-                  {user.about || "No about section yet."}
+                  {user.about || t.profile.noAbout}
                 </p>
               )}
             </div>
@@ -731,7 +730,7 @@ export default function ProfilePage() {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <h2 style={{ fontSize: "20px", fontWeight: "600" }}>Experience</h2>
+                <h2 style={{ fontSize: "20px", fontWeight: "600" }}>{t.profile.experience}</h2>
                 {editing && (
                   <button
                     onClick={() => {
@@ -749,7 +748,7 @@ export default function ProfilePage() {
                       fontWeight: "600",
                     }}
                   >
-                    + Add
+                    {t.profile.addExperience}
                   </button>
                 )}
               </div>
@@ -774,7 +773,7 @@ export default function ProfilePage() {
                             {exp.company}
                           </p>
                           <p style={{ fontSize: "12px", color: "#999" }}>
-                            {formatDate(exp.startDate)} - {exp.current ? "Present" : formatDate(exp.endDate)}
+                            {formatDate(exp.startDate)} - {exp.current ? t.profile.present : formatDate(exp.endDate)}
                           </p>
                           {exp.description && (
                             <p style={{ fontSize: "14px", color: "#666", marginTop: "8px" }}>
@@ -816,7 +815,7 @@ export default function ProfilePage() {
                                 e.currentTarget.style.transform = "scale(1.05)";
                               }}
                             >
-                              Edit
+                              {t.profile.edit}
                             </button>
                             <button
                               onClick={() => {
@@ -850,7 +849,7 @@ export default function ProfilePage() {
                                 e.currentTarget.style.transform = "scale(1.05)";
                               }}
                             >
-                              Delete
+                              {t.profile.delete}
                             </button>
                           </div>
                         )}
@@ -859,7 +858,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: "14px", color: "#666" }}>No experience added yet.</p>
+                <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noExperience}</p>
               )}
             </div>
 
@@ -874,7 +873,7 @@ export default function ProfilePage() {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <h2 style={{ fontSize: "20px", fontWeight: "600" }}>Education</h2>
+                <h2 style={{ fontSize: "20px", fontWeight: "600" }}>{t.profile.education}</h2>
                 {editing && (
                   <button
                     onClick={() => {
@@ -907,7 +906,7 @@ export default function ProfilePage() {
                       e.currentTarget.style.transform = "scale(1.05)";
                     }}
                   >
-                    + Add
+                    {t.profile.addEducation}
                   </button>
                 )}
               </div>
@@ -934,7 +933,7 @@ export default function ProfilePage() {
                             </p>
                           )}
                           <p style={{ fontSize: "12px", color: "#999" }}>
-                            {formatDate(edu.startDate)} - {edu.current ? "Present" : formatDate(edu.endDate)}
+                            {formatDate(edu.startDate)} - {edu.current ? t.profile.present : formatDate(edu.endDate)}
                           </p>
                         </div>
                         {editing && (
@@ -971,7 +970,7 @@ export default function ProfilePage() {
                                 e.currentTarget.style.transform = "scale(1.05)";
                               }}
                             >
-                              Edit
+                              {t.profile.edit}
                             </button>
                             <button
                               onClick={() => {
@@ -1005,7 +1004,7 @@ export default function ProfilePage() {
                                 e.currentTarget.style.transform = "scale(1.05)";
                               }}
                             >
-                              Delete
+                              {t.profile.delete}
                             </button>
                           </div>
                         )}
@@ -1014,7 +1013,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: "14px", color: "#666" }}>No education added yet.</p>
+                <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noEducation}</p>
               )}
             </div>
           </div>
@@ -1032,7 +1031,7 @@ export default function ProfilePage() {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <h2 style={{ fontSize: "20px", fontWeight: "600" }}>Skills</h2>
+                <h2 style={{ fontSize: "20px", fontWeight: "600" }}>{t.profile.skills}</h2>
               </div>
               {editing ? (
                 <div>
@@ -1099,7 +1098,7 @@ export default function ProfilePage() {
                   <div style={{ display: "flex", gap: "8px" }}>
                     <input
                       type="text"
-                      placeholder="Add skill"
+                      placeholder={t.profile.addSkillPlaceholder}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && e.currentTarget.value.trim()) {
                           const newSkills = [...(formData.skills || []), e.currentTarget.value.trim()];
@@ -1161,7 +1160,7 @@ export default function ProfilePage() {
                         e.currentTarget.style.transform = "scale(1.05)";
                       }}
                     >
-                      Add
+                      {t.profile.addSkill}
                     </button>
                   </div>
                 </div>
@@ -1186,7 +1185,7 @@ export default function ProfilePage() {
                       ))}
                     </div>
                   ) : (
-                    <p style={{ fontSize: "14px", color: "#666" }}>No skills added yet.</p>
+                    <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noSkills}</p>
                   )}
                 </>
               )}
@@ -1203,10 +1202,10 @@ export default function ProfilePage() {
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-                Connection Requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}
+                {t.profile.connectionRequests} {pendingRequests.length > 0 && `(${pendingRequests.length})`}
               </h2>
               {loadingConnections ? (
-                <p style={{ fontSize: "14px", color: "#666" }}>Loading...</p>
+                <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.loading}</p>
               ) : pendingRequests.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {pendingRequests.map((conn) => (
@@ -1220,7 +1219,7 @@ export default function ProfilePage() {
                     >
                       <div style={{ marginBottom: "8px" }}>
                         <Link
-                          href={`/user-profile?id=${conn.user?._id}`}
+                          href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
                           style={{
                             fontSize: "14px",
                             fontWeight: "600",
@@ -1266,7 +1265,7 @@ export default function ProfilePage() {
                             }
                           }}
                         >
-                          {processingConnection === conn._id ? "..." : "Accept"}
+                          {processingConnection === conn._id ? "..." : t.profile.accept}
                         </button>
                         <button
                           onClick={() => handleDeclineConnection(conn._id)}
@@ -1297,14 +1296,14 @@ export default function ProfilePage() {
                             }
                           }}
                         >
-                          Decline
+                          {t.profile.decline}
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: "14px", color: "#666" }}>No pending connection requests.</p>
+                <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noPendingRequests}</p>
               )}
             </div>
 
@@ -1320,7 +1319,7 @@ export default function ProfilePage() {
                 }}
               >
                 <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-                  My Connections ({acceptedConnections.length})
+                  {t.profile.myConnections} ({acceptedConnections.length})
                 </h2>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {acceptedConnections.slice(0, 5).map((conn) => (
@@ -1355,7 +1354,7 @@ export default function ProfilePage() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <Link
-                          href={`/user-profile?id=${conn.user?._id}`}
+                          href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
                           style={{
                             fontSize: "14px",
                             fontWeight: "600",
@@ -1372,7 +1371,7 @@ export default function ProfilePage() {
                         )}
                       </div>
                       <Link
-                        href={`/chat?userId=${conn.user?._id}`}
+                        href={localeLink(`/chat?userId=${conn.user?._id}`, locale)}
                         style={{
                           padding: "6px 12px",
                           border: "1px solid #0a66c2",
@@ -1395,13 +1394,13 @@ export default function ProfilePage() {
                           e.currentTarget.style.transform = "scale(1)";
                         }}
                       >
-                        Message
+                        {t.profile.message}
                       </Link>
                     </div>
                   ))}
                   {acceptedConnections.length > 5 && (
                     <Link
-                      href="/connection-requests"
+                      href={localeLink("/connection-requests", locale)}
                       style={{
                         fontSize: "14px",
                         color: "#0a66c2",
@@ -1411,7 +1410,7 @@ export default function ProfilePage() {
                         fontWeight: "600",
                       }}
                     >
-                      View all connections ({acceptedConnections.length})
+                      {t.profile.viewAllConnections} ({acceptedConnections.length})
                     </Link>
                   )}
                 </div>
@@ -1428,13 +1427,13 @@ export default function ProfilePage() {
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-                Contact Info
+                {t.profile.contactInfo}
               </h2>
               {editing ? (
                 <div style={{ fontSize: "14px" }}>
                   <div style={{ marginBottom: "12px" }}>
                     <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      Email
+                      {t.profile.email}
                     </label>
                     <input
                       type="email"
@@ -1450,11 +1449,11 @@ export default function ProfilePage() {
                         color: "#999",
                       }}
                     />
-                    <p style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>Email cannot be changed</p>
+                    <p style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>{t.profile.emailCannotChange}</p>
                   </div>
                   <div style={{ marginBottom: "12px" }}>
                     <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      Phone
+                      {t.profile.phone}
                     </label>
                     <input
                       type="tel"
@@ -1472,7 +1471,7 @@ export default function ProfilePage() {
                   </div>
                   <div style={{ marginBottom: "12px" }}>
                     <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      Website
+                      {t.profile.website}
                     </label>
                     <input
                       type="url"
@@ -1490,7 +1489,7 @@ export default function ProfilePage() {
                   </div>
                   <div style={{ marginBottom: "12px" }}>
                     <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      LinkedIn
+                      {t.profile.linkedin}
                     </label>
                     <input
                       type="url"
@@ -1508,7 +1507,7 @@ export default function ProfilePage() {
                   </div>
                   <div style={{ marginBottom: "12px" }}>
                     <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      Twitter
+                      {t.profile.twitter}
                     </label>
                     <input
                       type="url"
@@ -1539,19 +1538,19 @@ export default function ProfilePage() {
                   {user.linkedin && (
                     <p style={{ marginBottom: "8px" }}>
                       💼 <a href={user.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
-                        LinkedIn
+                        {t.profile.linkedin}
                       </a>
                     </p>
                   )}
                   {user.twitter && (
                     <p style={{ marginBottom: "8px" }}>
                       🐦 <a href={user.twitter} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
-                        Twitter
+                        {t.profile.twitter}
                       </a>
                     </p>
                   )}
                   {!user.phone && !user.website && !user.linkedin && !user.twitter && (
-                    <p style={{ fontSize: "14px", color: "#666" }}>No contact info added yet.</p>
+                    <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noContactInfo}</p>
                   )}
                 </div>
               )}
@@ -1588,25 +1587,26 @@ export default function ProfilePage() {
             }}
           >
             <ExperienceModal
-          experience={editingExp}
-          onClose={() => {
-            setShowExpModal(false);
-            setEditingExp(null);
-          }}
-          onSave={(exp) => {
-            let newExp = [...(formData.experience || [])];
-            if (editingExp) {
-              const idx = (formData.experience || []).findIndex((e: any) => e === editingExp);
-              if (idx >= 0) {
-                newExp[idx] = exp;
-              }
-            } else {
-              newExp.push(exp);
-            }
-            setFormData({ ...formData, experience: newExp });
-            setShowExpModal(false);
-            setEditingExp(null);
-          }}
+              experience={editingExp}
+              t={t}
+              onClose={() => {
+                setShowExpModal(false);
+                setEditingExp(null);
+              }}
+              onSave={(exp) => {
+                let newExp = [...(formData.experience || [])];
+                if (editingExp) {
+                  const idx = (formData.experience || []).findIndex((e: any) => e === editingExp);
+                  if (idx >= 0) {
+                    newExp[idx] = exp;
+                  }
+                } else {
+                  newExp.push(exp);
+                }
+                setFormData({ ...formData, experience: newExp });
+                setShowExpModal(false);
+                setEditingExp(null);
+              }}
             />
           </div>
         </div>
@@ -1640,25 +1640,26 @@ export default function ProfilePage() {
             }}
           >
             <EducationModal
-          education={editingEdu}
-          onClose={() => {
-            setShowEduModal(false);
-            setEditingEdu(null);
-          }}
-          onSave={(edu) => {
-            let newEdu = [...(formData.education || [])];
-            if (editingEdu) {
-              const idx = (formData.education || []).findIndex((e: any) => e === editingEdu);
-              if (idx >= 0) {
-                newEdu[idx] = edu;
-              }
-            } else {
-              newEdu.push(edu);
-            }
-            setFormData({ ...formData, education: newEdu });
-            setShowEduModal(false);
-            setEditingEdu(null);
-          }}
+              education={editingEdu}
+              t={t}
+              onClose={() => {
+                setShowEduModal(false);
+                setEditingEdu(null);
+              }}
+              onSave={(edu) => {
+                let newEdu = [...(formData.education || [])];
+                if (editingEdu) {
+                  const idx = (formData.education || []).findIndex((e: any) => e === editingEdu);
+                  if (idx >= 0) {
+                    newEdu[idx] = edu;
+                  }
+                } else {
+                  newEdu.push(edu);
+                }
+                setFormData({ ...formData, education: newEdu });
+                setShowEduModal(false);
+                setEditingEdu(null);
+              }}
             />
           </div>
         </div>
@@ -1670,10 +1671,12 @@ export default function ProfilePage() {
 // Experience Modal Component
 function ExperienceModal({
   experience,
+  t,
   onClose,
   onSave,
 }: {
   experience: any;
+  t: any;
   onClose: () => void;
   onSave: (exp: any) => void;
 }) {
@@ -1706,17 +1709,98 @@ function ExperienceModal({
       }}
     >
       <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "24px" }}>
-        {experience ? "Edit Experience" : "Add Experience"}
+        {experience ? t.profile.editExperienceTitle : t.profile.addExperienceTitle}
       </h2>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "16px" }}>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
+            {t.profile.title} *
+          </label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              fontSize: "14px",
+              transition: "all 0.2s ease",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#0a66c2";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "#ddd";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
+            {t.profile.company} *
+          </label>
+          <input
+            type="text"
+            value={formData.company}
+            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+            required
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              fontSize: "14px",
+              transition: "all 0.2s ease",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#0a66c2";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "#ddd";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
+            {t.profile.location}
+          </label>
+          <input
+            type="text"
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              fontSize: "14px",
+              transition: "all 0.2s ease",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#0a66c2";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "#ddd";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div>
             <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-              Title *
+              {t.profile.startDate} *
             </label>
             <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              type="month"
+              value={formData.startDate}
+              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
               required
               style={{
                 width: "100%",
@@ -1724,200 +1808,121 @@ function ExperienceModal({
                 border: "1px solid #ddd",
                 borderRadius: "4px",
                 fontSize: "14px",
-                transition: "all 0.2s ease",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#0a66c2";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#ddd";
-                e.currentTarget.style.boxShadow = "none";
               }}
             />
           </div>
-          <div style={{ marginBottom: "16px" }}>
+          <div>
             <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-              Company *
+              {t.profile.endDate}
             </label>
             <input
-              type="text"
-              value={formData.company}
-              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              required
+              type="month"
+              value={formData.endDate}
+              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              disabled={formData.current}
               style={{
                 width: "100%",
                 padding: "8px",
                 border: "1px solid #ddd",
                 borderRadius: "4px",
                 fontSize: "14px",
-                transition: "all 0.2s ease",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#0a66c2";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#ddd";
-                e.currentTarget.style.boxShadow = "none";
+                opacity: formData.current ? 0.5 : 1,
               }}
             />
           </div>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-              Location
-            </label>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px" }}>
             <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-                transition: "all 0.2s ease",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#0a66c2";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#ddd";
-                e.currentTarget.style.boxShadow = "none";
-              }}
+              type="checkbox"
+              checked={formData.current}
+              onChange={(e) => setFormData({ ...formData, current: e.target.checked, endDate: e.target.checked ? "" : formData.endDate })}
             />
-          </div>
-          <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div>
-              <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-                Start Date *
-              </label>
-              <input
-                type="month"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                required
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-                End Date
-              </label>
-              <input
-                type="month"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                disabled={formData.current}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                  opacity: formData.current ? 0.5 : 1,
-                }}
-              />
-            </div>
-          </div>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px" }}>
-              <input
-                type="checkbox"
-                checked={formData.current}
-                onChange={(e) => setFormData({ ...formData, current: e.target.checked, endDate: e.target.checked ? "" : formData.endDate })}
-              />
-              I currently work here
-            </label>
-          </div>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-                fontFamily: "inherit",
-                resize: "vertical",
-              }}
-            />
-          </div>
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: "8px 24px",
-                border: "1px solid #666",
-                background: "white",
-                borderRadius: "24px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              style={{
-                padding: "8px 24px",
-                border: "none",
-                background: "#0a66c2",
-                color: "white",
-                borderRadius: "24px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#004182";
-                e.currentTarget.style.transform = "scale(1.05)";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(10, 102, 194, 0.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#0a66c2";
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = "scale(0.95)";
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = "scale(1.05)";
-              }}
-            >
-              Save
-            </button>
-          </div>
-        </form>
-      </div>
-    );
+            {t.profile.current}
+          </label>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
+            {t.profile.description}
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            rows={4}
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              fontSize: "14px",
+              fontFamily: "inherit",
+              resize: "vertical",
+            }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: "8px 24px",
+              border: "1px solid #666",
+              background: "white",
+              borderRadius: "24px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "600",
+            }}
+          >
+            {t.profile.cancel}
+          </button>
+          <button
+            type="submit"
+            style={{
+              padding: "8px 24px",
+              border: "none",
+              background: "#0a66c2",
+              color: "white",
+              borderRadius: "24px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "600",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#004182";
+              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(10, 102, 194, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#0a66c2";
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "scale(0.95)";
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = "scale(1.05)";
+            }}
+          >
+            {t.cms.save}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
 // Education Modal Component
 function EducationModal({
   education,
+  t,
   onClose,
   onSave,
 }: {
   education: any;
+  t: any;
   onClose: () => void;
   onSave: (edu: any) => void;
 }) {
@@ -1950,30 +1955,30 @@ function EducationModal({
       }}
     >
         <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "24px" }}>
-          {education ? "Edit Education" : "Add Education"}
+          {education ? t.profile.editEducationTitle : t.profile.addEducationTitle}
         </h2>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "16px" }}>
             <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-              School *
+              {t.profile.school} *
             </label>
-            <input
-              type="text"
-              value={formData.school}
-              onChange={(e) => setFormData({ ...formData, school: e.target.value })}
-              required
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
-            />
-          </div>
+          <input
+            type="text"
+            value={formData.school}
+            onChange={(e) => setFormData({ ...formData, school: e.target.value })}
+            required
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              fontSize: "14px",
+            }}
+          />
+        </div>
           <div style={{ marginBottom: "16px" }}>
             <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-              Degree
+              {t.profile.degree}
             </label>
             <input
               type="text"
@@ -1990,25 +1995,25 @@ function EducationModal({
           </div>
           <div style={{ marginBottom: "16px" }}>
             <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-              Field of Study
+              {t.profile.fieldOfStudy}
             </label>
-            <input
-              type="text"
-              value={formData.field}
-              onChange={(e) => setFormData({ ...formData, field: e.target.value })}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
-            />
-          </div>
-          <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <input
+            type="text"
+            value={formData.field}
+            onChange={(e) => setFormData({ ...formData, field: e.target.value })}
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              fontSize: "14px",
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div>
               <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-                Start Date *
+                {t.profile.startDate} *
               </label>
               <input
                 type="month"
@@ -2026,7 +2031,7 @@ function EducationModal({
             </div>
             <div>
               <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
-                End Date
+                {t.profile.endDate}
               </label>
               <input
                 type="month"
@@ -2051,7 +2056,7 @@ function EducationModal({
                 checked={formData.current}
                 onChange={(e) => setFormData({ ...formData, current: e.target.checked, endDate: e.target.checked ? "" : formData.endDate })}
               />
-              I currently study here
+              {t.profile.currentStudy}
             </label>
           </div>
           <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
@@ -2068,7 +2073,7 @@ function EducationModal({
                 fontWeight: "600",
               }}
             >
-              Cancel
+              {t.profile.cancel}
             </button>
             <button
               type="submit"
@@ -2083,10 +2088,10 @@ function EducationModal({
                 fontWeight: "600",
               }}
             >
-              Save
+              {t.cms.save}
             </button>
           </div>
-        </form>
-      </div>
-    );
+      </form>
+    </div>
+  );
 }

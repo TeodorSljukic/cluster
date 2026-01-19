@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { MessageCircle } from "lucide-react";
 import { localeLink, type Locale } from "@/lib/localeLink";
 
 export function Footer() {
   const year = new Date().getFullYear();
   const pathname = usePathname();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   // Extract locale from pathname
   const locale: Locale = (() => {
@@ -17,6 +20,27 @@ export function Footer() {
     }
     return "me";
   })();
+
+  useEffect(() => {
+    checkAuth();
+  }, [pathname]);
+
+  async function checkAuth() {
+    try {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Error checking auth:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <>
@@ -48,12 +72,14 @@ export function Footer() {
         </div>
       </footer>
 
-      {/* Floating Chat Button */}
-      <div id="chat-widget">
-        <Link href={localeLink("/chat", locale)} title="Chat">
-          <MessageCircle size={28} />
-        </Link>
-      </div>
+      {/* Floating Chat Button - Only show when user is logged in */}
+      {!loading && user && (
+        <div id="chat-widget">
+          <Link href={localeLink("/chat", locale)} title="Chat">
+            <MessageCircle size={28} />
+          </Link>
+        </div>
+      )}
     </>
   );
 }
