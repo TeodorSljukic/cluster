@@ -2,24 +2,36 @@ import { Post } from "@/models/Post";
 import Link from "next/link";
 import { type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
+import { getCollection } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-async function getSkills() {
+async function getSkills(locale: Locale) {
   try {
-    // For server-side fetch, use absolute URL with environment variable or fallback
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
-      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-      || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/posts?type=skill&status=published&limit=20`, {
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      console.error("Failed to fetch skills:", res.status);
-      return [];
-    }
-    const data = await res.json();
-    return data.posts || [];
+    const collection = await getCollection("posts");
+    
+    const query: any = {
+      type: "skill",
+      status: "published",
+    };
+    
+    // Optionally filter by locale if needed
+    // query.locale = locale;
+
+    const posts = await collection
+      .find(query)
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .toArray();
+
+    return posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      createdAt: post.createdAt?.toISOString(),
+      updatedAt: post.updatedAt?.toISOString(),
+      publishedAt: post.publishedAt?.toISOString(),
+      eventDate: post.eventDate?.toISOString(),
+    })) as Post[];
   } catch (error) {
     console.error("Error fetching skills:", error);
     return [];
@@ -33,7 +45,7 @@ export default async function SkillsPage({
 }) {
   const resolvedParams = params instanceof Promise ? await params : params;
   const locale = (resolvedParams.locale as Locale) || "me";
-  const posts = await getSkills();
+  const posts = await getSkills(locale);
 
   function formatDate(dateValue?: string | Date) {
     if (!dateValue) return "";
