@@ -30,13 +30,31 @@ export function StatsSection() {
         fetch("/api/dashboard/visitors"),
       ]);
 
-      const statsData = await statsRes.json();
-      const visitorsData = await visitorsRes.json();
+      if (!statsRes.ok) {
+        console.error("Failed to fetch stats:", statsRes.status);
+        setStats(null);
+      } else {
+        const statsData = await statsRes.json();
+        // Check if statsData has the expected structure
+        if (statsData && statsData.stats) {
+          setStats(statsData);
+        } else {
+          console.error("Invalid stats data structure:", statsData);
+          setStats(null);
+        }
+      }
 
-      setStats(statsData);
-      setVisitors(visitorsData);
+      if (!visitorsRes.ok) {
+        console.error("Failed to fetch visitors:", visitorsRes.status);
+        setVisitors({ today: "0", total: "0" });
+      } else {
+        const visitorsData = await visitorsRes.json();
+        setVisitors(visitorsData);
+      }
     } catch (error) {
       console.error("Error loading stats:", error);
+      setStats(null);
+      setVisitors({ today: "0", total: "0" });
     } finally {
       setLoading(false);
     }
@@ -80,9 +98,9 @@ export function StatsSection() {
             </div>
             <div className="home-stat-card-content">
               <h3>Total Users</h3>
-              <p className="home-stat-card-value">{stats?.stats.totalUsers || 0}</p>
+              <p className="home-stat-card-value">{stats?.stats?.totalUsers ?? 0}</p>
               <span className="home-stat-card-label">
-                {stats?.stats.onlineUsers || 0} online
+                {stats?.stats?.onlineUsers ?? 0} online
               </span>
             </div>
           </div>
@@ -93,9 +111,9 @@ export function StatsSection() {
             </div>
             <div className="home-stat-card-content">
               <h3>Total Posts</h3>
-              <p className="home-stat-card-value">{stats?.stats.totalPosts || 0}</p>
+              <p className="home-stat-card-value">{stats?.stats?.totalPosts ?? 0}</p>
               <span className="home-stat-card-label">
-                {stats?.stats.publishedPosts || 0} published
+                {stats?.stats?.publishedPosts ?? 0} published
               </span>
             </div>
           </div>
@@ -107,10 +125,10 @@ export function StatsSection() {
             <div className="home-stat-card-content">
               <h3>Connections</h3>
               <p className="home-stat-card-value">
-                {stats?.stats.acceptedConnections || 0}
+                {stats?.stats?.acceptedConnections ?? 0}
               </p>
               <span className="home-stat-card-label">
-                {stats?.stats.totalConnections || 0} total
+                {stats?.stats?.totalConnections ?? 0} total
               </span>
             </div>
           </div>

@@ -158,21 +158,62 @@ export default function DashboardPage() {
         fetch("/api/dashboard/visitors"),
       ]);
 
-      const statsData = await statsRes.json();
-      const cityData = await cityRes.json();
-      const regionData = await regionRes.json();
-      const countryData = await countryRes.json();
-      const interestsData = await interestsRes.json();
-      const visitorsData = await visitorsRes.json();
+      if (!statsRes.ok) {
+        console.error("Failed to fetch stats:", statsRes.status);
+        setStats(null);
+      } else {
+        const statsData = await statsRes.json();
+        // Check if statsData has the expected structure
+        if (statsData && statsData.stats) {
+          setStats(statsData);
+        } else {
+          console.error("Invalid stats data structure:", statsData);
+          setStats(null);
+        }
+      }
 
-      setStats(statsData);
-      setUsersByCity(cityData);
-      setUsersByRegion(regionData);
-      setUsersByCountry(countryData);
-      setInterests(interestsData);
-      setVisitors(visitorsData);
+      if (cityRes.ok) {
+        const cityData = await cityRes.json();
+        setUsersByCity(Array.isArray(cityData) ? cityData : []);
+      } else {
+        setUsersByCity([]);
+      }
+
+      if (regionRes.ok) {
+        const regionData = await regionRes.json();
+        setUsersByRegion(Array.isArray(regionData) ? regionData : []);
+      } else {
+        setUsersByRegion([]);
+      }
+
+      if (countryRes.ok) {
+        const countryData = await countryRes.json();
+        setUsersByCountry(Array.isArray(countryData) ? countryData : []);
+      } else {
+        setUsersByCountry([]);
+      }
+
+      if (interestsRes.ok) {
+        const interestsData = await interestsRes.json();
+        setInterests(Array.isArray(interestsData) ? interestsData : []);
+      } else {
+        setInterests([]);
+      }
+
+      if (visitorsRes.ok) {
+        const visitorsData = await visitorsRes.json();
+        setVisitors(visitorsData);
+      } else {
+        setVisitors({ today: "0", total: "0" });
+      }
     } catch (error) {
       console.error("Error loading dashboard data:", error);
+      setStats(null);
+      setUsersByCity([]);
+      setUsersByRegion([]);
+      setUsersByCountry([]);
+      setInterests([]);
+      setVisitors({ today: "0", total: "0" });
     } finally {
       setLoading(false);
     }
@@ -344,9 +385,9 @@ export default function DashboardPage() {
           </div>
           <div className="stat-card-content">
             <h3>Total Users</h3>
-            <p className="stat-card-value">{stats?.stats.totalUsers || 0}</p>
+            <p className="stat-card-value">{stats?.stats?.totalUsers ?? 0}</p>
             <span className="stat-card-label">
-              {stats?.stats.onlineUsers || 0} online
+              {stats?.stats?.onlineUsers ?? 0} online
             </span>
           </div>
         </div>
@@ -357,9 +398,9 @@ export default function DashboardPage() {
           </div>
           <div className="stat-card-content">
             <h3>Total Posts</h3>
-            <p className="stat-card-value">{stats?.stats.totalPosts || 0}</p>
+            <p className="stat-card-value">{stats?.stats?.totalPosts ?? 0}</p>
             <span className="stat-card-label">
-              {stats?.stats.publishedPosts || 0} published
+              {stats?.stats?.publishedPosts ?? 0} published
             </span>
           </div>
         </div>
@@ -371,10 +412,10 @@ export default function DashboardPage() {
           <div className="stat-card-content">
             <h3>Connections</h3>
             <p className="stat-card-value">
-              {stats?.stats.acceptedConnections || 0}
+              {stats?.stats?.acceptedConnections ?? 0}
             </p>
             <span className="stat-card-label">
-              {stats?.stats.totalConnections || 0} total
+              {stats?.stats?.totalConnections ?? 0} total
             </span>
           </div>
         </div>
