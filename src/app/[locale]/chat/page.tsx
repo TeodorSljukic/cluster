@@ -1300,8 +1300,8 @@ function ChatPageInner() {
                           </div>
                         </div>
                         </div>
-                        {/* Menu button - outside message bubble, next to it */}
-                        {hoveredMessageId === msg._id && (
+                        {/* Menu button - right side for sent messages */}
+                        {isOwn && hoveredMessageId === msg._id && (
                           <div style={{ position: "relative", alignSelf: "flex-start", marginTop: "8px" }} data-message-menu={msg._id}>
                             <button
                               onClick={(e) => {
@@ -1338,8 +1338,7 @@ function ChatPageInner() {
                                 style={{
                                   position: "absolute",
                                   top: "100%",
-                                  right: isOwn ? "0" : "auto",
-                                  left: isOwn ? "auto" : "0",
+                                  right: "0",
                                   background: "white",
                                   borderRadius: "8px",
                                   padding: "4px",
@@ -1384,36 +1383,34 @@ function ChatPageInner() {
                                   <Reply size={14} color="#666" />
                                   <span style={{ color: "#333" }}>Reply</span>
                                 </button>
-                                {isOwn && (
-                                  <button
-                                    onClick={() => {
-                                      // TODO: Implement edit functionality
-                                      setMessageMenuOpen(null);
-                                    }}
-                                    style={{
-                                      border: "none",
-                                      background: "transparent",
-                                      cursor: "pointer",
-                                      padding: "6px 12px",
-                                      borderRadius: "4px",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "8px",
-                                      fontSize: "13px",
-                                      transition: "all 0.2s ease",
-                                      textAlign: "left",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.background = "#f0f0f0";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.background = "transparent";
-                                    }}
-                                  >
-                                    <Edit size={14} color="#666" />
-                                    <span style={{ color: "#333" }}>Edit</span>
-                                  </button>
-                                )}
+                                <button
+                                  onClick={() => {
+                                    // TODO: Implement edit functionality
+                                    setMessageMenuOpen(null);
+                                  }}
+                                  style={{
+                                    border: "none",
+                                    background: "transparent",
+                                    cursor: "pointer",
+                                    padding: "6px 12px",
+                                    borderRadius: "4px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    fontSize: "13px",
+                                    transition: "all 0.2s ease",
+                                    textAlign: "left",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#f0f0f0";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "transparent";
+                                  }}
+                                >
+                                  <Edit size={14} color="#666" />
+                                  <span style={{ color: "#333" }}>Edit</span>
+                                </button>
                                 <button
                                   onClick={() => {
                                     setForwardingTo(msg);
