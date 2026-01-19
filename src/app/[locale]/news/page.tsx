@@ -24,6 +24,8 @@ async function getNews(locale: Locale) {
       .limit(20)
       .toArray();
 
+    console.log(`[News] Found ${posts.length} published news posts`);
+
     return posts.map((post) => ({
       ...post,
       _id: post._id.toString(),

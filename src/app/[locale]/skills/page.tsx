@@ -24,6 +24,8 @@ async function getSkills(locale: Locale) {
       .limit(20)
       .toArray();
 
+    console.log(`[Skills] Found ${posts.length} published skill posts`);
+
     return posts.map((post) => ({
       ...post,
       _id: post._id.toString(),

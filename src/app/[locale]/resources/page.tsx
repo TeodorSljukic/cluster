@@ -24,6 +24,8 @@ async function getResources(locale: Locale) {
       .limit(20)
       .toArray();
 
+    console.log(`[Resources] Found ${posts.length} published resource posts`);
+
     return posts.map((post) => ({
       ...post,
       _id: post._id.toString(),
