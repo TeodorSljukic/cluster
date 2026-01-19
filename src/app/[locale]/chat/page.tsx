@@ -1771,7 +1771,7 @@ function ChatPageInner() {
                           </div>
                         )}
                       </div>
-                        {/* Reactions - shown below message */}
+                      {/* Reactions - shown below message */}
                         {msg.reactions && msg.reactions.length > 0 && (
                           <div style={{ 
                             display: "flex", 
