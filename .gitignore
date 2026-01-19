@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+**/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -15,6 +16,7 @@
 
 # next.js
 /.next/
+**/.next/
 /out/
 
 # production
@@ -38,6 +40,9 @@ yarn-error.log*
 # MongoDB exports (backup files)
 /mongodb-export
 /mongodb-backup
+
+# legacy / duplicate project folder (do not track or deploy)
+/nextjs/
 
 # Uploads (user-generated content - should be backed up separately)
 /public/uploads/chat

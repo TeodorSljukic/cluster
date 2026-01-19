@@ -5,10 +5,17 @@ import { localeLink } from "@/lib/localeLink";
 
 async function getUpcomingEvents() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    // For server-side fetch, use absolute URL with environment variable or fallback
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3000';
     const res = await fetch(`${baseUrl}/api/posts?type=event&status=published&limit=6`, {
       cache: "no-store",
     });
+    if (!res.ok) {
+      console.error("Failed to fetch events:", res.status);
+      return [];
+    }
     const data = await res.json();
     return data.posts || [];
   } catch (error) {
