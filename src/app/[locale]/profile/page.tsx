@@ -344,7 +344,7 @@ export default function ProfilePage({
   }
 
   return (
-    <main style={{ background: "#f3f2ef", minHeight: "100vh", paddingTop: "20px" }}>
+    <main style={{ background: "#f3f2ef", minHeight: "100vh", paddingTop: "20px", paddingBottom: "60px" }}>
       <div style={{ maxWidth: "1128px", margin: "0 auto", padding: "0 24px" }}>
         {/* Profile Header */}
         <div
