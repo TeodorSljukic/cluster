@@ -1220,9 +1220,9 @@ function ChatPageInner() {
                           position: "relative",
                         }}
                       >
-                        {/* Action buttons - left side for received messages */}
+                        {/* Action buttons - right side for received messages (after message) */}
                         {!isOwn && hoveredMessageId === msg._id && (
-                          <div style={{ display: "flex", gap: "4px", alignSelf: "center" }}>
+                          <div style={{ display: "flex", gap: "4px", alignSelf: "center", order: 2 }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
