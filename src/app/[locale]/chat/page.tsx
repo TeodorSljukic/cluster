@@ -214,18 +214,24 @@ function ChatPageInner() {
     setShowSidebar(false);
   }, [userId, groupId, pathname]);
 
-  // Close emoji picker when clicking outside
+  // Close emoji picker and message menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (showEmojiPicker && !(e.target as HTMLElement).closest('.emoji-picker-container')) {
         setShowEmojiPicker(null);
       }
+      if (messageMenuOpen) {
+        const messageMenu = document.querySelector(`[data-message-menu="${messageMenuOpen}"]`);
+        if (messageMenu && !messageMenu.contains(e.target as HTMLElement)) {
+          setMessageMenuOpen(null);
+        }
+      }
     };
-    if (showEmojiPicker) {
+    if (showEmojiPicker || messageMenuOpen) {
       document.addEventListener('click', handleClickOutside);
     }
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [showEmojiPicker]);
+  }, [showEmojiPicker, messageMenuOpen]);
 
   // Close chat sidebar when hamburger menu is opened (check for mobile menu)
   useEffect(() => {
