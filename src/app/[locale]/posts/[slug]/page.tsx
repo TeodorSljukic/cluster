@@ -8,11 +8,18 @@ export const dynamic = "force-dynamic";
 
 async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    // For server-side fetch, use absolute URL with environment variable or fallback
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3000';
     const res = await fetch(`${baseUrl}/api/posts/slug/${slug}`, {
       cache: "no-store",
     });
     if (res.status === 404) return null;
+    if (!res.ok) {
+      console.error("Failed to fetch post:", res.status);
+      return null;
+    }
     return await res.json();
   } catch (error) {
     console.error("Error fetching post:", error);
