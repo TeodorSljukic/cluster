@@ -142,19 +142,14 @@ export default function DashboardPage() {
   async function loadDashboardData() {
     try {
       setLoading(true);
+      // Reduced from 6 API calls to 3 by combining location/interests data
       const [
         statsRes,
-        cityRes,
-        regionRes,
-        countryRes,
-        interestsRes,
+        allDataRes,
         visitorsRes,
       ] = await Promise.all([
         fetch("/api/dashboard/stats"),
-        fetch("/api/dashboard/users-by-city"),
-        fetch("/api/dashboard/users-by-region"),
-        fetch("/api/dashboard/users-by-country"),
-        fetch("/api/dashboard/users-interests"),
+        fetch("/api/dashboard/all-data"),
         fetch("/api/dashboard/visitors"),
       ]);
 
@@ -172,31 +167,16 @@ export default function DashboardPage() {
         }
       }
 
-      if (cityRes.ok) {
-        const cityData = await cityRes.json();
-        setUsersByCity(Array.isArray(cityData) ? cityData : []);
+      if (allDataRes.ok) {
+        const allData = await allDataRes.json();
+        setUsersByCity(Array.isArray(allData.cities) ? allData.cities : []);
+        setUsersByRegion(Array.isArray(allData.regions) ? allData.regions : []);
+        setUsersByCountry(Array.isArray(allData.countries) ? allData.countries : []);
+        setInterests(Array.isArray(allData.interests) ? allData.interests : []);
       } else {
         setUsersByCity([]);
-      }
-
-      if (regionRes.ok) {
-        const regionData = await regionRes.json();
-        setUsersByRegion(Array.isArray(regionData) ? regionData : []);
-      } else {
         setUsersByRegion([]);
-      }
-
-      if (countryRes.ok) {
-        const countryData = await countryRes.json();
-        setUsersByCountry(Array.isArray(countryData) ? countryData : []);
-      } else {
         setUsersByCountry([]);
-      }
-
-      if (interestsRes.ok) {
-        const interestsData = await interestsRes.json();
-        setInterests(Array.isArray(interestsData) ? interestsData : []);
-      } else {
         setInterests([]);
       }
 
