@@ -8,30 +8,38 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      // Return success even if unauthorized to prevent error spam
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 200 });
     }
 
     const db = await getDb();
     const userId = new ObjectId(user.userId);
     const now = new Date();
 
-    // Update last activity
-    await db.collection("users").updateOne(
-      { _id: userId },
-      {
-        $set: {
-          lastActivity: now,
-          status: "online",
-        },
-      }
-    );
+    // Update last activity (with error handling)
+    try {
+      await db.collection("users").updateOne(
+        { _id: userId },
+        {
+          $set: {
+            lastActivity: now,
+            status: "online",
+          },
+        }
+      );
+    } catch (dbError: any) {
+      console.error("Database error updating activity:", dbError);
+      // Return success even on DB error to prevent client-side error loops
+      return NextResponse.json({ success: false, error: "Database error" }, { status: 200 });
+    }
 
     return NextResponse.json({ success: true, lastActivity: now });
   } catch (error: any) {
     console.error("Error updating activity:", error);
+    // Return 200 to prevent client-side error loops
     return NextResponse.json(
-      { error: "Failed to update activity" },
-      { status: 500 }
+      { success: false, error: "Failed to update activity" },
+      { status: 200 }
     );
   }
 }

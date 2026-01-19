@@ -110,17 +110,20 @@ function ChatPageInner() {
       }
     });
 
-    // Update user activity every 2 minutes
-    const activityInterval = setInterval(async () => {
-      try {
-        await fetch("/api/users/activity", { method: "POST" });
-      } catch (error) {
-        console.error("Error updating activity:", error);
-      }
-    }, 120000); // 2 minutes
+    // Update user activity every 2 minutes (only if user is authenticated)
+    let activityInterval: NodeJS.Timeout | null = null;
+    if (currentUserId) {
+      activityInterval = setInterval(async () => {
+        try {
+          await fetch("/api/users/activity", { method: "POST" });
+        } catch (error) {
+          // Silently fail - don't spam console
+        }
+      }, 120000); // 2 minutes
 
-    // Initial activity update
-    fetch("/api/users/activity", { method: "POST" }).catch(console.error);
+      // Initial activity update (only once)
+      fetch("/api/users/activity", { method: "POST" }).catch(() => {});
+    }
 
     return () => clearInterval(activityInterval);
   }, [userId, groupId]);
