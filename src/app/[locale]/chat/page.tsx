@@ -1527,21 +1527,23 @@ function ChatPageInner() {
                           </div>
                         </div>
                         </div>
-                        {/* Menu button - right side for sent messages */}
+                        {/* Action buttons - right side for sent messages */}
                         {isOwn && hoveredMessageId === msg._id && (
-                          <div style={{ position: "relative", alignSelf: "flex-start", marginTop: "8px" }} data-message-menu={msg._id}>
+                          <div style={{ display: "flex", gap: "4px", alignSelf: "center" }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setMessageMenuOpen(messageMenuOpen === msg._id ? null : msg._id);
-                                setShowEmojiPicker(null);
+                                setReplyingTo(msg);
+                                if (textareaRef.current) {
+                                  textareaRef.current.focus();
+                                }
                               }}
                               style={{
                                 background: "white",
                                 border: "1px solid #e0e0e0",
                                 cursor: "pointer",
-                                padding: "4px 8px",
-                                borderRadius: "8px",
+                                padding: "6px",
+                                borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -1556,10 +1558,71 @@ function ChatPageInner() {
                                 e.currentTarget.style.background = "white";
                                 e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
                               }}
-                              title="Message options"
+                              title="Reply"
                             >
-                              <MoreVertical size={16} color="#666" />
+                              <Reply size={16} color="#666" />
                             </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id);
+                                setMessageMenuOpen(null);
+                              }}
+                              style={{
+                                background: "white",
+                                border: "1px solid #e0e0e0",
+                                cursor: "pointer",
+                                padding: "6px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "all 0.2s ease",
+                                boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f0f0f0";
+                                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "white";
+                                e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
+                              }}
+                              title="React"
+                            >
+                              <Smile size={16} color="#666" />
+                            </button>
+                            <div style={{ position: "relative" }} data-message-menu={msg._id}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMessageMenuOpen(messageMenuOpen === msg._id ? null : msg._id);
+                                  setShowEmojiPicker(null);
+                                }}
+                                style={{
+                                  background: "white",
+                                  border: "1px solid #e0e0e0",
+                                  cursor: "pointer",
+                                  padding: "6px",
+                                  borderRadius: "50%",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  transition: "all 0.2s ease",
+                                  boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "#f0f0f0";
+                                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "white";
+                                  e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
+                                }}
+                                title="More options"
+                              >
+                                <MoreVertical size={16} color="#666" />
+                              </button>
                             {messageMenuOpen === msg._id && (
                               <div
                                 style={{
