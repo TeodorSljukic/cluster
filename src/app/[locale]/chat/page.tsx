@@ -125,7 +125,11 @@ function ChatPageInner() {
       fetch("/api/users/activity", { method: "POST" }).catch(() => {});
     }
 
-    return () => clearInterval(activityInterval);
+    return () => {
+      if (activityInterval) {
+        clearInterval(activityInterval);
+      }
+    };
   }, [userId, groupId]);
 
   async function loadCurrentUser() {
