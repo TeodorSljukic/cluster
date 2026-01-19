@@ -2498,6 +2498,226 @@ function ChatPageInner() {
           </div>
         </div>
       )}
+
+      {/* Forward Modal */}
+      {showForwardModal && forwardingTo && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => {
+            setShowForwardModal(false);
+            setForwardingTo(null);
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "8px",
+              padding: "24px",
+              width: "90%",
+              maxWidth: "500px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <h2 style={{ fontSize: "20px", fontWeight: "600" }}>Forward Message</h2>
+              <button
+                onClick={() => {
+                  setShowForwardModal(false);
+                  setForwardingTo(null);
+                }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  padding: "4px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Message preview */}
+            <div
+              style={{
+                background: "#f5f5f5",
+                borderRadius: "8px",
+                padding: "12px",
+                marginBottom: "20px",
+                fontSize: "14px",
+              }}
+            >
+              <div style={{ fontWeight: "600", marginBottom: "4px" }}>
+                {forwardingTo.sender?.displayName || forwardingTo.sender?.username || "User"}
+              </div>
+              <div style={{ color: "#666" }}>{forwardingTo.message || (forwardingTo.fileUrl ? "[File]" : "")}</div>
+            </div>
+
+            {/* Select recipient */}
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500" }}>
+                Forward to:
+              </label>
+              <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #e0e0e0", borderRadius: "8px" }}>
+                {connections.map((conn) => (
+                  <button
+                    key={conn._id}
+                    onClick={async () => {
+                      // Forward message
+                      const forwardText = `Forwarded from ${forwardingTo.sender?.displayName || forwardingTo.sender?.username || "User"}\n${forwardingTo.message || (forwardingTo.fileUrl ? "[File]" : "")}`;
+                      
+                      try {
+                        const formData = new FormData();
+                        formData.append("receiverId", conn.user._id);
+                        formData.append("message", forwardText);
+                        if (forwardingTo.fileUrl) {
+                          formData.append("message", `${forwardText}\n\nFile: ${forwardingTo.fileUrl}`);
+                        }
+
+                        const res = await fetch("/api/messages", {
+                          method: "POST",
+                          body: formData,
+                        });
+
+                        if (res.ok) {
+                          setShowForwardModal(false);
+                          setForwardingTo(null);
+                          router.push(localeLink(`/chat?userId=${conn.user._id}`, locale));
+                        } else {
+                          alert("Failed to forward message");
+                        }
+                      } catch (error) {
+                        console.error("Error forwarding message:", error);
+                        alert("Error forwarding message");
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px",
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "background 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#f0f0f0";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                        background: conn.user.profilePicture
+                          ? `url(${conn.user.profilePicture}) center/cover`
+                          : "#e4e4e4",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                        {conn.user.displayName || conn.user.username}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                {groups.map((group) => (
+                  <button
+                    key={group._id}
+                    onClick={async () => {
+                      // Forward message to group
+                      const forwardText = `Forwarded from ${forwardingTo.sender?.displayName || forwardingTo.sender?.username || "User"}\n${forwardingTo.message || (forwardingTo.fileUrl ? "[File]" : "")}`;
+                      
+                      try {
+                        const formData = new FormData();
+                        formData.append("groupId", group._id);
+                        formData.append("message", forwardText);
+                        if (forwardingTo.fileUrl) {
+                          formData.append("message", `${forwardText}\n\nFile: ${forwardingTo.fileUrl}`);
+                        }
+
+                        const res = await fetch("/api/messages", {
+                          method: "POST",
+                          body: formData,
+                        });
+
+                        if (res.ok) {
+                          setShowForwardModal(false);
+                          setForwardingTo(null);
+                          router.push(localeLink(`/chat?groupId=${group._id}`, locale));
+                        } else {
+                          alert("Failed to forward message");
+                        }
+                      } catch (error) {
+                        console.error("Error forwarding message:", error);
+                        alert("Error forwarding message");
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px",
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "background 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#f0f0f0";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                        background: "#0a66c2",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {group.name && group.name.length > 0 ? group.name[0].toUpperCase() : "G"}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "14px", fontWeight: "500" }}>{group.name || "Group"}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
