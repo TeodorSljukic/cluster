@@ -1359,29 +1359,40 @@ function ChatPageInner() {
                               )}
                             </div>
                           )}
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "4px", gap: "8px" }}>
-                            <div
-                              style={{
-                                fontSize: "11px",
-                                opacity: 0.7,
-                              }}
-                            >
-                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px", position: "relative" }}>
-                              {msg.reactions && msg.reactions.length > 0 && (
-                                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              opacity: 0.7,
+                              marginTop: "4px",
+                            }}
+                          >
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        </div>
+                        {/* Reactions - outside message bubble */}
+                        <div style={{ 
+                          display: "flex", 
+                          alignItems: "center", 
+                          gap: "4px", 
+                          marginTop: "4px",
+                          marginLeft: isOwn ? "auto" : "0",
+                          marginRight: isOwn ? "0" : "auto",
+                          position: "relative",
+                          maxWidth: "70%",
+                        }}>
+                          {msg.reactions && msg.reactions.length > 0 && (
+                            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
                               {Object.entries(getReactionCounts(msg.reactions)).map(([emoji, count]) => (
                                 <button
                                   key={emoji}
                                   onClick={() => toggleReaction(msg._id, emoji)}
                                   style={{
                                     background: hasUserReacted(msg.reactions, emoji) 
-                                      ? (isOwn ? "rgba(255,255,255,0.3)" : "#e3f2fd")
-                                      : "transparent",
+                                      ? "#e3f2fd"
+                                      : "white",
                                     border: `1px solid ${hasUserReacted(msg.reactions, emoji) 
-                                      ? (isOwn ? "rgba(255,255,255,0.5)" : "#0a66c2")
-                                      : "transparent"}`,
+                                      ? "#0a66c2"
+                                      : "#e0e0e0"}`,
                                     borderRadius: "12px",
                                     padding: "2px 6px",
                                     fontSize: "12px",
@@ -1390,12 +1401,15 @@ function ChatPageInner() {
                                     alignItems: "center",
                                     gap: "4px",
                                     transition: "all 0.2s ease",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
                                   }}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = "scale(1.1)";
+                                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)";
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.style.transform = "scale(1)";
+                                    e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
                                   }}
                                 >
                                   <span>{emoji}</span>
@@ -1403,80 +1417,78 @@ function ChatPageInner() {
                                 </button>
                               ))}
                             </div>
-                              )}
-                              <button
-                                onClick={() => setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id)}
-                                style={{
-                                  background: "transparent",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  padding: "4px",
-                                  borderRadius: "50%",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  opacity: 0.6,
-                                  transition: "all 0.2s ease",
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.opacity = "1";
-                                  e.currentTarget.style.background = isOwn ? "rgba(255,255,255,0.2)" : "#f0f0f0";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.opacity = "0.6";
-                                  e.currentTarget.style.background = "transparent";
-                                }}
-                                title="Add reaction"
-                              >
-                                <Smile size={14} color={isOwn ? "white" : "#666"} />
-                              </button>
-                              {showEmojiPicker === msg._id && (
-                                <div
-                                  className="emoji-picker-container"
+                          )}
+                          <button
+                            onClick={() => setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id)}
+                            style={{
+                              background: "white",
+                              border: "1px solid #e0e0e0",
+                              cursor: "pointer",
+                              padding: "4px 8px",
+                              borderRadius: "12px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.2s ease",
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#f0f0f0";
+                              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "white";
+                              e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
+                            }}
+                            title="Add reaction"
+                          >
+                            <Smile size={14} color="#666" />
+                          </button>
+                          {showEmojiPicker === msg._id && (
+                            <div
+                              className="emoji-picker-container"
+                              style={{
+                                position: "absolute",
+                                bottom: "100%",
+                                left: "0",
+                                background: "white",
+                                borderRadius: "8px",
+                                padding: "8px",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                display: "flex",
+                                gap: "4px",
+                                zIndex: 1000,
+                                marginBottom: "4px",
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {commonEmojis.map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => toggleReaction(msg._id, emoji)}
                                   style={{
-                                    position: "absolute",
-                                    bottom: "100%",
-                                    left: "0",
-                                    background: "white",
-                                    borderRadius: "8px",
-                                    padding: "8px",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                    display: "flex",
-                                    gap: "4px",
-                                    zIndex: 1000,
-                                    marginBottom: "4px",
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    padding: "4px 8px",
+                                    borderRadius: "4px",
+                                    fontSize: "18px",
+                                    transition: "all 0.2s ease",
                                   }}
-                                  onClick={(e) => e.stopPropagation()}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#f0f0f0";
+                                    e.currentTarget.style.transform = "scale(1.2)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "transparent";
+                                    e.currentTarget.style.transform = "scale(1)";
+                                  }}
                                 >
-                                  {commonEmojis.map((emoji) => (
-                                    <button
-                                      key={emoji}
-                                      onClick={() => toggleReaction(msg._id, emoji)}
-                                      style={{
-                                        background: "transparent",
-                                        border: "none",
-                                        cursor: "pointer",
-                                        padding: "4px 8px",
-                                        borderRadius: "4px",
-                                        fontSize: "18px",
-                                        transition: "all 0.2s ease",
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = "#f0f0f0";
-                                        e.currentTarget.style.transform = "scale(1.2)";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = "transparent";
-                                        e.currentTarget.style.transform = "scale(1)";
-                                      }}
-                                    >
-                                      {emoji}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
+                                  {emoji}
+                                </button>
+                              ))}
                             </div>
-                          </div>
+                          )}
                         </div>
                         {isOwn && msg.sender && (
                           <div
