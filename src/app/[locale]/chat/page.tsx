@@ -1247,7 +1247,7 @@ function ChatPageInner() {
                             <div
                               style={{
                                 position: "absolute",
-                                top: "-32px",
+                                bottom: "-36px",
                                 right: isOwn ? "0" : "auto",
                                 left: isOwn ? "auto" : "0",
                                 display: "flex",
