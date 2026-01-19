@@ -1447,89 +1447,9 @@ function ChatPageInner() {
                             )}
                           </div>
                         )}
-                        <div style={{ display: "flex", flexDirection: "column", maxWidth: "70%", minWidth: 0, width: "fit-content" }}>
-                          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-                            {!isOwn && msg.sender && (
-                              <div
-                                style={{
-                                  width: "32px",
-                                  height: "32px",
-                                  borderRadius: "50%",
-                                  background: msg.sender.profilePicture
-                                    ? `url(${msg.sender.profilePicture}) center/cover`
-                                    : "#e4e4e4",
-                                  flexShrink: 0,
-                                }}
-                              />
-                            )}
-                            <div
-                              style={{
-                                width: "fit-content",
-                                padding: "8px 12px",
-                                borderRadius: "12px",
-                                background: isOwn ? "#0a66c2" : "#f0f0f0",
-                                color: isOwn ? "white" : "inherit",
-                                boxSizing: "border-box",
-                                overflow: "hidden",
-                                wordBreak: "break-word",
-                                overflowWrap: "break-word",
-                                position: "relative",
-                              }}
-                            >
-                          {!isOwn && msg.sender && (
-                            <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "4px", color: "#0a66c2" }}>
-                              {msg.sender.displayName || msg.sender.username}
-                            </div>
-                          )}
-                          {msg.message && (
-                            <div 
-                              style={{ 
-                                marginBottom: msg.fileUrl ? "8px" : "0",
-                                whiteSpace: "pre-wrap",
-                                wordWrap: "break-word",
-                                overflowWrap: "break-word",
-                                wordBreak: "break-word",
-                                maxWidth: "100%",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {msg.message}
-                            </div>
-                          )}
-                          {msg.fileUrl && (
-                            <div>
-                              {msg.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                <img
-                                  src={msg.fileUrl}
-                                  alt="Attachment"
-                                  style={{ maxWidth: "200px", borderRadius: "8px", marginTop: "4px" }}
-                                />
-                              ) : (
-                                <a
-                                  href={msg.fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{ color: isOwn ? "white" : "#0a66c2", textDecoration: "underline" }}
-                                >
-                                  📎 File
-                                </a>
-                              )}
-                            </div>
-                          )}
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              opacity: 0.7,
-                              marginTop: "4px",
-                            }}
-                          >
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </div>
-                        </div>
-                        </div>
                         {/* Action buttons - left side for sent messages (before message) */}
                         {isOwn && hoveredMessageId === msg._id && (
-                          <div style={{ display: "flex", gap: "4px", alignSelf: "center", order: -1 }}>
+                          <div style={{ display: "flex", gap: "4px", alignSelf: "center" }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -1623,154 +1543,282 @@ function ChatPageInner() {
                               >
                                 <MoreVertical size={16} color="#666" />
                               </button>
-                            {messageMenuOpen === msg._id && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: "100%",
-                                  right: "0",
-                                  background: "white",
-                                  borderRadius: "8px",
-                                  padding: "4px",
-                                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  gap: "2px",
-                                  zIndex: 1000,
-                                  marginTop: "4px",
-                                  minWidth: "120px",
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <button
-                                  onClick={() => {
-                                    setReplyingTo(msg);
-                                    setMessageMenuOpen(null);
-                                    if (textareaRef.current) {
-                                      textareaRef.current.focus();
-                                    }
-                                  }}
+                              {messageMenuOpen === msg._id && (
+                                <div
                                   style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    padding: "6px 12px",
-                                    borderRadius: "4px",
+                                    position: "absolute",
+                                    top: "100%",
+                                    right: "0",
+                                    background: "white",
+                                    borderRadius: "8px",
+                                    padding: "4px",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                                     display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    fontSize: "13px",
-                                    transition: "all 0.2s ease",
-                                    textAlign: "left",
+                                    flexDirection: "column",
+                                    gap: "2px",
+                                    zIndex: 1000,
+                                    marginTop: "4px",
+                                    minWidth: "120px",
                                   }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#f0f0f0";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
+                                  onClick={(e) => e.stopPropagation()}
                                 >
-                                  <Reply size={14} color="#666" />
-                                  <span style={{ color: "#333" }}>Reply</span>
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    // TODO: Implement edit functionality
-                                    setMessageMenuOpen(null);
-                                  }}
-                                  style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    padding: "6px 12px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    fontSize: "13px",
-                                    transition: "all 0.2s ease",
-                                    textAlign: "left",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#f0f0f0";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
-                                >
-                                  <Edit size={14} color="#666" />
-                                  <span style={{ color: "#333" }}>Edit</span>
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setForwardingTo(msg);
-                                    setShowForwardModal(true);
-                                    setMessageMenuOpen(null);
-                                  }}
-                                  style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    padding: "6px 12px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    fontSize: "13px",
-                                    transition: "all 0.2s ease",
-                                    textAlign: "left",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#f0f0f0";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
-                                >
-                                  <Forward size={14} color="#666" />
-                                  <span style={{ color: "#333" }}>Forward</span>
-                                </button>
-                                <div style={{ height: "1px", background: "#e0e0e0", margin: "4px 0" }} />
-                                <div style={{ padding: "4px" }}>
-                                  <div style={{ fontSize: "11px", color: "#666", marginBottom: "4px", padding: "0 8px" }}>
-                                    React
-                                  </div>
-                                  <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                                    {commonEmojis.map((emoji) => (
-                                      <button
-                                        key={emoji}
-                                        onClick={() => {
-                                          toggleReaction(msg._id, emoji);
-                                          setMessageMenuOpen(null);
-                                        }}
-                                        style={{
-                                          background: "transparent",
-                                          border: "none",
-                                          cursor: "pointer",
-                                          padding: "4px 8px",
-                                          borderRadius: "4px",
-                                          fontSize: "18px",
-                                          transition: "all 0.2s ease",
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.background = "#f0f0f0";
-                                          e.currentTarget.style.transform = "scale(1.2)";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.background = "transparent";
-                                          e.currentTarget.style.transform = "scale(1)";
-                                        }}
-                                      >
-                                        {emoji}
-                                      </button>
-                                    ))}
+                                  <button
+                                    onClick={() => {
+                                      setReplyingTo(msg);
+                                      setMessageMenuOpen(null);
+                                      if (textareaRef.current) {
+                                        textareaRef.current.focus();
+                                      }
+                                    }}
+                                    style={{
+                                      border: "none",
+                                      background: "transparent",
+                                      cursor: "pointer",
+                                      padding: "6px 12px",
+                                      borderRadius: "4px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      fontSize: "13px",
+                                      transition: "all 0.2s ease",
+                                      textAlign: "left",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = "#f0f0f0";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = "transparent";
+                                    }}
+                                  >
+                                    <Reply size={14} color="#666" />
+                                    <span style={{ color: "#333" }}>Reply</span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      // TODO: Implement edit functionality
+                                      setMessageMenuOpen(null);
+                                    }}
+                                    style={{
+                                      border: "none",
+                                      background: "transparent",
+                                      cursor: "pointer",
+                                      padding: "6px 12px",
+                                      borderRadius: "4px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      fontSize: "13px",
+                                      transition: "all 0.2s ease",
+                                      textAlign: "left",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = "#f0f0f0";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = "transparent";
+                                    }}
+                                  >
+                                    <Edit size={14} color="#666" />
+                                    <span style={{ color: "#333" }}>Edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setForwardingTo(msg);
+                                      setShowForwardModal(true);
+                                      setMessageMenuOpen(null);
+                                    }}
+                                    style={{
+                                      border: "none",
+                                      background: "transparent",
+                                      cursor: "pointer",
+                                      padding: "6px 12px",
+                                      borderRadius: "4px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      fontSize: "13px",
+                                      transition: "all 0.2s ease",
+                                      textAlign: "left",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = "#f0f0f0";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = "transparent";
+                                    }}
+                                  >
+                                    <Forward size={14} color="#666" />
+                                    <span style={{ color: "#333" }}>Forward</span>
+                                  </button>
+                                  <div style={{ height: "1px", background: "#e0e0e0", margin: "4px 0" }} />
+                                  <div style={{ padding: "4px" }}>
+                                    <div style={{ fontSize: "11px", color: "#666", marginBottom: "4px", padding: "0 8px" }}>
+                                      React
+                                    </div>
+                                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                                      {commonEmojis.map((emoji) => (
+                                        <button
+                                          key={emoji}
+                                          onClick={() => {
+                                            toggleReaction(msg._id, emoji);
+                                            setMessageMenuOpen(null);
+                                          }}
+                                          style={{
+                                            background: "transparent",
+                                            border: "none",
+                                            cursor: "pointer",
+                                            padding: "4px 8px",
+                                            borderRadius: "4px",
+                                            fontSize: "18px",
+                                            transition: "all 0.2s ease",
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = "#f0f0f0";
+                                            e.currentTarget.style.transform = "scale(1.2)";
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = "transparent";
+                                            e.currentTarget.style.transform = "scale(1)";
+                                          }}
+                                        >
+                                          {emoji}
+                                        </button>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
+                              {showEmojiPicker === msg._id && (
+                                <div
+                                  className="emoji-picker-container"
+                                  style={{
+                                    position: "absolute",
+                                    bottom: "100%",
+                                    right: "0",
+                                    background: "white",
+                                    borderRadius: "8px",
+                                    padding: "8px",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                    display: "flex",
+                                    gap: "4px",
+                                    zIndex: 1000,
+                                    marginBottom: "4px",
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {commonEmojis.map((emoji) => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => {
+                                        toggleReaction(msg._id, emoji);
+                                        setShowEmojiPicker(null);
+                                      }}
+                                      style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        padding: "4px 8px",
+                                        borderRadius: "4px",
+                                        fontSize: "18px",
+                                        transition: "all 0.2s ease",
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = "#f0f0f0";
+                                        e.currentTarget.style.transform = "scale(1.2)";
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = "transparent";
+                                        e.currentTarget.style.transform = "scale(1)";
+                                      }}
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
+                        <div style={{ display: "flex", flexDirection: "column", maxWidth: "70%", minWidth: 0, width: "fit-content" }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                            {!isOwn && msg.sender && (
+                              <div
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  borderRadius: "50%",
+                                  background: msg.sender.profilePicture
+                                    ? `url(${msg.sender.profilePicture}) center/cover`
+                                    : "#e4e4e4",
+                                  flexShrink: 0,
+                                }}
+                              />
+                            )}
+                            <div
+                              style={{
+                                width: "fit-content",
+                                padding: "8px 12px",
+                                borderRadius: "12px",
+                                background: isOwn ? "#0a66c2" : "#f0f0f0",
+                                color: isOwn ? "white" : "inherit",
+                                boxSizing: "border-box",
+                                overflow: "hidden",
+                                wordBreak: "break-word",
+                                overflowWrap: "break-word",
+                                position: "relative",
+                              }}
+                            >
+                          {!isOwn && msg.sender && (
+                            <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "4px", color: "#0a66c2" }}>
+                              {msg.sender.displayName || msg.sender.username}
+                            </div>
+                          )}
+                          {msg.message && (
+                            <div 
+                              style={{ 
+                                marginBottom: msg.fileUrl ? "8px" : "0",
+                                whiteSpace: "pre-wrap",
+                                wordWrap: "break-word",
+                                overflowWrap: "break-word",
+                                wordBreak: "break-word",
+                                maxWidth: "100%",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {msg.message}
+                            </div>
+                          )}
+                          {msg.fileUrl && (
+                            <div>
+                              {msg.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                <img
+                                  src={msg.fileUrl}
+                                  alt="Attachment"
+                                  style={{ maxWidth: "200px", borderRadius: "8px", marginTop: "4px" }}
+                                />
+                              ) : (
+                                <a
+                                  href={msg.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: isOwn ? "white" : "#0a66c2", textDecoration: "underline" }}
+                                >
+                                  📎 File
+                                </a>
+                              )}
+                            </div>
+                          )}
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              opacity: 0.7,
+                              marginTop: "4px",
+                            }}
+                          >
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        </div>
+                        </div>
                       </div>
                       {/* Reactions - shown below message */}
                       {msg.reactions && msg.reactions.length > 0 && (
