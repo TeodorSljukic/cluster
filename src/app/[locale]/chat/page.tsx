@@ -1292,6 +1292,81 @@ function ChatPageInner() {
                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </div>
                         </div>
+                        {/* Reply and Forward buttons - shown on hover, below message */}
+                        {hoveredMessageId === msg._id && (
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "4px",
+                              marginTop: "4px",
+                              marginLeft: isOwn ? "auto" : "0",
+                              marginRight: isOwn ? "0" : "auto",
+                              background: "white",
+                              borderRadius: "8px",
+                              padding: "4px",
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                            }}
+                          >
+                            <button
+                              onClick={() => {
+                                setReplyingTo(msg);
+                                if (textareaRef.current) {
+                                  textareaRef.current.focus();
+                                }
+                              }}
+                              style={{
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                padding: "4px 8px",
+                                borderRadius: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "12px",
+                                transition: "all 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f0f0f0";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                              }}
+                              title="Reply"
+                            >
+                              <Reply size={14} color="#666" />
+                              <span style={{ fontSize: "11px", color: "#666" }}>Reply</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setForwardingTo(msg);
+                                setShowForwardModal(true);
+                              }}
+                              style={{
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                padding: "4px 8px",
+                                borderRadius: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "12px",
+                                transition: "all 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f0f0f0";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                              }}
+                              title="Forward"
+                            >
+                              <Forward size={14} color="#666" />
+                              <span style={{ fontSize: "11px", color: "#666" }}>Forward</span>
+                            </button>
+                          </div>
+                        )}
                         {/* Reactions - outside message bubble */}
                         <div style={{ 
                           display: "flex", 
