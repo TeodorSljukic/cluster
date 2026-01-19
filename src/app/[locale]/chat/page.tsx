@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile } from "lucide-react";
+import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile, Reply, Forward } from "lucide-react";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
 
@@ -91,6 +91,10 @@ function ChatPageInner() {
   const [firstMessageIdRef, setFirstMessageIdRef] = useState<string>("");
   const [loadingChats, setLoadingChats] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [forwardingTo, setForwardingTo] = useState<Message | null>(null);
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -407,7 +411,11 @@ function ChatPageInner() {
       } else if (groupId) {
         formData.append("groupId", groupId);
       }
-      formData.append("message", messageText);
+      let messageToSend = messageText;
+      if (replyingTo) {
+        messageToSend = `Replying to: ${replyingTo.sender?.displayName || replyingTo.sender?.username || "User"}\n${replyingTo.message || "[File]"}\n\n${messageText}`;
+      }
+      formData.append("message", messageToSend);
       if (selectedFile) {
         formData.append("file", selectedFile);
       }
@@ -437,6 +445,7 @@ function ChatPageInner() {
         setMessageText("");
         setSelectedFile(null);
         setImagePreview(null);
+        setReplyingTo(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -1190,6 +1199,8 @@ function ChatPageInner() {
                     return (
                       <div
                         key={msg._id}
+                        onMouseEnter={() => setHoveredMessageId(msg._id)}
+                        onMouseLeave={() => setHoveredMessageId(null)}
                         style={{
                           display: "flex",
                           justifyContent: isOwn ? "flex-end" : "flex-start",
@@ -1199,6 +1210,7 @@ function ChatPageInner() {
                           width: "100%",
                           minWidth: 0,
                           boxSizing: "border-box",
+                          position: "relative",
                         }}
                       >
                         {!isOwn && msg.sender && (
@@ -1227,8 +1239,86 @@ function ChatPageInner() {
                             overflow: "hidden",
                             wordBreak: "break-word",
                             overflowWrap: "break-word",
+                            position: "relative",
                           }}
                         >
+                          {/* Reply and Forward buttons - shown on hover */}
+                          {hoveredMessageId === msg._id && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: "-32px",
+                                right: isOwn ? "0" : "auto",
+                                left: isOwn ? "auto" : "0",
+                                display: "flex",
+                                gap: "4px",
+                                background: "white",
+                                borderRadius: "8px",
+                                padding: "4px",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                                zIndex: 10,
+                              }}
+                            >
+                              <button
+                                onClick={() => {
+                                  setReplyingTo(msg);
+                                  if (textareaRef.current) {
+                                    textareaRef.current.focus();
+                                  }
+                                }}
+                                style={{
+                                  border: "none",
+                                  background: "transparent",
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  fontSize: "12px",
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "#f0f0f0";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "transparent";
+                                }}
+                                title="Reply"
+                              >
+                                <Reply size={14} color="#666" />
+                                <span style={{ fontSize: "11px", color: "#666" }}>Reply</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setForwardingTo(msg);
+                                  setShowForwardModal(true);
+                                }}
+                                style={{
+                                  border: "none",
+                                  background: "transparent",
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  fontSize: "12px",
+                                  transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "#f0f0f0";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "transparent";
+                                }}
+                                title="Forward"
+                              >
+                                <Forward size={14} color="#666" />
+                                <span style={{ fontSize: "11px", color: "#666" }}>Forward</span>
+                              </button>
+                            </div>
+                          )}
                           {!isOwn && msg.sender && (
                             <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "4px", color: "#0a66c2" }}>
                               {msg.sender.displayName || msg.sender.username}
@@ -1590,6 +1680,7 @@ function ChatPageInner() {
                 >
                   <Send size={18} />
                 </button>
+                </div>
               </div>
             </>
           ) : (
