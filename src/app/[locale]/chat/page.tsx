@@ -1529,21 +1529,20 @@ function ChatPageInner() {
                             </div>
                           </div>
                         )}
+                        {isOwn && msg.sender && (
+                          <div
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "50%",
+                              background: msg.sender.profilePicture
+                                ? `url(${msg.sender.profilePicture}) center/cover`
+                                : "#e4e4e4",
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
                       </div>
-                      {isOwn && msg.sender && (
-                        <div
-                          style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                            background: msg.sender.profilePicture
-                              ? `url(${msg.sender.profilePicture}) center/cover`
-                              : "#e4e4e4",
-                            flexShrink: 0,
-                          }}
-                        />
-                      )}
-                    </div>
                     );
                   })}
                   </>
