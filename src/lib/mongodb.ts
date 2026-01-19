@@ -22,7 +22,11 @@ export function getMongoClientPromise(): Promise<MongoClient> {
   }
 
   if (!global._mongoClientPromise) {
-    const client = new MongoClient(uri);
+    const client = new MongoClient(uri, {
+      // Add connection options for better reliability
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+    });
     global._mongoClientPromise = client.connect().catch((error) => {
       // Clear the promise on error so we can retry
       global._mongoClientPromise = undefined;
