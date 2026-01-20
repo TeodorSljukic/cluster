@@ -1723,6 +1723,12 @@ function ChatPageInner() {
                                       setEditingMessageId(msg._id);
                                       setEditingText(messageToEdit.message || "");
                                       setMessageMenuOpen(null);
+                                      // Focus textarea after a short delay
+                                      setTimeout(() => {
+                                        if (textareaRef.current) {
+                                          textareaRef.current.focus();
+                                        }
+                                      }, 100);
                                     }
                                   }}
                                   style={{
