@@ -1418,11 +1418,12 @@ function ChatPageInner() {
                                     style={{
                                       background: "#f9f9f9",
                                       borderRadius: "8px",
-                                      padding: "8px",
+                                      padding: "6px",
                                       display: "flex",
-                                      gap: "4px",
-                                      flexWrap: "wrap",
+                                      gap: "2px",
+                                      flexWrap: "nowrap",
                                       marginTop: "4px",
+                                      justifyContent: "center",
                                     }}
                                     onClick={(e) => e.stopPropagation()}
                                     onMouseDown={(e) => e.stopPropagation()}
@@ -1441,12 +1442,12 @@ function ChatPageInner() {
                                           background: "transparent",
                                           border: "none",
                                           cursor: "pointer",
-                                          padding: "8px 12px",
+                                          padding: "4px 6px",
                                           borderRadius: "4px",
-                                          fontSize: "24px",
+                                          fontSize: "18px",
                                           transition: "all 0.2s ease",
-                                          minWidth: "40px",
-                                          minHeight: "40px",
+                                          minWidth: "28px",
+                                          minHeight: "28px",
                                           display: "flex",
                                           alignItems: "center",
                                           justifyContent: "center",
