@@ -435,7 +435,17 @@ function ChatPageInner() {
   }
 
   async function sendMessage() {
-    if (!messageText.trim() && !selectedFile) return;
+    // Allow sending if there's text OR a file
+    if (!messageText.trim() && !selectedFile) {
+      console.log("Cannot send: no text and no file");
+      return;
+    }
+
+    // Prevent sending if already sending
+    if (sending) {
+      console.log("Already sending a message");
+      return;
+    }
 
     setSending(true);
     try {
@@ -445,14 +455,23 @@ function ChatPageInner() {
       } else if (groupId) {
         formData.append("groupId", groupId);
       }
-      let messageToSend = messageText;
+      
+      let messageToSend = messageText.trim();
       if (replyingTo) {
-        messageToSend = `Replying to: ${replyingTo.sender?.displayName || replyingTo.sender?.username || "User"}\n${replyingTo.message || "[File]"}\n\n${messageText}`;
+        messageToSend = `Replying to: ${replyingTo.sender?.displayName || replyingTo.sender?.username || "User"}\n${replyingTo.message || "[File]"}\n\n${messageText.trim()}`;
       }
+      
+      // Always append message, even if empty (API allows empty message if file is present)
       formData.append("message", messageToSend);
+      
       if (selectedFile) {
+        console.log("Attaching file:", selectedFile.name, "Size:", selectedFile.size);
         formData.append("file", selectedFile);
+      } else {
+        console.log("No file attached");
       }
+
+      console.log("Sending message with text:", messageToSend || "(empty)", "and file:", selectedFile ? selectedFile.name : "none");
 
       const res = await fetch("/api/messages", {
         method: "POST",
@@ -461,6 +480,7 @@ function ChatPageInner() {
 
       if (res.ok) {
         const data = await res.json();
+        console.log("Message sent successfully:", data);
         // Ensure we have currentUserId before creating message
         if (!currentUserId) {
           await loadCurrentUser();
@@ -489,12 +509,13 @@ function ChatPageInner() {
         }
         lastMessageIdRef.current = data._id;
       } else {
-        const error = await res.json();
+        const error = await res.json().catch(() => ({ error: "Unknown error" }));
+        console.error("Failed to send message:", error);
         alert(error.error || "Failed to send message");
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("Error sending message");
+      alert("Error sending message: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setSending(false);
     }
@@ -2070,6 +2091,7 @@ function ChatPageInner() {
                   accept="image/*,application/pdf,.doc,.docx,.txt"
                   onChange={(e) => {
                     const file = e.target.files?.[0] || null;
+                    console.log("File selected:", file ? { name: file.name, size: file.size, type: file.type } : "null");
                     setSelectedFile(file);
                     if (file && file.type.startsWith("image/")) {
                       const reader = new FileReader();
@@ -2152,10 +2174,29 @@ function ChatPageInner() {
                   </div>
                 )}
                 {selectedFile && !imagePreview && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#666" }}>
-                    {selectedFile.name}
+                  <div style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "8px", 
+                    fontSize: "12px", 
+                    color: "#666",
+                    padding: "6px 10px",
+                    background: "#f0f0f0",
+                    borderRadius: "8px",
+                    maxWidth: "200px",
+                  }}>
+                    <Paperclip size={14} color="#666" />
+                    <span style={{ 
+                      overflow: "hidden", 
+                      textOverflow: "ellipsis", 
+                      whiteSpace: "nowrap",
+                      flex: 1,
+                    }}>
+                      {selectedFile.name}
+                    </span>
                     <button
                       onClick={() => {
+                        console.log("Removing file:", selectedFile.name);
                         setSelectedFile(null);
                         setImagePreview(null);
                         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -2165,6 +2206,9 @@ function ChatPageInner() {
                         background: "transparent",
                         cursor: "pointer",
                         padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        flexShrink: 0,
                       }}
                     >
                       <X size={14} />
