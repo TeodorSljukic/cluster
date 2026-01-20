@@ -198,6 +198,7 @@ export async function POST(request: NextRequest) {
       fileUrl: messageDoc.fileUrl,
       fileName: messageDoc.fileName,
       fileType: messageDoc.fileType,
+      reactions: messageDoc.reactions || [],
       createdAt: messageDoc.createdAt,
     });
   } catch (error: any) {

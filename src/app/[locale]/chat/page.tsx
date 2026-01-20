@@ -498,6 +498,7 @@ function ChatPageInner() {
           fileType: data.fileType,
           isRead: false,
           createdAt: data.createdAt,
+          reactions: data.reactions || [],
         };
         setMessages((prev) => [...prev, newMessage]);
         setMessageText("");
@@ -672,9 +673,13 @@ function ChatPageInner() {
   }
 
   async function toggleReaction(messageId: string, emoji: string) {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      console.log("Cannot toggle reaction: no currentUserId");
+      return;
+    }
 
     try {
+      console.log("Toggling reaction:", { messageId, emoji, currentUserId });
       const res = await fetch(`/api/messages/${messageId}/reactions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -683,16 +688,22 @@ function ChatPageInner() {
 
       if (res.ok) {
         const data = await res.json();
+        console.log("Reaction updated:", data);
         // Update message in state
         setMessages((prev) =>
           prev.map((msg) =>
-            msg._id === messageId ? { ...msg, reactions: data.reactions } : msg
+            msg._id === messageId ? { ...msg, reactions: data.reactions || [] } : msg
           )
         );
         setShowEmojiPicker(null);
+      } else {
+        const error = await res.json().catch(() => ({ error: "Unknown error" }));
+        console.error("Failed to toggle reaction:", error);
+        alert(`Failed to add reaction: ${error.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error toggling reaction:", error);
+      alert("Error adding reaction. Please try again.");
     }
   }
 
