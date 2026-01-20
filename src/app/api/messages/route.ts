@@ -3,6 +3,15 @@ import { getDb } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { ObjectId } from "mongodb";
 
+// Configure route for file uploads (increase body size limit)
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 // GET - Dohvati poruke (privatne ili grupne)
 export async function GET(request: NextRequest) {
   try {
