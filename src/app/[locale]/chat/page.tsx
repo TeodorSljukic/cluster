@@ -1549,26 +1549,36 @@ function ChatPageInner() {
                                   boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                                   display: "flex",
                                   gap: "4px",
-                                  zIndex: 1000,
+                                  zIndex: 10000,
                                   marginBottom: "4px",
+                                  minWidth: "200px",
+                                  flexWrap: "wrap",
                                 }}
                                 onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
                               >
                                 {commonEmojis.map((emoji) => (
                                   <button
                                     key={emoji}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.stopPropagation();
                                       toggleReaction(msg._id, emoji);
                                       setShowEmojiPicker(null);
                                     }}
+                                    onMouseDown={(e) => e.stopPropagation()}
                                     style={{
                                       background: "transparent",
                                       border: "none",
                                       cursor: "pointer",
-                                      padding: "4px 8px",
+                                      padding: "8px 12px",
                                       borderRadius: "4px",
-                                      fontSize: "18px",
+                                      fontSize: "24px",
                                       transition: "all 0.2s ease",
+                                      minWidth: "40px",
+                                      minHeight: "40px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.background = "#f0f0f0";
@@ -1756,6 +1766,65 @@ function ChatPageInner() {
                                   <Forward size={16} color="#666" />
                                   <span style={{ color: "#333" }}>Forward</span>
                                 </button>
+                              </div>
+                            )}
+                            {/* Emoji picker for received messages - shown after clicking React in menu */}
+                            {!isOwn && showEmojiPicker === msg._id && (
+                              <div
+                                className="emoji-picker-container"
+                                style={{
+                                  position: "absolute",
+                                  top: "100%",
+                                  right: "0",
+                                  background: "white",
+                                  borderRadius: "8px",
+                                  padding: "8px",
+                                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                  display: "flex",
+                                  gap: "4px",
+                                  zIndex: 10000,
+                                  marginTop: "4px",
+                                  minWidth: "200px",
+                                  flexWrap: "wrap",
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                {commonEmojis.map((emoji) => (
+                                  <button
+                                    key={emoji}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleReaction(msg._id, emoji);
+                                      setShowEmojiPicker(null);
+                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    style={{
+                                      background: "transparent",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      padding: "8px 12px",
+                                      borderRadius: "4px",
+                                      fontSize: "24px",
+                                      transition: "all 0.2s ease",
+                                      minWidth: "40px",
+                                      minHeight: "40px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = "#f0f0f0";
+                                      e.currentTarget.style.transform = "scale(1.2)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = "transparent";
+                                      e.currentTarget.style.transform = "scale(1)";
+                                    }}
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
                               </div>
                             )}
                           </div>
