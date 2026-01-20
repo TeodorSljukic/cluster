@@ -2008,85 +2008,20 @@ function ChatPageInner() {
                               {msg.sender.displayName || msg.sender.username}
                             </div>
                           )}
-                          {editingMessageId === msg._id ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                              <textarea
-                                value={editingText}
-                                onChange={(e) => setEditingText(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault();
-                                    editMessage(msg._id, editingText);
-                                  }
-                                  if (e.key === "Escape") {
-                                    setEditingMessageId(null);
-                                    setEditingText("");
-                                  }
-                                }}
-                                autoFocus
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  border: "1px solid #0a66c2",
-                                  borderRadius: "8px",
-                                  fontSize: "14px",
-                                  fontFamily: "inherit",
-                                  resize: "none",
-                                  minHeight: "60px",
-                                  outline: "none",
-                                }}
-                              />
-                              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                                <button
-                                  onClick={() => {
-                                    setEditingMessageId(null);
-                                    setEditingText("");
-                                  }}
-                                  style={{
-                                    padding: "6px 12px",
-                                    border: "1px solid #e0e0e0",
-                                    background: "white",
-                                    borderRadius: "6px",
-                                    cursor: "pointer",
-                                    fontSize: "12px",
-                                  }}
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={() => editMessage(msg._id, editingText)}
-                                  style={{
-                                    padding: "6px 12px",
-                                    border: "none",
-                                    background: "#0a66c2",
-                                    color: "white",
-                                    borderRadius: "6px",
-                                    cursor: "pointer",
-                                    fontSize: "12px",
-                                  }}
-                                >
-                                  Save
-                                </button>
-                              </div>
+                          {msg.message && (
+                            <div 
+                              style={{ 
+                                marginBottom: msg.fileUrl ? "8px" : "0",
+                                whiteSpace: "pre-wrap",
+                                wordWrap: "break-word",
+                                overflowWrap: "break-word",
+                                wordBreak: "break-word",
+                                maxWidth: "100%",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {msg.message}
                             </div>
-                          ) : (
-                            <>
-                              {msg.message && (
-                                <div 
-                                  style={{ 
-                                    marginBottom: msg.fileUrl ? "8px" : "0",
-                                    whiteSpace: "pre-wrap",
-                                    wordWrap: "break-word",
-                                    overflowWrap: "break-word",
-                                    wordBreak: "break-word",
-                                    maxWidth: "100%",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                                  {msg.message}
-                                </div>
-                              )}
-                            </>
                           )}
                           {msg.fileUrl && (
                             <div>
@@ -2379,9 +2314,13 @@ function ChatPageInner() {
                 )}
                 <textarea
                   ref={textareaRef}
-                  value={messageText}
+                  value={editingMessageId ? editingText : messageText}
                   onChange={(e) => {
-                    setMessageText(e.target.value);
+                    if (editingMessageId) {
+                      setEditingText(e.target.value);
+                    } else {
+                      setMessageText(e.target.value);
+                    }
                     // Auto-resize textarea
                     if (textareaRef.current) {
                       textareaRef.current.style.height = "auto";
@@ -2390,17 +2329,28 @@ function ChatPageInner() {
                     }
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage();
+                    if (editingMessageId) {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        editMessage(editingMessageId, editingText);
+                      }
+                      if (e.key === "Escape") {
+                        setEditingMessageId(null);
+                        setEditingText("");
+                      }
+                    } else {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
                     }
                   }}
-                  placeholder="Type a message..."
+                  placeholder={editingMessageId ? "Editing message..." : "Type a message..."}
                   rows={1}
                   style={{
                     flex: 1,
                     padding: "10px 12px",
-                    border: "1px solid #e0e0e0",
+                    border: editingMessageId ? "1px solid #ffc107" : "1px solid #e0e0e0",
                     borderRadius: "20px",
                     fontSize: "14px",
                     outline: "none",
@@ -2413,25 +2363,72 @@ function ChatPageInner() {
                     height: "40px",
                   }}
                 />
-                <button
-                  onClick={sendMessage}
-                  disabled={sending || (!messageText.trim() && !selectedFile)}
-                  style={{
-                    border: "none",
-                    background: "#0a66c2",
-                    color: "white",
-                    borderRadius: "50%",
-                    width: "40px",
-                    height: "40px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: sending || (!messageText.trim() && !selectedFile) ? "not-allowed" : "pointer",
-                    opacity: sending || (!messageText.trim() && !selectedFile) ? 0.5 : 1,
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!sending && (messageText.trim() || selectedFile)) {
+                {editingMessageId ? (
+                  <>
+                    <button
+                      onClick={() => editMessage(editingMessageId, editingText)}
+                      disabled={!editingText.trim()}
+                      style={{
+                        border: "none",
+                        background: "#0a66c2",
+                        color: "white",
+                        borderRadius: "50%",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: editingText.trim() ? "pointer" : "not-allowed",
+                        opacity: editingText.trim() ? 1 : 0.5,
+                        transition: "all 0.2s ease",
+                      }}
+                      title="Save changes"
+                    >
+                      <Send size={18} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingMessageId(null);
+                        setEditingText("");
+                      }}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        color: "#666",
+                        borderRadius: "50%",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      title="Cancel editing"
+                    >
+                      <X size={20} />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={sendMessage}
+                    disabled={sending || (!messageText.trim() && !selectedFile)}
+                    style={{
+                      border: "none",
+                      background: "#0a66c2",
+                      color: "white",
+                      borderRadius: "50%",
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: sending || (!messageText.trim() && !selectedFile) ? "not-allowed" : "pointer",
+                      opacity: sending || (!messageText.trim() && !selectedFile) ? 0.5 : 1,
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!sending && (messageText.trim() || selectedFile)) {
                       e.currentTarget.style.transform = "scale(1.1)";
                     }
                   }}
