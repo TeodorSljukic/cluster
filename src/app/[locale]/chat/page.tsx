@@ -14,6 +14,8 @@ interface Message {
   groupId?: string;
   message: string;
   fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
   isRead: boolean;
   createdAt: string;
   reactions?: {
@@ -492,6 +494,8 @@ function ChatPageInner() {
           groupId: groupId || undefined,
           message: data.message,
           fileUrl: data.fileUrl,
+          fileName: data.fileName,
+          fileType: data.fileType,
           isRead: false,
           createdAt: data.createdAt,
         };
@@ -579,7 +583,7 @@ function ChatPageInner() {
       if (res.ok) {
         const data = await res.json();
         const images = data.messages
-          ?.filter((msg: Message) => msg.fileUrl && msg.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+          ?.filter((msg: Message) => msg.fileUrl && (msg.fileType?.startsWith("image/") || msg.fileUrl.startsWith("data:image/")))
           .map((msg: Message) => msg.fileUrl) || [];
         setGroupImages(images);
       }
@@ -649,7 +653,7 @@ function ChatPageInner() {
       if (res.ok) {
         const data = await res.json();
         const images = data.messages
-          ?.filter((msg: Message) => msg.fileUrl && msg.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+          ?.filter((msg: Message) => msg.fileUrl && (msg.fileType?.startsWith("image/") || msg.fileUrl.startsWith("data:image/")))
           .map((msg: Message) => msg.fileUrl) || [];
         setChatImages(images);
       }
@@ -1930,7 +1934,7 @@ function ChatPageInner() {
                           )}
                           {msg.fileUrl && (
                             <div>
-                              {msg.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                              {msg.fileType?.startsWith("image/") || msg.fileUrl.startsWith("data:image/") ? (
                                 <img
                                   src={msg.fileUrl}
                                   alt="Attachment"
@@ -1939,11 +1943,13 @@ function ChatPageInner() {
                               ) : (
                                 <a
                                   href={msg.fileUrl}
+                                  download={msg.fileName || "file"}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  style={{ color: isOwn ? "white" : "#0a66c2", textDecoration: "underline" }}
+                                  style={{ color: isOwn ? "white" : "#0a66c2", textDecoration: "underline", display: "flex", alignItems: "center", gap: "4px" }}
                                 >
-                                  📎 File
+                                  <Paperclip size={14} />
+                                  {msg.fileName || "File"}
                                 </a>
                               )}
                             </div>

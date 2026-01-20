@@ -75,6 +75,8 @@ export async function GET(request: NextRequest) {
       groupId: msg.groupId?.toString(),
       message: msg.message,
       fileUrl: msg.fileUrl,
+      fileName: msg.fileName,
+      fileType: msg.fileType,
       isRead: msg.isRead,
       createdAt: msg.createdAt,
       reactions: msg.reactions || [],
@@ -123,9 +125,11 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const userId = new ObjectId(user.userId);
 
-    let fileUrl = "";
+    let fileData = "";
+    let fileName = "";
+    let fileType = "";
 
-    // Upload file if provided - allowed in both private chats and groups
+    // Convert file to base64 and store directly in message (no filesystem needed)
     if (file && file.size > 0) {
       try {
         console.log("Processing file upload:", {
@@ -134,55 +138,41 @@ export async function POST(request: NextRequest) {
           type: file.type,
         });
 
-        // Check file size (limit to 10MB for now)
-        const maxSize = 10 * 1024 * 1024; // 10MB
+        // Check file size (limit to 5MB for base64 to avoid MongoDB document size limits)
+        const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
           return NextResponse.json({ 
             error: "File too large", 
-            details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (10MB)` 
+            details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (5MB)` 
           }, { status: 400 });
         }
 
+        // Convert file to base64
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const timestamp = Date.now();
-        // Sanitize filename to avoid issues with special characters
-        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-        const filename = `${timestamp}-${sanitizedName}`;
-        const fs = await import("fs/promises");
-        const path = await import("path");
+        const base64String = buffer.toString('base64');
         
-        // Save chat images in chat folder, not in media CMS
-        const chatUploadsDir = path.join(process.cwd(), "public", "uploads", "chat");
-        try {
-          await fs.access(chatUploadsDir);
-        } catch {
-          await fs.mkdir(chatUploadsDir, { recursive: true });
-        }
+        // Create data URI for easy display
+        fileData = `data:${file.type};base64,${base64String}`;
+        fileName = file.name;
+        fileType = file.type;
         
-        const filepath = path.join(chatUploadsDir, filename);
-        await fs.writeFile(filepath, buffer);
-
-        fileUrl = `/uploads/chat/${filename}`;
-        console.log("File uploaded successfully:", fileUrl);
+        console.log("File converted to base64, size:", fileData.length, "chars");
       } catch (fileError: any) {
-        console.error("File upload error:", fileError);
-        // On Vercel, filesystem is read-only, so we need to handle this differently
-        if (fileError.code === "EROFS" || fileError.message?.includes("read-only") || fileError.message?.includes("ENOENT")) {
-          return NextResponse.json({ 
-            error: "File upload not supported in this environment",
-            details: "File uploads require a writable filesystem. Consider using cloud storage (Vercel Blob, S3, etc.)",
-            code: "FILESYSTEM_READONLY"
-          }, { status: 500 });
-        }
-        throw fileError; // Re-throw if it's a different error
+        console.error("File processing error:", fileError);
+        return NextResponse.json({ 
+          error: "Failed to process file",
+          details: fileError?.message || "Unknown error"
+        }, { status: 500 });
       }
     }
 
     const messageDoc: any = {
       senderId: userId,
       message: message || "",
-      fileUrl: fileUrl || undefined,
+      fileUrl: fileData || undefined, // Store base64 data URI instead of file path
+      fileName: fileName || undefined,
+      fileType: fileType || undefined,
       isRead: false,
       createdAt: new Date(),
       reactions: [],
@@ -206,6 +196,8 @@ export async function POST(request: NextRequest) {
       senderId: userId.toString(),
       message: messageDoc.message,
       fileUrl: messageDoc.fileUrl,
+      fileName: messageDoc.fileName,
+      fileType: messageDoc.fileType,
       createdAt: messageDoc.createdAt,
     });
   } catch (error: any) {
