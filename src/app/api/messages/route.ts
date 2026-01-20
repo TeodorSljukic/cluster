@@ -127,26 +127,56 @@ export async function POST(request: NextRequest) {
 
     // Upload file if provided - allowed in both private chats and groups
     if (file && file.size > 0) {
-
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const timestamp = Date.now();
-      const filename = `${timestamp}-${file.name}`;
-      const fs = await import("fs/promises");
-      const path = await import("path");
-      
-      // Save chat images in chat folder, not in media CMS
-      const chatUploadsDir = path.join(process.cwd(), "public", "uploads", "chat");
       try {
-        await fs.access(chatUploadsDir);
-      } catch {
-        await fs.mkdir(chatUploadsDir, { recursive: true });
-      }
-      
-      const filepath = path.join(chatUploadsDir, filename);
-      await fs.writeFile(filepath, buffer);
+        console.log("Processing file upload:", {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        });
 
-      fileUrl = `/uploads/chat/${filename}`;
+        // Check file size (limit to 10MB for now)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+          return NextResponse.json({ 
+            error: "File too large", 
+            details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (10MB)` 
+          }, { status: 400 });
+        }
+
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const timestamp = Date.now();
+        // Sanitize filename to avoid issues with special characters
+        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const filename = `${timestamp}-${sanitizedName}`;
+        const fs = await import("fs/promises");
+        const path = await import("path");
+        
+        // Save chat images in chat folder, not in media CMS
+        const chatUploadsDir = path.join(process.cwd(), "public", "uploads", "chat");
+        try {
+          await fs.access(chatUploadsDir);
+        } catch {
+          await fs.mkdir(chatUploadsDir, { recursive: true });
+        }
+        
+        const filepath = path.join(chatUploadsDir, filename);
+        await fs.writeFile(filepath, buffer);
+
+        fileUrl = `/uploads/chat/${filename}`;
+        console.log("File uploaded successfully:", fileUrl);
+      } catch (fileError: any) {
+        console.error("File upload error:", fileError);
+        // On Vercel, filesystem is read-only, so we need to handle this differently
+        if (fileError.code === "EROFS" || fileError.message?.includes("read-only") || fileError.message?.includes("ENOENT")) {
+          return NextResponse.json({ 
+            error: "File upload not supported in this environment",
+            details: "File uploads require a writable filesystem. Consider using cloud storage (Vercel Blob, S3, etc.)",
+            code: "FILESYSTEM_READONLY"
+          }, { status: 500 });
+        }
+        throw fileError; // Re-throw if it's a different error
+      }
     }
 
     const messageDoc: any = {
@@ -178,8 +208,17 @@ export async function POST(request: NextRequest) {
       fileUrl: messageDoc.fileUrl,
       createdAt: messageDoc.createdAt,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error sending message:", error);
-    return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
+    console.error("Error details:", {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
+    return NextResponse.json({ 
+      error: "Failed to send message",
+      details: error?.message || "Unknown error",
+      type: error?.name || "Error"
+    }, { status: 500 });
   }
 }
