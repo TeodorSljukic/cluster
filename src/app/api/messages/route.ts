@@ -138,12 +138,12 @@ export async function POST(request: NextRequest) {
           type: file.type,
         });
 
-        // Check file size (limit to 5MB for base64 to avoid MongoDB document size limits)
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        // Check file size (limit to 2MB original file = ~2.7MB base64 to avoid MongoDB 16MB document limit)
+        const maxSize = 2 * 1024 * 1024; // 2MB original file
         if (file.size > maxSize) {
           return NextResponse.json({ 
             error: "File too large", 
-            details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (5MB)` 
+            details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (2MB). Base64 encoding increases size by ~33%.` 
           }, { status: 400 });
         }
 
@@ -157,7 +157,21 @@ export async function POST(request: NextRequest) {
         fileName = file.name;
         fileType = file.type;
         
-        console.log("File converted to base64, size:", fileData.length, "chars");
+        // Check final size (base64 is ~33% larger)
+        const base64Size = fileData.length;
+        const maxBase64Size = 10 * 1024 * 1024; // 10MB max for base64 string
+        if (base64Size > maxBase64Size) {
+          return NextResponse.json({ 
+            error: "File too large after encoding", 
+            details: `Encoded file size (${(base64Size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (10MB)` 
+          }, { status: 400 });
+        }
+        
+        console.log("File converted to base64:", {
+          originalSize: file.size,
+          base64Size: base64Size,
+          fileName: file.name
+        });
       } catch (fileError: any) {
         console.error("File processing error:", fileError);
         return NextResponse.json({ 
@@ -189,29 +203,49 @@ export async function POST(request: NextRequest) {
       messageDoc.receiverId = new ObjectId(receiverId);
     }
 
-    const result = await db.collection("messages").insertOne(messageDoc);
+    try {
+      const result = await db.collection("messages").insertOne(messageDoc);
+      
+      console.log("Message saved successfully:", {
+        messageId: result.insertedId.toString(),
+        hasFile: !!fileData,
+        fileSize: fileData ? fileData.length : 0
+      });
 
-    return NextResponse.json({
-      _id: result.insertedId.toString(),
-      senderId: userId.toString(),
-      message: messageDoc.message,
-      fileUrl: messageDoc.fileUrl,
-      fileName: messageDoc.fileName,
-      fileType: messageDoc.fileType,
-      reactions: messageDoc.reactions || [],
-      createdAt: messageDoc.createdAt,
-    });
+      return NextResponse.json({
+        _id: result.insertedId.toString(),
+        senderId: userId.toString(),
+        message: messageDoc.message,
+        fileUrl: messageDoc.fileUrl,
+        fileName: messageDoc.fileName,
+        fileType: messageDoc.fileType,
+        reactions: messageDoc.reactions || [],
+        createdAt: messageDoc.createdAt,
+      });
+    } catch (dbError: any) {
+      console.error("Database error:", dbError);
+      // Check if it's a document size error
+      if (dbError.message?.includes("document is too large") || dbError.code === 10334) {
+        return NextResponse.json({ 
+          error: "File too large",
+          details: "The file is too large to store in the database. Please use a smaller file (max 2MB)."
+        }, { status: 400 });
+      }
+      throw dbError; // Re-throw to be caught by outer catch
+    }
   } catch (error: any) {
     console.error("Error sending message:", error);
     console.error("Error details:", {
       message: error?.message,
       stack: error?.stack,
       name: error?.name,
+      code: error?.code,
     });
     return NextResponse.json({ 
       error: "Failed to send message",
       details: error?.message || "Unknown error",
-      type: error?.name || "Error"
+      type: error?.name || "Error",
+      code: error?.code
     }, { status: 500 });
   }
 }
