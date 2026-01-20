@@ -100,6 +100,8 @@ function ChatPageInner() {
   const [tappedMessageId, setTappedMessageId] = useState<string | null>(null);
   const [messageMenuOpen, setMessageMenuOpen] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState<string>("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -1375,9 +1377,11 @@ function ChatPageInner() {
                                   <span style={{ color: "#333" }}>Reply</span>
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id);
-                                    setMessageMenuOpen(null);
+                                    // Don't close menu immediately - let emoji picker show first
+                                    setTimeout(() => setMessageMenuOpen(null), 100);
                                   }}
                                   style={{
                                     border: "none",
@@ -1682,9 +1686,11 @@ function ChatPageInner() {
                                   <span style={{ color: "#333" }}>Reply</span>
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id);
-                                    setMessageMenuOpen(null);
+                                    // Don't close menu immediately - let emoji picker show first
+                                    setTimeout(() => setMessageMenuOpen(null), 100);
                                   }}
                                   style={{
                                     border: "none",
@@ -1710,9 +1716,14 @@ function ChatPageInner() {
                                   <span style={{ color: "#333" }}>React</span>
                                 </button>
                                 <button
-                                  onClick={() => {
-                                    // TODO: Implement edit functionality
-                                    setMessageMenuOpen(null);
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const messageToEdit = messages.find(m => m._id === msg._id);
+                                    if (messageToEdit) {
+                                      setEditingMessageId(msg._id);
+                                      setEditingText(messageToEdit.message || "");
+                                      setMessageMenuOpen(null);
+                                    }
                                   }}
                                   style={{
                                     border: "none",
@@ -1997,20 +2008,85 @@ function ChatPageInner() {
                               {msg.sender.displayName || msg.sender.username}
                             </div>
                           )}
-                          {msg.message && (
-                            <div 
-                              style={{ 
-                                marginBottom: msg.fileUrl ? "8px" : "0",
-                                whiteSpace: "pre-wrap",
-                                wordWrap: "break-word",
-                                overflowWrap: "break-word",
-                                wordBreak: "break-word",
-                                maxWidth: "100%",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {msg.message}
+                          {editingMessageId === msg._id ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                              <textarea
+                                value={editingText}
+                                onChange={(e) => setEditingText(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    editMessage(msg._id, editingText);
+                                  }
+                                  if (e.key === "Escape") {
+                                    setEditingMessageId(null);
+                                    setEditingText("");
+                                  }
+                                }}
+                                autoFocus
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  border: "1px solid #0a66c2",
+                                  borderRadius: "8px",
+                                  fontSize: "14px",
+                                  fontFamily: "inherit",
+                                  resize: "none",
+                                  minHeight: "60px",
+                                  outline: "none",
+                                }}
+                              />
+                              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                                <button
+                                  onClick={() => {
+                                    setEditingMessageId(null);
+                                    setEditingText("");
+                                  }}
+                                  style={{
+                                    padding: "6px 12px",
+                                    border: "1px solid #e0e0e0",
+                                    background: "white",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "12px",
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => editMessage(msg._id, editingText)}
+                                  style={{
+                                    padding: "6px 12px",
+                                    border: "none",
+                                    background: "#0a66c2",
+                                    color: "white",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "12px",
+                                  }}
+                                >
+                                  Save
+                                </button>
+                              </div>
                             </div>
+                          ) : (
+                            <>
+                              {msg.message && (
+                                <div 
+                                  style={{ 
+                                    marginBottom: msg.fileUrl ? "8px" : "0",
+                                    whiteSpace: "pre-wrap",
+                                    wordWrap: "break-word",
+                                    overflowWrap: "break-word",
+                                    wordBreak: "break-word",
+                                    maxWidth: "100%",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  {msg.message}
+                                </div>
+                              )}
+                            </>
                           )}
                           {msg.fileUrl && (
                             <div>
