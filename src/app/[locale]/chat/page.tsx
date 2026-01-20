@@ -2435,15 +2435,16 @@ function ChatPageInner() {
                     }}
                     onMouseEnter={(e) => {
                       if (!sending && (messageText.trim() || selectedFile)) {
-                      e.currentTarget.style.transform = "scale(1.1)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "scale(1)";
-                  }}
-                >
-                  <Send size={18} />
-                </button>
+                        e.currentTarget.style.transform = "scale(1.1)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  >
+                    <Send size={18} />
+                  </button>
+                )}
                 </div>
               </div>
             </>
