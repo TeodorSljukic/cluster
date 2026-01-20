@@ -1326,7 +1326,7 @@ function ChatPageInner() {
                             >
                               <MoreVertical size={isMobile ? 18 : 16} color="#666" />
                             </button>
-                            {messageMenuOpen === msg._id && (
+                            {(messageMenuOpen === msg._id || showEmojiPicker === msg._id) && (
                               <div
                                 style={{
                                   position: "absolute",
@@ -1379,9 +1379,14 @@ function ChatPageInner() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id);
-                                    // Don't close menu immediately - let emoji picker show first
-                                    setTimeout(() => setMessageMenuOpen(null), 100);
+                                    const newPickerState = showEmojiPicker === msg._id ? null : msg._id;
+                                    setShowEmojiPicker(newPickerState);
+                                    // Don't close menu if opening picker
+                                    if (newPickerState !== null) {
+                                      // Keep menu open so picker can show
+                                    } else {
+                                      setMessageMenuOpen(null);
+                                    }
                                   }}
                                   style={{
                                     border: "none",
@@ -1406,6 +1411,60 @@ function ChatPageInner() {
                                   <Smile size={16} color="#666" />
                                   <span style={{ color: "#333" }}>React</span>
                                 </button>
+                                {/* Emoji picker inside menu */}
+                                {showEmojiPicker === msg._id && (
+                                  <div
+                                    className="emoji-picker-container"
+                                    style={{
+                                      background: "#f9f9f9",
+                                      borderRadius: "8px",
+                                      padding: "8px",
+                                      display: "flex",
+                                      gap: "4px",
+                                      flexWrap: "wrap",
+                                      marginTop: "4px",
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                  >
+                                    {commonEmojis.map((emoji) => (
+                                      <button
+                                        key={emoji}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleReaction(msg._id, emoji);
+                                          setShowEmojiPicker(null);
+                                          setMessageMenuOpen(null);
+                                        }}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        style={{
+                                          background: "transparent",
+                                          border: "none",
+                                          cursor: "pointer",
+                                          padding: "8px 12px",
+                                          borderRadius: "4px",
+                                          fontSize: "24px",
+                                          transition: "all 0.2s ease",
+                                          minWidth: "40px",
+                                          minHeight: "40px",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.background = "#f0f0f0";
+                                          e.currentTarget.style.transform = "scale(1.2)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.background = "transparent";
+                                          e.currentTarget.style.transform = "scale(1)";
+                                        }}
+                                      >
+                                        {emoji}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                                 <button
                                   onClick={() => {
                                     setForwardingTo(msg);
@@ -1688,9 +1747,14 @@ function ChatPageInner() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id);
-                                    // Don't close menu immediately - let emoji picker show first
-                                    setTimeout(() => setMessageMenuOpen(null), 100);
+                                    const newPickerState = showEmojiPicker === msg._id ? null : msg._id;
+                                    setShowEmojiPicker(newPickerState);
+                                    // Don't close menu if opening picker
+                                    if (newPickerState !== null) {
+                                      // Keep menu open so picker can show
+                                    } else {
+                                      setMessageMenuOpen(null);
+                                    }
                                   }}
                                   style={{
                                     border: "none",
