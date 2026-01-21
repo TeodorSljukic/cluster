@@ -1,0 +1,284 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "User Registration API",
+    "description": "API endpoint za registraciju korisnika sa integracijom na LMS, ECOMMERCE i DMS sisteme",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "http://89.188.43.147",
+      "description": "Production Server"
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Registruj novog korisnika",
+        "description": "Kreira novog korisnika u LMS sistemu i pokušava registraciju na ECOMMERCE i DMS sistemima",
+        "operationId": "registerUser",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              },
+              "examples": {
+                "minimal": {
+                  "summary": "Minimalni payload",
+                  "value": {
+                    "username": "johndoe",
+                    "email": "john.doe@example.com",
+                    "password": "SecurePassword123!"
+                  }
+                },
+                "complete": {
+                  "summary": "Kompletan payload",
+                  "value": {
+                    "username": "johndoe",
+                    "email": "john.doe@example.com",
+                    "password": "SecurePassword123!",
+                    "displayName": "John Doe",
+                    "organization": "ABC University",
+                    "location": "Beograd, Centralna Srbija, Serbia",
+                    "role_custom": "Researcher",
+                    "interests": "Blue Economy, Sustainability"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uspešna registracija",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Greška u zahtevu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingFields": {
+                    "value": {
+                      "error": "Missing required fields: username, email, password"
+                    }
+                  },
+                  "userExists": {
+                    "value": {
+                      "error": "Username or email already exists"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server greška",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "CORS preflight",
+        "description": "CORS preflight zahtev za eksterne pozive",
+        "operationId": "registerUserOptions",
+        "responses": {
+          "200": {
+            "description": "CORS headers",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string",
+                  "example": "POST, OPTIONS"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string",
+                  "example": "Content-Type"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Korisničko ime (jedinstveno)",
+            "example": "johndoe"
+          },
+          "userName": {
+            "type": "string",
+            "description": "Alternativa za username (za kompatibilnost)",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email adresa (jedinstvena)",
+            "example": "john.doe@example.com"
+          },
+          "userEmail": {
+            "type": "string",
+            "format": "email",
+            "description": "Alternativa za email (za kompatibilnost)",
+            "example": "john.doe@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "Lozinka (minimum 6 karaktera preporučeno)",
+            "minLength": 6,
+            "example": "SecurePassword123!"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Prikazano ime (default: username)",
+            "example": "John Doe"
+          },
+          "organization": {
+            "type": "string",
+            "description": "Organizacija",
+            "example": "ABC University"
+          },
+          "location": {
+            "type": "string",
+            "description": "Lokacija (format: 'Grad, Region, Država')",
+            "example": "Beograd, Centralna Srbija, Serbia"
+          },
+          "role_custom": {
+            "type": "string",
+            "description": "Prilagođena uloga",
+            "enum": ["Student", "Researcher", "Manager", "Policy Maker"],
+            "default": "Student",
+            "example": "Researcher"
+          },
+          "interests": {
+            "type": "string",
+            "description": "Interesovanja",
+            "example": "Blue Economy, Sustainability, Marine Science"
+          }
+        }
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "registrations": {
+            "$ref": "#/components/schemas/RegistrationResults"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Jedinstveni ID korisnika",
+            "example": "69710a9212d85b8a7c658774"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "user"],
+            "description": "Role korisnika (prvi korisnik je admin)",
+            "example": "user"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "John Doe"
+          }
+        }
+      },
+      "RegistrationResults": {
+        "type": "object",
+        "properties": {
+          "lms": {
+            "$ref": "#/components/schemas/RegistrationResult"
+          },
+          "ecommerce": {
+            "$ref": "#/components/schemas/RegistrationResult"
+          },
+          "dms": {
+            "$ref": "#/components/schemas/RegistrationResult"
+          }
+        }
+      },
+      "RegistrationResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Da li je registracija uspešna"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID korisnika (samo za LMS)"
+          },
+          "data": {
+            "type": "object",
+            "description": "Podaci iz eksternog sistema (ako je uspešno)"
+          },
+          "error": {
+            "type": "string",
+            "description": "Poruka greške (ako nije uspešno)"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Poruka greške"
+          }
+        }
+      }
+    }
+  }
+}
