@@ -25,6 +25,16 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    
+    // Debug logging (remove in production if needed)
+    console.log("Received registration request:", {
+      hasUsername: !!body.username,
+      hasUserName: !!body.userName,
+      hasEmail: !!body.email,
+      hasUserEmail: !!body.userEmail,
+      hasPassword: !!body.password,
+    });
+    
     // Support both userName/userEmail (for external API calls) and username/email
     const username = body.username || body.userName;
     const email = body.email || body.userEmail;
@@ -33,7 +43,15 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!username || !email || !password) {
       const errorResponse = NextResponse.json(
-        { error: "Missing required fields: username, email, password" },
+        { 
+          error: "Missing required fields: username, email, password",
+          received: {
+            username: !!username,
+            email: !!email,
+            password: !!password,
+            bodyKeys: Object.keys(body)
+          }
+        },
         { status: 400 }
       );
       errorResponse.headers.set("Access-Control-Allow-Origin", "*");
@@ -102,6 +120,7 @@ export async function POST(request: NextRequest) {
           email: email,
           password: password,
           role: "buyer",
+          // Add any additional required fields if ECOMMERCE system needs them
         }),
       });
 
@@ -111,9 +130,18 @@ export async function POST(request: NextRequest) {
           data: await ecommerceResponse.json(),
         };
       } else {
+        // Try to parse as JSON first, fallback to text
+        let errorMessage;
+        try {
+          const errorData = await ecommerceResponse.json();
+          errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+        } catch {
+          errorMessage = await ecommerceResponse.text();
+        }
         registrationResults.ecommerce = {
           success: false,
-          error: await ecommerceResponse.text(),
+          error: errorMessage,
+          status: ecommerceResponse.status,
         };
       }
     } catch (ecommerceError: any) {
