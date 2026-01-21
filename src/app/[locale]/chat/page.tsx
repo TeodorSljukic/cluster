@@ -18,6 +18,10 @@ interface Message {
   fileType?: string;
   isRead: boolean;
   createdAt: string;
+  isPinned?: boolean;
+  pinnedAt?: string;
+  pinnedBy?: string;
+  editedAt?: string;
   reactions?: {
     emoji: string;
     userId: string;
@@ -537,6 +541,44 @@ function ChatPageInner() {
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Error sending message: " + (error instanceof Error ? error.message : "Unknown error"));
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function editMessage(messageId: string, newText: string) {
+    if (!newText.trim() || !messageId) {
+      return;
+    }
+
+    setSending(true);
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: newText.trim() }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update message in state
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === messageId
+              ? { ...msg, message: data.message, editedAt: data.editedAt }
+              : msg
+          )
+        );
+        setEditingMessageId(null);
+        setEditingText("");
+      } else {
+        const error = await res.json().catch(() => ({ error: "Unknown error" }));
+        console.error("Failed to edit message:", error);
+        alert(error.error || "Failed to edit message");
+      }
+    } catch (error) {
+      console.error("Error editing message:", error);
+      alert("Error editing message. Please try again.");
     } finally {
       setSending(false);
     }
