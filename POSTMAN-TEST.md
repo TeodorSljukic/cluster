@@ -2,11 +2,12 @@
 
 ## 🔗 Endpoint
 
+**Production:**
 ```
 POST http://89.188.43.147/api/auth/register
 ```
 
-**Ili za lokalno testiranje:**
+**Lokalno (Development):**
 ```
 POST http://localhost:3000/api/auth/register
 ```
@@ -15,9 +16,12 @@ POST http://localhost:3000/api/auth/register
 
 ## 📤 Headers
 
+**Obavezno:**
 ```
 Content-Type: application/json
 ```
+
+**Nema autentifikacije potrebne** - endpoint je javan (public API)
 
 ---
 
@@ -52,6 +56,8 @@ Content-Type: application/json
 
 ## 📥 Očekivani Response (200 OK)
 
+**Uspešna registracija (sve tri sisteme su uspele):**
+
 ```json
 {
   "user": {
@@ -78,6 +84,8 @@ Content-Type: application/json
 }
 ```
 
+**VAŽNO:** Sve tri registracije (LMS, ECOMMERCE, DMS) moraju da uspeju. Ako bilo koja ne uspe, korisnik se ne kreira ni u jednom sistemu.
+
 ---
 
 ## ❌ Moguće Greške
@@ -95,6 +103,24 @@ Content-Type: application/json
   "error": "Username or email already exists"
 }
 ```
+
+### 500 - Registracija neuspešna u jednom ili više sistema:
+```json
+{
+  "error": "Registration failed in one or more systems",
+  "details": [
+    "ECOMMERCE: Missing fields",
+    "DMS: Failed to get DMS token"
+  ],
+  "registrations": {
+    "lms": { "success": true },
+    "ecommerce": { "success": false, "error": "..." },
+    "dms": { "success": false, "error": "..." }
+  }
+}
+```
+
+**Napomena:** Ako ECOMMERCE ili DMS ne uspe, korisnik se briše i iz LMS-a (rollback).
 
 ---
 
