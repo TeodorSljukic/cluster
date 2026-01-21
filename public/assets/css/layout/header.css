@@ -225,29 +225,33 @@
 .btn-register {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: #e63946;
   color: #fff;
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 1rem;
-  transition: background 0.3s ease;
+  font-size: 14px;
+  transition: all 0.3s ease;
   height: 100%;
-  width: 150px;
-  justify-content: space-between;
+  min-width: auto;
+  white-space: nowrap;
+  text-decoration: none;
 }
 .btn-register span {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 500;
 }
 .btn-register:hover {
   background: #c71c2f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(230, 57, 70, 0.3);
 }
 .register-icon,
 .register-icon svg {
-  width: 20px !important;
-  height: 20px !important;
+  width: 18px !important;
+  height: 18px !important;
   flex-shrink: 0;
   display: block;
   color: inherit;
@@ -255,8 +259,99 @@
   fill: none;
 }
 
-/* Responsive – sakrij desktop actions ispod 1500px */
-@media (max-width: 1499px) {
+/* Responsive – optimizuj za ekrane od 1000px do 1500px */
+@media (max-width: 1499px) and (min-width: 1000px) {
+  /* Smanji padding header-a */
+  .site-header {
+    padding: 10px 0;
+  }
+
+  /* Smanji logo */
+  .site-branding {
+    width: 220px;
+    flex-shrink: 0;
+  }
+  .site-branding img {
+    height: 45px;
+  }
+
+  /* Smanji navigaciju */
+  .nav-menu {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .nav-menu a {
+    font-size: 15px;
+    padding: 3px 0;
+  }
+
+  /* Smanji header actions */
+  .header-actions {
+    gap: 6px;
+    height: 45px;
+    flex-shrink: 0;
+  }
+
+  /* Smanji search button */
+  .search-btn {
+    width: 100px;
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+  .search-btn span {
+    font-size: 13px;
+    display: none; /* Sakrij tekst na malim ekranima */
+  }
+  .search-icon,
+  .search-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Smanji language switcher */
+  .lang-switcher {
+    height: 45px;
+    width: 70px;
+  }
+  .lang-btn {
+    font-size: 12px;
+    padding: 5px 6px;
+  }
+  .lang-current {
+    font-size: 11px;
+    gap: 3px;
+  }
+  .lang-current span:last-child {
+    display: none; /* Sakrij tekst, samo flag */
+  }
+  .flag-icon {
+    width: 16px;
+    height: 12px;
+  }
+
+  /* Smanji register button */
+  .btn-register {
+    min-width: auto;
+    padding: 5px 12px;
+    font-size: 13px;
+  }
+  .btn-register span {
+    font-size: 13px;
+  }
+  .register-icon,
+  .register-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Prilagodi search dropdown */
+  [data-search-container] > div > div {
+    width: 350px !important;
+  }
+}
+
+/* Responsive – sakrij desktop actions ispod 1000px */
+@media (max-width: 999px) {
   .header-actions {
     display: none;
   }

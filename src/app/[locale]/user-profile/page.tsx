@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
+import { getTranslations } from "@/lib/getTranslations";
 
 interface User {
   _id: string;
@@ -40,14 +41,18 @@ function UserProfilePageInner({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [locale, setLocale] = useState<Locale>("me");
+  const [t, setT] = useState(getTranslations("me"));
 
   // Extract locale from params
   useEffect(() => {
     params.then((resolvedParams) => {
       const loc = (resolvedParams.locale as Locale) || "me";
       setLocale(loc);
+      setT(getTranslations(loc));
     });
   }, [params]);
 
@@ -55,8 +60,24 @@ function UserProfilePageInner({
     if (userId) {
       loadUserProfile();
       loadConnectionStatus();
+      recordProfileVisit();
     }
   }, [userId]);
+
+  async function recordProfileVisit() {
+    if (!userId) return;
+    
+    try {
+      await fetch("/api/profile/visitors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitedUserId: userId }),
+      });
+    } catch (error) {
+      console.error("Error recording profile visit:", error);
+      // Silently fail - don't interrupt user experience
+    }
+  }
 
   async function loadUserProfile() {
     if (!userId) return;
@@ -72,11 +93,11 @@ function UserProfilePageInner({
         setUser(data.user);
       } else {
         const error = await res.json();
-        alert(error.error || "User not found");
+        alert(error.error || (locale === "en" ? "User not found" : locale === "me" ? "Korisnik nije pronađen" : locale === "sq" ? "Përdoruesi nuk u gjet" : "Utente non trovato"));
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
-      alert("Error loading user profile");
+      alert(locale === "en" ? "Error loading user profile" : locale === "me" ? "Greška pri učitavanju profila" : locale === "sq" ? "Gabim gjatë ngarkimit të profilit" : "Errore durante il caricamento del profilo");
     } finally {
       setLoading(false);
     }
@@ -90,10 +111,25 @@ function UserProfilePageInner({
       if (res.ok) {
         const data = await res.json();
         const connection = data.connections?.find(
-          (conn: any) => conn.user?._id === userId
+          (conn: any) => 
+            (conn.user?._id === userId && conn.status === "accepted") ||
+            (conn.connection?._id === userId && conn.status === "accepted")
         );
         if (connection) {
           setConnectionStatus(connection.status);
+          setConnectionId(connection._id);
+        } else {
+          // Check for pending requests
+          const pendingConnection = data.connections?.find(
+            (conn: any) => conn.user?._id === userId || conn.connection?._id === userId
+          );
+          if (pendingConnection) {
+            setConnectionStatus(pendingConnection.status);
+            setConnectionId(pendingConnection._id);
+          } else {
+            setConnectionStatus(null);
+            setConnectionId(null);
+          }
         }
       }
     } catch (error) {
@@ -116,11 +152,11 @@ function UserProfilePageInner({
         setConnectionStatus("pending");
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to send connection request");
+        alert(error.error || (locale === "en" ? "Failed to send connection request" : locale === "me" ? "Neuspješno slanje zahtjeva za povezivanje" : locale === "sq" ? "Dështoi dërgimi i kërkesës për lidhje" : "Impossibile inviare la richiesta di connessione"));
       }
     } catch (error) {
       console.error("Error sending connection request:", error);
-      alert("Error sending connection request");
+      alert(locale === "en" ? "Error sending connection request" : locale === "me" ? "Greška pri slanju zahtjeva za povezivanje" : locale === "sq" ? "Gabim gjatë dërgimit të kërkesës për lidhje" : "Errore durante l'invio della richiesta di connessione");
     } finally {
       setSending(false);
     }
@@ -158,7 +194,7 @@ function UserProfilePageInner({
               e.currentTarget.style.transform = "scale(1)";
             }}
           >
-            Send Message
+            {t.profile.sendMessage}
           </Link>
           <span
             style={{
@@ -170,8 +206,62 @@ function UserProfilePageInner({
               fontWeight: "500",
             }}
           >
-            Connected
+            {t.profile.connected}
           </span>
+          <button
+            onClick={async () => {
+              if (confirm(t.profile.areYouSureRemove)) {
+                setRemoving(true);
+                try {
+                  const res = await fetch("/api/connections/remove", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ connectionId }),
+                  });
+                  if (res.ok) {
+                    setConnectionStatus(null);
+                    setConnectionId(null);
+                    await loadConnectionStatus();
+                  } else {
+                    const error = await res.json();
+                    alert(error.error || "Failed to remove connection");
+                  }
+                } catch (error) {
+                  console.error("Error removing connection:", error);
+                  alert("Error removing connection");
+                } finally {
+                  setRemoving(false);
+                }
+              }
+            }}
+            disabled={removing || !connectionId}
+            style={{
+              padding: "8px 16px",
+              border: "1px solid #e63946",
+              background: "white",
+              color: "#e63946",
+              borderRadius: "24px",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: (removing || !connectionId) ? "not-allowed" : "pointer",
+              opacity: (removing || !connectionId) ? 0.6 : 1,
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              if (!removing && connectionId) {
+                e.currentTarget.style.background = "#ffe0e0";
+                e.currentTarget.style.transform = "scale(1.05)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!removing && connectionId) {
+                e.currentTarget.style.background = "white";
+                e.currentTarget.style.transform = "scale(1)";
+              }
+            }}
+          >
+            {removing ? t.profile.removing : t.profile.removeConnection}
+          </button>
         </div>
       );
     }
@@ -188,7 +278,7 @@ function UserProfilePageInner({
             fontWeight: "500",
           }}
         >
-          Request Pending
+          {t.profile.requestPending}
         </span>
       );
     }
@@ -222,7 +312,7 @@ function UserProfilePageInner({
           }
         }}
       >
-        {sending ? "Sending..." : "Connect"}
+        {sending ? t.profile.sending : t.profile.connect}
       </button>
     );
   }

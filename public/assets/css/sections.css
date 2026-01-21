@@ -277,17 +277,47 @@
   margin-bottom: 40px;
   text-align: left;
 }
+.news-swiper-wrapper {
+  width: 100%;
+  padding: 20px 0 60px;
+  position: relative;
+}
+
+.news-swiper {
+  width: 100%;
+  padding-bottom: 50px;
+}
+
+.news-swiper swiper-slide {
+  width: auto;
+  height: auto;
+}
+
 .news-item {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   padding: 15px;
-  width: 300px;
-  margin: 10px 0;
+  width: 100%;
+  max-width: 300px;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.news-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 .news-thumb {
-  width: 100%; height: 200px; object-fit: cover;
-  border-radius: 8px; margin-bottom: 15px;
+  width: 100%; 
+  height: 200px; 
+  object-fit: cover;
+  border-radius: 8px; 
+  margin-bottom: 15px;
+  display: block;
 }
 .news-item-title {
   font-size: 18px;
@@ -296,7 +326,59 @@
 }
 .news-item-title a { color: #333; text-decoration: none; }
 .news-item-title a:hover { color: #B53251; }
-.news-excerpt { font-size: 14px; color: #555; line-height: 1.6; }
+.news-excerpt { 
+  font-size: 14px; 
+  color: #555; 
+  line-height: 1.6; 
+  margin-top: auto;
+  flex-grow: 1;
+}
+
+/* Swiper Navigation for News */
+.news-swiper::part(button-prev),
+.news-swiper::part(button-next) {
+  color: #B53251;
+  background: rgba(255, 255, 255, 0.9);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.news-swiper::part(button-prev):hover,
+.news-swiper::part(button-next):hover {
+  background: #B53251;
+  color: white;
+  transform: scale(1.1);
+}
+
+.news-swiper::part(button-prev) {
+  left: 10px;
+}
+
+.news-swiper::part(button-next) {
+  right: 10px;
+}
+
+/* Swiper Pagination for News */
+.news-swiper::part(pagination) {
+  bottom: 10px;
+}
+
+.news-swiper::part(bullet) {
+  background: #B53251;
+  opacity: 0.3;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+}
+
+.news-swiper::part(bullet-active) {
+  opacity: 1;
+  width: 30px;
+  border-radius: 5px;
+}
 
 /* ===============================
    Events Section

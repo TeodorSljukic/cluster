@@ -13,6 +13,9 @@ export interface Message {
   fileUrl?: string;
   isRead: boolean;
   createdAt: Date;
+  isPinned?: boolean;
+  pinnedAt?: Date;
+  pinnedBy?: string;
   reactions?: {
     emoji: string;
     userId: string;

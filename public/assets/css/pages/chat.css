@@ -448,14 +448,18 @@
    CHAT GADGET – FIXED WIDGET
 ================================ */
 #chat-widget {
-  position: fixed;
-  bottom: 20px;   /* udaljenost od dna */
-  right: 20px;    /* udaljenost od desne ivice */
-  z-index: 9999;  /* iznad svega */
+  position: fixed !important;
+  bottom: 20px !important;   /* udaljenost od dna */
+  right: 20px !important;    /* udaljenost od desne ivice */
+  z-index: 9999 !important;  /* iznad svega */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 #chat-widget a {
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   width: 60px;
@@ -479,19 +483,27 @@
   transform: scale(1.1);
 }
 
-/* Opcioni badge za nove poruke */
+/* Badge za nove poruke - prikazuje se samo kada ima nepročitanih */
 #chat-widget .unread-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: -5px;
+  right: -5px;
   background: #e63946;
   color: #fff;
   font-size: 12px;
   font-weight: bold;
   border-radius: 50%;
-  padding: 3px 6px;
+  padding: 4px 7px;
   min-width: 20px;
+  height: 20px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(230, 57, 70, 0.4);
+  border: 2px solid #fff;
+  z-index: 10000;
+  line-height: 1;
 }
 .chat-users ul li a {
     display: flex;

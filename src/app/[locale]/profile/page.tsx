@@ -51,7 +51,86 @@ export default function ProfilePage({
   const [connections, setConnections] = useState<any[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(false);
   const [processingConnection, setProcessingConnection] = useState<string | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [profileVisitors, setProfileVisitors] = useState<any[]>([]);
+  const [loadingVisitors, setLoadingVisitors] = useState(false);
+  const [showConnectionsModal, setShowConnectionsModal] = useState(false);
+  const [connectionsSearchTerm, setConnectionsSearchTerm] = useState("");
+  const [connectionsSortBy, setConnectionsSortBy] = useState<"recently" | "firstName" | "lastName">("recently");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showConnectionMenu, setShowConnectionMenu] = useState<string | null>(null);
+  const [removingConnection, setRemovingConnection] = useState<string | null>(null);
   const router = useRouter();
+
+  // Load dark mode preference from localStorage
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem("darkMode") === "true";
+    setDarkMode(savedDarkMode);
+    applyDarkMode(savedDarkMode);
+  }, []);
+
+  function applyDarkMode(enabled: boolean) {
+    if (enabled) {
+      document.documentElement.classList.add("dark");
+      document.body.style.background = "#1a1a1a";
+      document.body.style.color = "#e0e0e0";
+      // Apply to header
+      const header = document.querySelector(".site-header") as HTMLElement;
+      if (header) {
+        header.style.background = "#2a2a2a";
+        header.style.borderBottomColor = "#3a3a3a";
+      }
+      // Apply to footer
+      const footer = document.querySelector(".site-footer") as HTMLElement;
+      if (footer) {
+        footer.style.background = "#2a2a2a";
+        footer.style.color = "#e0e0e0";
+      }
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.body.style.background = "";
+      document.body.style.color = "";
+      // Reset header
+      const header = document.querySelector(".site-header") as HTMLElement;
+      if (header) {
+        header.style.background = "";
+        header.style.borderBottomColor = "";
+      }
+      // Reset footer
+      const footer = document.querySelector(".site-footer") as HTMLElement;
+      if (footer) {
+        footer.style.background = "";
+        footer.style.color = "";
+      }
+    }
+  }
+
+  function toggleDarkMode() {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", newDarkMode.toString());
+    applyDarkMode(newDarkMode);
+    // Force re-render by updating state
+    setDarkMode(newDarkMode);
+  }
+
+  // Helper function to get card background style
+  const getCardStyle = () => ({
+    background: darkMode ? "#2a2a2a" : "white",
+    color: darkMode ? "#e0e0e0" : "inherit",
+    boxShadow: darkMode ? "0 0 0 1px rgba(255,255,255,0.1)" : "0 0 0 1px rgba(0,0,0,0.08)",
+    transition: "background 0.3s ease, color 0.3s ease",
+  });
+
+  // Helper function to get input style
+  const getInputStyle = () => ({
+    background: darkMode ? "#1a1a1a" : "white",
+    color: darkMode ? "#e0e0e0" : "inherit",
+    border: darkMode ? "1px solid #3a3a3a" : "1px solid #ddd",
+  });
 
   // Helper function for button animations
   const buttonAnimations = {
@@ -101,6 +180,7 @@ export default function ProfilePage({
       // User is authenticated, load profile
       await loadProfile();
       await loadConnections();
+      await loadProfileVisitors();
     } catch (error) {
       console.error("Error checking auth:", error);
       router.push(localeLink("/login", locale));
@@ -169,7 +249,7 @@ export default function ProfilePage({
 
   async function handleImageUpload(file: File, type: "cover" | "profile") {
     if (!file.type.startsWith("image/")) {
-      alert("Please upload an image file");
+      alert(locale === "en" ? "Please upload an image file" : locale === "me" ? "Molimo učitajte sliku" : locale === "sq" ? "Ju lutem ngarkoni një skedar imazhi" : "Si prega di caricare un file immagine");
       return;
     }
 
@@ -251,6 +331,23 @@ export default function ProfilePage({
     }
   }
 
+  async function loadProfileVisitors() {
+    setLoadingVisitors(true);
+    try {
+      const res = await fetch("/api/profile/visitors");
+      if (res.ok) {
+        const data = await res.json();
+        setProfileVisitors(data.visitors || []);
+      } else {
+        console.error("Failed to load profile visitors:", res.status);
+      }
+    } catch (error) {
+      console.error("Error loading profile visitors:", error);
+    } finally {
+      setLoadingVisitors(false);
+    }
+  }
+
   async function handleAcceptConnection(connectionId: string) {
     setProcessingConnection(connectionId);
     try {
@@ -264,11 +361,11 @@ export default function ProfilePage({
         await loadConnections();
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to accept request");
+        alert(error.error || (locale === "en" ? "Failed to accept request" : locale === "me" ? "Neuspješno prihvatanje zahtjeva" : locale === "sq" ? "Dështoi pranimi i kërkesës" : "Impossibile accettare la richiesta"));
       }
     } catch (error) {
       console.error("Error accepting connection:", error);
-      alert("Error accepting connection");
+      alert(locale === "en" ? "Error accepting connection" : locale === "me" ? "Greška pri prihvatanju veze" : locale === "sq" ? "Gabim gjatë pranimit të lidhjes" : "Errore durante l'accettazione della connessione");
     } finally {
       setProcessingConnection(null);
     }
@@ -287,11 +384,11 @@ export default function ProfilePage({
         await loadConnections();
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to decline request");
+        alert(error.error || (locale === "en" ? "Failed to decline request" : locale === "me" ? "Neuspješno odbijanje zahtjeva" : locale === "sq" ? "Dështoi refuzimi i kërkesës" : "Impossibile rifiutare la richiesta"));
       }
     } catch (error) {
       console.error("Error declining connection:", error);
-      alert("Error declining connection");
+      alert(locale === "en" ? "Error declining connection" : locale === "me" ? "Greška pri odbijanju veze" : locale === "sq" ? "Gabim gjatë refuzimit të lidhjes" : "Errore durante il rifiuto della connessione");
     } finally {
       setProcessingConnection(null);
     }
@@ -304,7 +401,50 @@ export default function ProfilePage({
       router.refresh();
     } catch (error) {
       console.error("Error logging out:", error);
-      alert("Error logging out");
+      alert(locale === "en" ? "Error logging out" : locale === "me" ? "Greška pri odjavi" : locale === "sq" ? "Gabim gjatë daljes" : "Errore durante il logout");
+    }
+  }
+
+  async function handleChangePassword() {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      alert(locale === "en" ? "Please fill in all fields" : locale === "me" ? "Molimo popunite sva polja" : locale === "sq" ? "Ju lutem plotësoni të gjitha fushat" : "Si prega di compilare tutti i campi");
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert(locale === "en" ? "New passwords do not match" : locale === "me" ? "Nove lozinke se ne poklapaju" : locale === "sq" ? "Fjalëkalimet e rinj nuk përputhen" : "Le nuove password non corrispondono");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      alert(locale === "en" ? "New password must be at least 6 characters long" : locale === "me" ? "Nova lozinka mora imati najmanje 6 karaktera" : locale === "sq" ? "Fjalëkalimi i ri duhet të jetë së paku 6 karaktere" : "La nuova password deve essere di almeno 6 caratteri");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await fetch("/api/profile/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+
+      if (res.ok) {
+        alert("Password changed successfully");
+        setShowPasswordModal(false);
+        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to change password");
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      alert("Error changing password. Please try again.");
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -764,11 +904,10 @@ export default function ProfilePage({
             {/* Experience */}
             <div
               style={{
-                background: "white",
+                ...getCardStyle(),
                 borderRadius: "8px",
                 padding: "24px",
                 marginBottom: "16px",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
                 animation: "fadeIn 0.3s ease-out",
               }}
             >
@@ -908,11 +1047,10 @@ export default function ProfilePage({
             {/* Education */}
             <div
               style={{
-                background: "white",
+                ...getCardStyle(),
                 borderRadius: "8px",
                 padding: "24px",
                 marginBottom: "16px",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -1066,11 +1204,10 @@ export default function ProfilePage({
             {/* Skills */}
             <div
               style={{
-                background: "white",
+                ...getCardStyle(),
                 borderRadius: "8px",
                 padding: "24px",
                 marginBottom: "16px",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -1237,11 +1374,10 @@ export default function ProfilePage({
             {/* Connection Requests */}
             <div
               style={{
-                background: "white",
+                ...getCardStyle(),
                 borderRadius: "8px",
                 padding: "24px",
                 marginBottom: "16px",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
@@ -1354,16 +1490,43 @@ export default function ProfilePage({
             {acceptedConnections.length > 0 && (
               <div
                 style={{
-                  background: "white",
+                  ...getCardStyle(),
                   borderRadius: "8px",
                   padding: "24px",
                   marginBottom: "16px",
-                  boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
                 }}
               >
-                <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-                  {t.profile.myConnections} ({acceptedConnections.length})
-                </h2>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                  <h2 style={{ fontSize: "20px", fontWeight: "600" }}>
+                    {t.profile.myConnections} ({acceptedConnections.length})
+                  </h2>
+                  <button
+                    onClick={() => setShowConnectionsModal(true)}
+                    style={{
+                      padding: "6px 16px",
+                      border: "1px solid #0a66c2",
+                      background: darkMode ? "#2a2a2a" : "white",
+                      color: darkMode ? "#4a9eff" : "#0a66c2",
+                      borderRadius: "16px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#0a66c2";
+                      e.currentTarget.style.color = "white";
+                      e.currentTarget.style.transform = "scale(1.05)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
+                      e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  >
+                    {t.profile.viewAll}
+                  </button>
+                </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {(Array.isArray(acceptedConnections) ? acceptedConnections.slice(0, 5) : []).map((conn) => (
                     <div
@@ -1373,7 +1536,7 @@ export default function ProfilePage({
                         alignItems: "center",
                         gap: "12px",
                         padding: "8px",
-                        border: "1px solid #e0e0e0",
+                        border: darkMode ? "1px solid #3a3a3a" : "1px solid #e0e0e0",
                         borderRadius: "8px",
                       }}
                     >
@@ -1389,7 +1552,7 @@ export default function ProfilePage({
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "16px",
-                          color: "#666",
+                          color: darkMode ? "#a0a0a0" : "#666",
                         }}
                       >
                         {!conn.user?.profilePicture &&
@@ -1401,14 +1564,14 @@ export default function ProfilePage({
                           style={{
                             fontSize: "14px",
                             fontWeight: "600",
-                            color: "#0a66c2",
+                            color: darkMode ? "#4a9eff" : "#0a66c2",
                             textDecoration: "none",
                           }}
                         >
                           {conn.user?.displayName || conn.user?.username}
                         </Link>
                         {conn.user?.headline && (
-                          <p style={{ fontSize: "12px", color: "#666", margin: "2px 0 0" }}>
+                          <p style={{ fontSize: "12px", color: darkMode ? "#888" : "#666", margin: "2px 0 0" }}>
                             {conn.user.headline}
                           </p>
                         )}
@@ -1418,8 +1581,8 @@ export default function ProfilePage({
                         style={{
                           padding: "6px 12px",
                           border: "1px solid #0a66c2",
-                          background: "white",
-                          color: "#0a66c2",
+                          background: darkMode ? "#2a2a2a" : "white",
+                          color: darkMode ? "#4a9eff" : "#0a66c2",
                           borderRadius: "16px",
                           fontSize: "12px",
                           fontWeight: "600",
@@ -1432,8 +1595,8 @@ export default function ProfilePage({
                           e.currentTarget.style.transform = "scale(1.05)";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "white";
-                          e.currentTarget.style.color = "#0a66c2";
+                          e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
+                          e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
                           e.currentTarget.style.transform = "scale(1)";
                         }}
                       >
@@ -1441,32 +1604,179 @@ export default function ProfilePage({
                       </Link>
                     </div>
                   ))}
-                  {acceptedConnections.length > 5 && (
-                    <Link
-                      href={localeLink("/connection-requests", locale)}
-                      style={{
-                        fontSize: "14px",
-                        color: "#0a66c2",
-                        textDecoration: "none",
-                        textAlign: "center",
-                        padding: "8px",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {t.profile.viewAllConnections} ({acceptedConnections.length})
-                    </Link>
-                  )}
                 </div>
               </div>
             )}
 
-            {/* Contact Info */}
+            {/* Settings */}
             <div
               style={{
                 background: "white",
                 borderRadius: "8px",
                 padding: "24px",
+                marginBottom: "16px",
                 boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
+              }}
+            >
+              <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
+                {t.profile.settings}
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {/* Dark Mode Toggle */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>{t.profile.darkMode}</h3>
+                    <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.darkModeDesc}</p>
+                  </div>
+                  <button
+                    onClick={toggleDarkMode}
+                    style={{
+                      width: "50px",
+                      height: "28px",
+                      borderRadius: "14px",
+                      background: darkMode ? "#0a66c2" : "#ccc",
+                      border: "none",
+                      cursor: "pointer",
+                      position: "relative",
+                      transition: "all 0.3s ease",
+                      padding: "2px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        background: "white",
+                        transition: "all 0.3s ease",
+                        transform: darkMode ? "translateX(22px)" : "translateX(0)",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                      }}
+                    />
+                  </button>
+                </div>
+
+                {/* Password Reset */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>{t.profile.password}</h3>
+                    <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.passwordDesc}</p>
+                  </div>
+                  <button
+                    onClick={() => setShowPasswordModal(true)}
+                    style={{
+                      padding: "6px 16px",
+                      border: "1px solid #0a66c2",
+                      background: darkMode ? "#2a2a2a" : "white",
+                      color: darkMode ? "#4a9eff" : "#0a66c2",
+                      borderRadius: "16px",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#0a66c2";
+                      e.currentTarget.style.color = "white";
+                      e.currentTarget.style.transform = "scale(1.05)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
+                      e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  >
+                    {t.profile.change}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Visitors */}
+            <div
+              style={{
+                ...getCardStyle(),
+                borderRadius: "8px",
+                padding: "24px",
+                marginBottom: "16px",
+              }}
+            >
+              <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
+                {t.profile.profileVisitors} ({profileVisitors.length})
+              </h2>
+              {loadingVisitors ? (
+                <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.loading}</p>
+              ) : profileVisitors.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {profileVisitors.map((visit) => (
+                    <div
+                      key={visit._id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "8px",
+                        border: darkMode ? "1px solid #3a3a3a" : "1px solid #e0e0e0",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "50%",
+                          background: visit.visitor.profilePicture
+                            ? `url(${visit.visitor.profilePicture}) center/cover`
+                            : "#e4e4e4",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "16px",
+                          color: darkMode ? "#a0a0a0" : "#666",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {!visit.visitor.profilePicture &&
+                          (visit.visitor.displayName || visit.visitor.username)?.[0]?.toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Link
+                          href={localeLink(`/user-profile?id=${visit.visitor._id}`, locale)}
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            color: darkMode ? "#4a9eff" : "#0a66c2",
+                            textDecoration: "none",
+                          }}
+                        >
+                          {visit.visitor.displayName || visit.visitor.username}
+                        </Link>
+                        <p style={{ fontSize: "12px", color: darkMode ? "#888" : "#999", margin: "2px 0 0" }}>
+                          {new Date(visit.visitedAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>
+                  {t.profile.noVisitors}
+                </p>
+              )}
+            </div>
+
+            {/* Contact Info */}
+            <div
+              style={{
+                ...getCardStyle(),
+                borderRadius: "8px",
+                padding: "24px",
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
@@ -1475,7 +1785,7 @@ export default function ProfilePage({
               {editing ? (
                 <div style={{ fontSize: "14px" }}>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
                       {t.profile.email}
                     </label>
                     <input
@@ -1485,17 +1795,16 @@ export default function ProfilePage({
                       style={{
                         width: "100%",
                         padding: "8px",
-                        border: "1px solid #ddd",
+                        ...getInputStyle(),
                         borderRadius: "4px",
                         fontSize: "14px",
-                        background: "#f5f5f5",
-                        color: "#999",
+                        opacity: 0.7,
                       }}
                     />
-                    <p style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>{t.profile.emailCannotChange}</p>
+                    <p style={{ fontSize: "12px", color: darkMode ? "#a0a0a0" : "#999", marginTop: "4px" }}>{t.profile.emailCannotChange}</p>
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
                       {t.profile.phone}
                     </label>
                     <input
@@ -1506,14 +1815,14 @@ export default function ProfilePage({
                       style={{
                         width: "100%",
                         padding: "8px",
-                        border: "1px solid #ddd",
+                        ...getInputStyle(),
                         borderRadius: "4px",
                         fontSize: "14px",
                       }}
                     />
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
                       {t.profile.website}
                     </label>
                     <input
@@ -1524,14 +1833,14 @@ export default function ProfilePage({
                       style={{
                         width: "100%",
                         padding: "8px",
-                        border: "1px solid #ddd",
+                        ...getInputStyle(),
                         borderRadius: "4px",
                         fontSize: "14px",
                       }}
                     />
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
                       {t.profile.linkedin}
                     </label>
                     <input
@@ -1542,14 +1851,14 @@ export default function ProfilePage({
                       style={{
                         width: "100%",
                         padding: "8px",
-                        border: "1px solid #ddd",
+                        ...getInputStyle(),
                         borderRadius: "4px",
                         fontSize: "14px",
                       }}
                     />
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
                       {t.profile.twitter}
                     </label>
                     <input
@@ -1560,7 +1869,7 @@ export default function ProfilePage({
                       style={{
                         width: "100%",
                         padding: "8px",
-                        border: "1px solid #ddd",
+                        ...getInputStyle(),
                         borderRadius: "4px",
                         fontSize: "14px",
                       }}
@@ -1568,32 +1877,32 @@ export default function ProfilePage({
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: "14px", color: "#666" }}>
+                <div style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>
                   {user.email && <p style={{ marginBottom: "8px" }}>📧 {user.email}</p>}
                   {user.phone && <p style={{ marginBottom: "8px" }}>📱 {user.phone}</p>}
                   {user.website && (
                     <p style={{ marginBottom: "8px" }}>
-                      🌐 <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+                      🌐 <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ color: darkMode ? "#4a9eff" : "#0a66c2" }}>
                         {user.website}
                       </a>
                     </p>
                   )}
                   {user.linkedin && (
                     <p style={{ marginBottom: "8px" }}>
-                      💼 <a href={user.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+                      💼 <a href={user.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: darkMode ? "#4a9eff" : "#0a66c2" }}>
                         {t.profile.linkedin}
                       </a>
                     </p>
                   )}
                   {user.twitter && (
                     <p style={{ marginBottom: "8px" }}>
-                      🐦 <a href={user.twitter} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+                      🐦 <a href={user.twitter} target="_blank" rel="noopener noreferrer" style={{ color: darkMode ? "#4a9eff" : "#0a66c2" }}>
                         {t.profile.twitter}
                       </a>
                     </p>
                   )}
                   {!user.phone && !user.website && !user.linkedin && !user.twitter && (
-                    <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noContactInfo}</p>
+                    <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.noContactInfo}</p>
                   )}
                 </div>
               )}
@@ -1704,6 +2013,636 @@ export default function ProfilePage({
                 setEditingEdu(null);
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            animation: "fadeIn 0.2s ease-out",
+          }}
+          onClick={() => {
+            setShowPasswordModal(false);
+            setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              borderRadius: "8px",
+              padding: "24px",
+              width: "90%",
+              maxWidth: "500px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              animation: "scaleIn 0.2s ease-out",
+            }}
+          >
+            <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "24px" }}>
+              Reset Password
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
+                  {t.profile.currentPassword} *
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  placeholder={t.profile.enterCurrentPassword}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#0a66c2";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#ddd";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
+                  {t.profile.newPassword} *
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  placeholder={t.profile.enterNewPassword}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#0a66c2";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#ddd";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
+                  {t.profile.confirmPassword} *
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  placeholder={t.profile.confirmNewPassword}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#0a66c2";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(10, 102, 194, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#ddd";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "8px" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                  }}
+                  style={{
+                    padding: "8px 24px",
+                    border: "1px solid #666",
+                    background: "white",
+                    borderRadius: "24px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#f5f5f5";
+                    e.currentTarget.style.transform = "scale(1.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "white";
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleChangePassword}
+                  disabled={changingPassword}
+                  style={{
+                    padding: "8px 24px",
+                    border: "none",
+                    background: "#0a66c2",
+                    color: "white",
+                    borderRadius: "24px",
+                    cursor: changingPassword ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    opacity: changingPassword ? 0.6 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!changingPassword) {
+                      e.currentTarget.style.background = "#004182";
+                      e.currentTarget.style.transform = "scale(1.05)";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(10, 102, 194, 0.3)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!changingPassword) {
+                      e.currentTarget.style.background = "#0a66c2";
+                      e.currentTarget.style.transform = "scale(1)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }
+                  }}
+                >
+                  {changingPassword ? t.profile.changing : t.profile.changePassword}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Connections Modal */}
+      {showConnectionsModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowConnectionsModal(false);
+              setShowSortDropdown(false);
+            }
+          }}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10000,
+            padding: "20px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              ...getCardStyle(),
+              borderRadius: "8px",
+              padding: "24px",
+              width: "90%",
+              maxWidth: "600px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              boxShadow: darkMode ? "0 4px 20px rgba(0,0,0,0.5)" : "0 4px 20px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ fontSize: "24px", fontWeight: "600" }}>
+                {t.profile.myConnections} ({acceptedConnections.length})
+              </h2>
+              <button
+                onClick={() => setShowConnectionsModal(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "24px",
+                  color: darkMode ? "#a0a0a0" : "#666",
+                  cursor: "pointer",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
+                  e.currentTarget.style.color = darkMode ? "#e0e0e0" : "#333";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = darkMode ? "#a0a0a0" : "#666";
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Search and Sort Controls */}
+            <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
+              {/* Search Input */}
+              <div style={{ flex: 1, minWidth: "200px" }}>
+                <input
+                  type="text"
+                  placeholder={t.profile.searchByName}
+                  value={connectionsSearchTerm}
+                  onChange={(e) => setConnectionsSearchTerm(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    ...getInputStyle(),
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
+
+              {/* Sort Dropdown */}
+              <div style={{ position: "relative" }} data-sort-dropdown>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666", whiteSpace: "nowrap" }}>
+                    {t.profile.sortBy}
+                  </span>
+                  <div style={{ position: "relative" }}>
+                    <button
+                      onClick={() => setShowSortDropdown(!showSortDropdown)}
+                      style={{
+                        padding: "10px 16px",
+                        ...getInputStyle(),
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        minWidth: "150px",
+                        textAlign: "left",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span>
+                        {connectionsSortBy === "recently" && t.profile.recentlyAdded}
+                        {connectionsSortBy === "firstName" && t.profile.firstName}
+                        {connectionsSortBy === "lastName" && t.profile.lastName}
+                      </span>
+                      <span style={{ fontSize: "12px" }}>▼</span>
+                    </button>
+                    {showSortDropdown && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: 0,
+                          right: 0,
+                          marginTop: "4px",
+                          ...getCardStyle(),
+                          borderRadius: "6px",
+                          padding: "4px",
+                          boxShadow: darkMode ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.15)",
+                          zIndex: 10001,
+                        }}
+                      >
+                        {[
+                          { value: "recently", label: t.profile.recentlyAdded },
+                          { value: "firstName", label: t.profile.firstName },
+                          { value: "lastName", label: t.profile.lastName },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => {
+                              setConnectionsSortBy(option.value as "recently" | "firstName" | "lastName");
+                              setShowSortDropdown(false);
+                            }}
+                            style={{
+                              width: "100%",
+                              padding: "10px 12px",
+                              background: "transparent",
+                              border: "none",
+                              textAlign: "left",
+                              fontSize: "14px",
+                              color: darkMode ? "#e0e0e0" : "#333",
+                              cursor: "pointer",
+                              borderRadius: "4px",
+                              transition: "all 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {(() => {
+                // Filter and sort connections
+                let filteredAndSorted = [...acceptedConnections];
+
+                // Filter by search term
+                if (connectionsSearchTerm.trim()) {
+                  const searchLower = connectionsSearchTerm.toLowerCase();
+                  filteredAndSorted = filteredAndSorted.filter((conn) => {
+                    const displayName = (conn.user?.displayName || "").toLowerCase();
+                    const username = (conn.user?.username || "").toLowerCase();
+                    return displayName.includes(searchLower) || username.includes(searchLower);
+                  });
+                }
+
+                // Sort connections
+                filteredAndSorted.sort((a, b) => {
+                  if (connectionsSortBy === "recently") {
+                    // Sort by connection creation date (most recent first)
+                    const dateA = new Date(a.createdAt || 0).getTime();
+                    const dateB = new Date(b.createdAt || 0).getTime();
+                    return dateB - dateA;
+                  } else if (connectionsSortBy === "firstName") {
+                    const nameA = (a.user?.displayName || a.user?.username || "").split(" ")[0].toLowerCase();
+                    const nameB = (b.user?.displayName || b.user?.username || "").split(" ")[0].toLowerCase();
+                    return nameA.localeCompare(nameB);
+                  } else if (connectionsSortBy === "lastName") {
+                    const nameA = (a.user?.displayName || a.user?.username || "").split(" ").slice(-1)[0].toLowerCase();
+                    const nameB = (b.user?.displayName || b.user?.username || "").split(" ").slice(-1)[0].toLowerCase();
+                    return nameA.localeCompare(nameB);
+                  }
+                  return 0;
+                });
+
+                return filteredAndSorted.length > 0 ? (
+                  filteredAndSorted.map((conn) => (
+                  <div
+                    key={conn._id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px",
+                      border: darkMode ? "1px solid #3a3a3a" : "1px solid #e0e0e0",
+                      borderRadius: "8px",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f5f5f5";
+                      e.currentTarget.style.borderColor = darkMode ? "#4a4a4a" : "#0a66c2";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.borderColor = darkMode ? "#3a3a3a" : "#e0e0e0";
+                    }}
+                  >
+                    <Link
+                      href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
+                      style={{
+                        textDecoration: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        flex: 1,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "50%",
+                          background: conn.user?.profilePicture
+                            ? `url(${conn.user.profilePicture}) center/cover`
+                            : "#e4e4e4",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "18px",
+                          color: darkMode ? "#a0a0a0" : "#666",
+                          flexShrink: 0,
+                          cursor: "pointer",
+                          transition: "transform 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "scale(1.1)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "scale(1)";
+                        }}
+                      >
+                        {!conn.user?.profilePicture &&
+                          (conn.user?.displayName || conn.user?.username)?.[0]?.toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "600",
+                            color: darkMode ? "#e0e0e0" : "#333",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          {conn.user?.displayName || conn.user?.username}
+                        </div>
+                        {conn.user?.headline && (
+                          <p style={{ fontSize: "14px", color: darkMode ? "#888" : "#666", margin: 0 }}>
+                            {conn.user.headline}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                    <Link
+                      href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
+                      style={{
+                        padding: "8px 16px",
+                        border: "1px solid #0a66c2",
+                        background: darkMode ? "#2a2a2a" : "white",
+                        color: darkMode ? "#4a9eff" : "#0a66c2",
+                        borderRadius: "20px",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        textDecoration: "none",
+                        transition: "all 0.2s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#0a66c2";
+                        e.currentTarget.style.color = "white";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
+                        e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      {t.profile.viewProfile}
+                    </Link>
+                    <Link
+                      href={localeLink(`/chat?userId=${conn.user?._id}`, locale)}
+                      style={{
+                        padding: "8px 16px",
+                        border: "1px solid #0a66c2",
+                        background: "#0a66c2",
+                        color: "white",
+                        borderRadius: "20px",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        textDecoration: "none",
+                        transition: "all 0.2s ease",
+                        whiteSpace: "nowrap",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#004182";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#0a66c2";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      {t.profile.message}
+                    </Link>
+                    {/* 3 Dots Menu */}
+                    <div style={{ position: "relative" }} data-connection-menu>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowConnectionMenu(showConnectionMenu === conn._id ? null : conn._id);
+                        }}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          fontSize: "20px",
+                          color: darkMode ? "#a0a0a0" : "#666",
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
+                          e.currentTarget.style.color = darkMode ? "#e0e0e0" : "#333";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "transparent";
+                          e.currentTarget.style.color = darkMode ? "#a0a0a0" : "#666";
+                        }}
+                      >
+                        ⋯
+                      </button>
+                      {showConnectionMenu === conn._id && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            right: 0,
+                            marginTop: "4px",
+                            ...getCardStyle(),
+                            borderRadius: "6px",
+                            padding: "4px",
+                            boxShadow: darkMode ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.15)",
+                            zIndex: 10002,
+                            minWidth: "180px",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (confirm(t.profile.areYouSureRemove)) {
+                                setRemovingConnection(conn._id);
+                                try {
+                                  const res = await fetch("/api/connections/remove", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ connectionId: conn._id }),
+                                  });
+                                  if (res.ok) {
+                                    await loadConnections();
+                                    setShowConnectionMenu(null);
+                                  } else {
+                                    const error = await res.json();
+                                    alert(error.error || (locale === "en" ? "Failed to remove connection" : locale === "me" ? "Neuspješno uklanjanje veze" : locale === "sq" ? "Dështoi heqja e lidhjes" : "Impossibile rimuovere la connessione"));
+                                  }
+                                } catch (error) {
+                                  console.error("Error removing connection:", error);
+                                  alert(locale === "en" ? "Error removing connection" : locale === "me" ? "Greška pri uklanjanju veze" : locale === "sq" ? "Gabim gjatë heqjes së lidhjes" : "Errore durante la rimozione della connessione");
+                                } finally {
+                                  setRemovingConnection(null);
+                                }
+                              }
+                            }}
+                            disabled={removingConnection === conn._id}
+                            style={{
+                              width: "100%",
+                              padding: "10px 12px",
+                              background: "transparent",
+                              border: "none",
+                              textAlign: "left",
+                              fontSize: "14px",
+                              color: "#e63946",
+                              cursor: removingConnection === conn._id ? "not-allowed" : "pointer",
+                              borderRadius: "4px",
+                              transition: "all 0.2s ease",
+                              opacity: removingConnection === conn._id ? 0.6 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (removingConnection !== conn._id) {
+                                e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
+                            {removingConnection === conn._id ? t.profile.removing : t.profile.removeConnection}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  ))
+                ) : (
+                  <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666", textAlign: "center", padding: "20px" }}>
+                    {connectionsSearchTerm.trim() ? t.profile.noConnectionsFound : t.profile.noConnections}
+                  </p>
+                );
+              })()}
+            </div>
           </div>
         </div>
       )}

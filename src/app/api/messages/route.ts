@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
       fileType: msg.fileType,
       isRead: msg.isRead,
       createdAt: msg.createdAt,
+      isPinned: msg.isPinned || false,
       reactions: msg.reactions || [],
       sender: senderMap.get(msg.senderId.toString())
         ? {

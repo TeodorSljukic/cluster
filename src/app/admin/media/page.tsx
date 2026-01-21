@@ -9,12 +9,15 @@ interface MediaFile {
   url: string;
   size: number;
   createdAt: string;
+  type?: string;
+  extension?: string;
 }
 
 export default function MediaPage() {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     loadMedia();
@@ -36,12 +39,6 @@ export default function MediaPage() {
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Check if it's an image
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload an image file");
-      return;
-    }
 
     setUploading(true);
     const formData = new FormData();
@@ -65,6 +62,50 @@ export default function MediaPage() {
       alert("Error uploading file");
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDeleteFile(filename: string) {
+    if (!confirm("Are you sure you want to delete this file?")) {
+      return;
+    }
+
+    setDeleting(filename);
+    try {
+      const encodedFilename = encodeURIComponent(filename);
+      const res = await fetch(`/api/media/${encodedFilename}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        loadMedia();
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      alert("Error deleting file");
+    } finally {
+      setDeleting(null);
+    }
+  }
+
+  function getFileIcon(file: MediaFile) {
+    if (file.type === "image") {
+      return "🖼️";
+    } else if (file.type === "pdf") {
+      return "📄";
+    } else if (file.type === "document") {
+      return "📝";
+    } else if (file.type === "video") {
+      return "🎥";
+    } else if (file.type === "audio") {
+      return "🎵";
+    } else if (file.type === "archive") {
+      return "📦";
+    } else {
+      return "📎";
     }
   }
 
@@ -106,10 +147,9 @@ export default function MediaPage() {
                 display: "inline-block",
               }}
             >
-              {uploading ? "Uploading..." : "Upload Image"}
+              {uploading ? "Uploading..." : "Upload File"}
               <input
                 type="file"
-                accept="image/*"
                 onChange={handleFileUpload}
                 disabled={uploading}
                 style={{ display: "none" }}
@@ -147,6 +187,7 @@ export default function MediaPage() {
                     borderRadius: "4px",
                     overflow: "hidden",
                     transition: "transform 0.2s",
+                    position: "relative",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "scale(1.02)";
@@ -155,6 +196,33 @@ export default function MediaPage() {
                     e.currentTarget.style.transform = "scale(1)";
                   }}
                 >
+                  {/* Delete button */}
+                  <button
+                    onClick={() => handleDeleteFile(file.filename)}
+                    disabled={deleting === file.filename}
+                    style={{
+                      position: "absolute",
+                      top: "8px",
+                      right: "8px",
+                      background: "rgba(220, 53, 69, 0.9)",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: "28px",
+                      height: "28px",
+                      cursor: deleting === file.filename ? "not-allowed" : "pointer",
+                      fontSize: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 10,
+                      opacity: deleting === file.filename ? 0.6 : 1,
+                    }}
+                    title="Delete file"
+                  >
+                    {deleting === file.filename ? "..." : "×"}
+                  </button>
+
                   <div
                     style={{
                       width: "100%",
@@ -163,18 +231,37 @@ export default function MediaPage() {
                       background: "#f0f0f0",
                     }}
                   >
-                    <img
-                      src={file.url}
-                      alt={file.filename}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
+                    {file.type === "image" ? (
+                      <img
+                        src={file.url}
+                        alt={file.filename}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "48px",
+                          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        }}
+                      >
+                        {getFileIcon(file)}
+                      </div>
+                    )}
                   </div>
                   <div style={{ padding: "10px" }}>
                     <div
@@ -191,23 +278,49 @@ export default function MediaPage() {
                       {file.filename}
                     </div>
                     <div style={{ fontSize: "11px", color: "#999", marginBottom: "8px" }}>
-                      {formatFileSize(file.size)}
+                      {formatFileSize(file.size)} {file.extension && `• ${file.extension.toUpperCase()}`}
                     </div>
-                    <button
-                      onClick={() => copyToClipboard(file.url)}
-                      style={{
-                        width: "100%",
-                        padding: "6px",
-                        background: "#2271b1",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "3px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Copy URL
-                    </button>
+                    <div style={{ display: "flex", gap: "4px" }}>
+                      <button
+                        onClick={() => copyToClipboard(file.url)}
+                        style={{
+                          flex: 1,
+                          padding: "6px",
+                          background: "#2271b1",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "3px",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Copy URL
+                      </button>
+                      {file.type !== "image" && (
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            flex: 1,
+                            padding: "6px",
+                            background: "#28a745",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "3px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            textAlign: "center",
+                            textDecoration: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          Open
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -226,7 +339,7 @@ export default function MediaPage() {
                 No media files yet
               </p>
               <p style={{ fontSize: "14px" }}>
-                Upload your first image to get started
+                Upload your first file to get started
               </p>
             </div>
           )}

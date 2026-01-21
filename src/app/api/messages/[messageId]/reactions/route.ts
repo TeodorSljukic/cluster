@@ -40,10 +40,17 @@ export async function POST(
     );
 
     if (existingReactionIndex >= 0) {
-      // Remove reaction
+      // Remove reaction (clicking same emoji removes it)
       reactions.splice(existingReactionIndex, 1);
     } else {
-      // Add reaction
+      // Remove any existing reaction from this user (only one emoji per user)
+      const userReactionIndex = reactions.findIndex(
+        (r: any) => r.userId.toString() === user.userId
+      );
+      if (userReactionIndex >= 0) {
+        reactions.splice(userReactionIndex, 1);
+      }
+      // Add new reaction
       reactions.push({
         emoji,
         userId: userId,

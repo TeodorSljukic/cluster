@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile, Reply, Forward, MoreVertical, Edit } from "lucide-react";
+import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile, Reply, Forward, MoreVertical, Edit, Copy, CheckCircle, Languages, Pin, Trash2 } from "lucide-react";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
 
@@ -99,6 +99,8 @@ function ChatPageInner() {
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   const [tappedMessageId, setTappedMessageId] = useState<string | null>(null);
   const [messageMenuOpen, setMessageMenuOpen] = useState<string | null>(null);
+  const [contextMenuOpen, setContextMenuOpen] = useState<string | null>(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState<string>("");
@@ -244,6 +246,18 @@ function ChatPageInner() {
   useEffect(() => {
     setShowSidebar(false);
   }, [userId, groupId, pathname]);
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setContextMenuOpen(null);
+      setContextMenuPosition(null);
+    };
+    if (contextMenuOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [contextMenuOpen]);
 
   // Close emoji picker and message menu when clicking outside
   useEffect(() => {
@@ -671,6 +685,39 @@ function ChatPageInner() {
     }
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+    }
+  }
+
+  async function togglePin(messageId: string, currentPinState: boolean) {
+    if (!currentUserId) {
+      console.log("Cannot toggle pin: no currentUserId");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/messages/${messageId}/pin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: !currentPinState }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log("Pin updated:", data);
+        // Update message in state
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === messageId ? { ...msg, isPinned: data.isPinned } : msg
+          )
+        );
+      } else {
+        const error = await res.json().catch(() => ({ error: "Unknown error" }));
+        console.error("Failed to toggle pin:", error);
+        alert(`Failed to pin/unpin message: ${error.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error toggling pin:", error);
+      alert("Error pinning/unpinning message. Please try again.");
     }
   }
 
@@ -1236,6 +1283,7 @@ function ChatPageInner() {
                   flex: 1,
                   padding: "16px",
                   overflowY: "auto",
+                  overflowX: "visible",
                   display: "flex",
                   flexDirection: "column",
                   gap: "12px",
@@ -1289,16 +1337,16 @@ function ChatPageInner() {
                           boxSizing: "border-box",
                           position: "relative",
                           cursor: isMobile ? "pointer" : "default",
+                          overflow: "visible",
                         }}
                       >
-                        {/* More button - always visible */}
+                        {/* Action buttons - only emoji (3 dots) for received messages */}
                         {!isOwn && (
                           <div style={{ position: "relative", alignSelf: "center", order: 2 }}>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setMessageMenuOpen(messageMenuOpen === msg._id ? null : msg._id);
-                                setShowEmojiPicker(null);
+                                setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id);
                               }}
                               style={{
                                 background: "white",
@@ -1322,179 +1370,68 @@ function ChatPageInner() {
                                 e.currentTarget.style.background = "white";
                                 e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
                               }}
-                              title="More options"
+                              title="React"
                             >
-                              <MoreVertical size={isMobile ? 18 : 16} color="#666" />
+                              <Smile size={isMobile ? 18 : 16} color="#666" />
                             </button>
-                            {(messageMenuOpen === msg._id || showEmojiPicker === msg._id) && (
+                            {/* Emoji picker - shown when React is clicked, positioned above message */}
+                            {showEmojiPicker === msg._id && (
                               <div
+                                className="emoji-picker-container"
                                 style={{
                                   position: "absolute",
-                                  top: "100%",
-                                  right: "0",
+                                  bottom: "100%",
+                                  left: isMobile ? "50%" : "50%",
+                                  transform: "translateX(-50%)",
                                   background: "white",
                                   borderRadius: "8px",
-                                  padding: "4px",
-                                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                  padding: "2px",
                                   display: "flex",
-                                  flexDirection: "column",
-                                  gap: "2px",
-                                  zIndex: 1000,
-                                  marginTop: "4px",
-                                  minWidth: "140px",
+                                  gap: "1px",
+                                  flexWrap: "nowrap",
+                                  marginBottom: "4px",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                  zIndex: 10001,
+                                  maxWidth: "calc(100vw - 20px)",
+                                  overflow: "visible",
                                 }}
                                 onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
                               >
-                                <button
-                                  onClick={() => {
-                                    setReplyingTo(msg);
-                                    setMessageMenuOpen(null);
-                                    if (textareaRef.current) {
-                                      textareaRef.current.focus();
-                                    }
-                                  }}
-                                  style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    padding: "8px 12px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    fontSize: "14px",
-                                    transition: "all 0.2s ease",
-                                    textAlign: "left",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#f0f0f0";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
-                                >
-                                  <Reply size={16} color="#666" />
-                                  <span style={{ color: "#333" }}>Reply</span>
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const newPickerState = showEmojiPicker === msg._id ? null : msg._id;
-                                    setShowEmojiPicker(newPickerState);
-                                    // Don't close menu if opening picker
-                                    if (newPickerState !== null) {
-                                      // Keep menu open so picker can show
-                                    } else {
-                                      setMessageMenuOpen(null);
-                                    }
-                                  }}
-                                  style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    padding: "8px 12px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    fontSize: "14px",
-                                    transition: "all 0.2s ease",
-                                    textAlign: "left",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#f0f0f0";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
-                                >
-                                  <Smile size={16} color="#666" />
-                                  <span style={{ color: "#333" }}>React</span>
-                                </button>
-                                {/* Emoji picker inside menu */}
-                                {showEmojiPicker === msg._id && (
-                                  <div
-                                    className="emoji-picker-container"
-                                    style={{
-                                      background: "#f9f9f9",
-                                      borderRadius: "8px",
-                                      padding: "6px",
-                                      display: "flex",
-                                      gap: "2px",
-                                      flexWrap: "nowrap",
-                                      marginTop: "4px",
-                                      justifyContent: "center",
+                                {commonEmojis.map((emoji) => (
+                                  <button
+                                    key={emoji}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleReaction(msg._id, emoji);
+                                      setShowEmojiPicker(null);
                                     }}
-                                    onClick={(e) => e.stopPropagation()}
                                     onMouseDown={(e) => e.stopPropagation()}
+                                    style={{
+                                      background: "transparent",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      padding: "4px 6px",
+                                      borderRadius: "4px",
+                                      fontSize: "16px",
+                                      transition: "all 0.2s ease",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      lineHeight: "1",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = "#f0f0f0";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = "transparent";
+                                    }}
                                   >
-                                    {commonEmojis.map((emoji) => (
-                                      <button
-                                        key={emoji}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleReaction(msg._id, emoji);
-                                          setShowEmojiPicker(null);
-                                          setMessageMenuOpen(null);
-                                        }}
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                        style={{
-                                          background: "transparent",
-                                          border: "none",
-                                          cursor: "pointer",
-                                          padding: "4px 6px",
-                                          borderRadius: "4px",
-                                          fontSize: "18px",
-                                          transition: "all 0.2s ease",
-                                          minWidth: "28px",
-                                          minHeight: "28px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                        }}
-                                        onMouseEnter={(e) => {
-                                          e.currentTarget.style.background = "#f0f0f0";
-                                          e.currentTarget.style.transform = "scale(1.2)";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                          e.currentTarget.style.background = "transparent";
-                                          e.currentTarget.style.transform = "scale(1)";
-                                        }}
-                                      >
-                                        {emoji}
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    setForwardingTo(msg);
-                                    setShowForwardModal(true);
-                                    setMessageMenuOpen(null);
-                                  }}
-                                  style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    padding: "8px 12px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    fontSize: "14px",
-                                    transition: "all 0.2s ease",
-                                    textAlign: "left",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#f0f0f0";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
-                                >
-                                  <Forward size={16} color="#666" />
-                                  <span style={{ color: "#333" }}>Forward</span>
-                                </button>
+                                    {emoji}
+                                  </button>
+                                ))}
                               </div>
                             )}
                           </div>
@@ -1600,64 +1537,6 @@ function ChatPageInner() {
                             >
                               <Forward size={16} color="#666" />
                             </button>
-                            {showEmojiPicker === msg._id && (
-                              <div
-                                className="emoji-picker-container"
-                                style={{
-                                  position: "absolute",
-                                  bottom: "100%",
-                                  left: "0",
-                                  background: "white",
-                                  borderRadius: "8px",
-                                  padding: "6px",
-                                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                  display: "flex",
-                                  gap: "2px",
-                                  zIndex: 10000,
-                                  marginBottom: "4px",
-                                  flexWrap: "nowrap",
-                                  justifyContent: "center",
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                onMouseDown={(e) => e.stopPropagation()}
-                              >
-                                {commonEmojis.map((emoji) => (
-                                  <button
-                                    key={emoji}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleReaction(msg._id, emoji);
-                                      setShowEmojiPicker(null);
-                                    }}
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                    style={{
-                                      background: "transparent",
-                                      border: "none",
-                                      cursor: "pointer",
-                                      padding: "4px 6px",
-                                      borderRadius: "4px",
-                                      fontSize: "18px",
-                                      transition: "all 0.2s ease",
-                                      minWidth: "28px",
-                                      minHeight: "28px",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.background = "#f0f0f0";
-                                      e.currentTarget.style.transform = "scale(1.2)";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.background = "transparent";
-                                      e.currentTarget.style.transform = "scale(1)";
-                                    }}
-                                  >
-                                    {emoji}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
                           </div>
                         )}
                         {/* More button - always visible for sent messages */}
@@ -1748,41 +1627,6 @@ function ChatPageInner() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const newPickerState = showEmojiPicker === msg._id ? null : msg._id;
-                                    setShowEmojiPicker(newPickerState);
-                                    // Don't close menu if opening picker
-                                    if (newPickerState !== null) {
-                                      // Keep menu open so picker can show
-                                    } else {
-                                      setMessageMenuOpen(null);
-                                    }
-                                  }}
-                                  style={{
-                                    border: "none",
-                                    background: "transparent",
-                                    cursor: "pointer",
-                                    padding: "8px 12px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    fontSize: "14px",
-                                    transition: "all 0.2s ease",
-                                    textAlign: "left",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#f0f0f0";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "transparent";
-                                  }}
-                                >
-                                  <Smile size={16} color="#666" />
-                                  <span style={{ color: "#333" }}>React</span>
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
                                     const messageToEdit = messages.find(m => m._id === msg._id);
                                     if (messageToEdit) {
                                       setEditingMessageId(msg._id);
@@ -1856,18 +1700,22 @@ function ChatPageInner() {
                                 className="emoji-picker-container"
                                 style={{
                                   position: "absolute",
-                                  top: "100%",
-                                  right: "0",
+                                  bottom: "100%",
+                                  left: "50%",
+                                  transform: "translateX(-50%)",
                                   background: "white",
                                   borderRadius: "8px",
-                                  padding: "8px",
+                                  padding: "2px",
                                   boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                                   display: "flex",
-                                  gap: "4px",
+                                  gap: "1px",
                                   zIndex: 10000,
-                                  marginTop: "4px",
-                                  minWidth: "200px",
-                                  flexWrap: "wrap",
+                                  marginBottom: "4px",
+                                  flexWrap: "nowrap",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  maxWidth: "calc(100vw - 20px)",
+                                  overflow: "visible",
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                                 onMouseDown={(e) => e.stopPropagation()}
@@ -1885,23 +1733,20 @@ function ChatPageInner() {
                                       background: "transparent",
                                       border: "none",
                                       cursor: "pointer",
-                                      padding: "8px 12px",
+                                      padding: "4px 6px",
                                       borderRadius: "4px",
-                                      fontSize: "24px",
+                                      fontSize: "16px",
                                       transition: "all 0.2s ease",
-                                      minWidth: "40px",
-                                      minHeight: "40px",
                                       display: "flex",
                                       alignItems: "center",
                                       justifyContent: "center",
+                                      lineHeight: "1",
                                     }}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.style.background = "#f0f0f0";
-                                      e.currentTarget.style.transform = "scale(1.2)";
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.style.background = "transparent";
-                                      e.currentTarget.style.transform = "scale(1)";
                                     }}
                                   >
                                     {emoji}
@@ -2061,6 +1906,12 @@ function ChatPageInner() {
                               />
                             )}
                             <div
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setContextMenuOpen(msg._id);
+                                setContextMenuPosition({ x: e.clientX, y: e.clientY });
+                              }}
                               style={{
                                 width: "fit-content",
                                 padding: "8px 12px",
@@ -2116,65 +1967,268 @@ function ChatPageInner() {
                               )}
                             </div>
                           )}
-                          <div
-                            style={{
-                              fontSize: "11px",
-                              opacity: 0.7,
-                              marginTop: "4px",
-                            }}
-                          >
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                opacity: 0.7,
+                              }}
+                            >
+                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReplyingTo(msg);
+                                if (textareaRef.current) {
+                                  textareaRef.current.focus();
+                                }
+                              }}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: "2px 4px",
+                                display: "flex",
+                                alignItems: "center",
+                                opacity: 0.7,
+                                transition: "opacity 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.opacity = "1";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.opacity = "0.7";
+                              }}
+                              title="Reply"
+                            >
+                              <Reply size={12} color={isOwn ? "#fff" : "#666"} />
+                            </button>
                           </div>
                         </div>
                         </div>
                       </div>
+                      {/* Context menu - shown on right click */}
+                      {contextMenuOpen === msg._id && contextMenuPosition && (
+                        <div
+                          style={{
+                            position: "fixed",
+                            top: contextMenuPosition.y,
+                            left: isOwn ? Math.max(20, contextMenuPosition.x - 200) : contextMenuPosition.x,
+                            background: "white",
+                            borderRadius: "8px",
+                            padding: "4px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            zIndex: 10000,
+                            minWidth: "180px",
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => {
+                              setReplyingTo(msg);
+                              setContextMenuOpen(null);
+                              setContextMenuPosition(null);
+                              if (textareaRef.current) {
+                                textareaRef.current.focus();
+                              }
+                            }}
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              cursor: "pointer",
+                              padding: "8px 12px",
+                              borderRadius: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontSize: "14px",
+                              transition: "all 0.2s ease",
+                              textAlign: "left",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#f0f0f0";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
+                            <Reply size={16} color="#666" />
+                            <span style={{ color: "#333" }}>Reply</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(msg.message || "");
+                              setContextMenuOpen(null);
+                              setContextMenuPosition(null);
+                            }}
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              cursor: "pointer",
+                              padding: "8px 12px",
+                              borderRadius: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontSize: "14px",
+                              transition: "all 0.2s ease",
+                              textAlign: "left",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#f0f0f0";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
+                            <Copy size={16} color="#666" />
+                            <span style={{ color: "#333" }}>Copy message</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              togglePin(msg._id, msg.isPinned || false);
+                              setContextMenuOpen(null);
+                              setContextMenuPosition(null);
+                            }}
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              cursor: "pointer",
+                              padding: "8px 12px",
+                              borderRadius: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontSize: "14px",
+                              transition: "all 0.2s ease",
+                              textAlign: "left",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#f0f0f0";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
+                            <Pin size={16} color={msg.isPinned ? "#0a66c2" : "#666"} />
+                            <span style={{ color: msg.isPinned ? "#0a66c2" : "#333" }}>
+                              {msg.isPinned ? "Unpin" : "Pin"}
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setForwardingTo(msg);
+                              setShowForwardModal(true);
+                              setContextMenuOpen(null);
+                              setContextMenuPosition(null);
+                            }}
+                            style={{
+                              border: "none",
+                              background: "transparent",
+                              cursor: "pointer",
+                              padding: "8px 12px",
+                              borderRadius: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontSize: "14px",
+                              transition: "all 0.2s ease",
+                              textAlign: "left",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#f0f0f0";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                            }}
+                          >
+                            <Forward size={16} color="#666" />
+                            <span style={{ color: "#333" }}>Forward</span>
+                          </button>
+                          {isOwn && (
+                            <button
+                              onClick={() => {
+                                setContextMenuOpen(null);
+                                setContextMenuPosition(null);
+                              }}
+                              style={{
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                padding: "8px 12px",
+                                borderRadius: "4px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                fontSize: "14px",
+                                transition: "all 0.2s ease",
+                                textAlign: "left",
+                                color: "#dc3545",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#fee";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                              }}
+                            >
+                              <Trash2 size={16} color="#dc3545" />
+                              <span>Delete for myself</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
                       {/* Reactions - shown below message */}
                       {msg.reactions && msg.reactions.length > 0 && (
                         <div style={{ 
                             display: "flex", 
-                            alignItems: "center", 
+                            flexDirection: "column",
+                            alignItems: isOwn ? "flex-end" : "flex-start",
                             gap: "4px", 
                             marginTop: "4px",
                             marginLeft: isOwn ? "auto" : "0",
                             marginRight: isOwn ? "0" : "auto",
                             maxWidth: "70%",
                           }}>
-                            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                              {Object.entries(getReactionCounts(msg.reactions)).map(([emoji, count]) => (
-                                <button
-                                  key={emoji}
-                                  onClick={() => toggleReaction(msg._id, emoji)}
-                                  style={{
-                                    background: hasUserReacted(msg.reactions, emoji) 
-                                      ? "#e3f2fd"
-                                      : "white",
-                                    border: `1px solid ${hasUserReacted(msg.reactions, emoji) 
-                                      ? "#0a66c2"
-                                      : "#e0e0e0"}`,
-                                    borderRadius: "12px",
-                                    padding: "2px 6px",
-                                    fontSize: "12px",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                    transition: "all 0.2s ease",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = "scale(1.1)";
-                                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = "scale(1)";
-                                    e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
-                                  }}
-                                >
-                                  <span>{emoji}</span>
-                                  <span style={{ fontSize: "11px", opacity: 0.8 }}>{count}</span>
-                                </button>
-                              ))}
-                            </div>
+                            {Object.entries(getReactionCounts(msg.reactions)).map(([emoji, count]) => (
+                              <button
+                                key={emoji}
+                                onClick={() => toggleReaction(msg._id, emoji)}
+                                style={{
+                                  background: hasUserReacted(msg.reactions, emoji) 
+                                    ? "#e3f2fd"
+                                    : "white",
+                                  border: `1px solid ${hasUserReacted(msg.reactions, emoji) 
+                                    ? "#0a66c2"
+                                    : "#e0e0e0"}`,
+                                  borderRadius: "12px",
+                                  padding: "4px 8px",
+                                  fontSize: "14px",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  transition: "all 0.2s ease",
+                                  boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                                  alignSelf: isOwn ? "flex-end" : "flex-start",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = "scale(1.05)";
+                                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = "scale(1)";
+                                  e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
+                                }}
+                              >
+                                <span style={{ fontSize: "16px" }}>{emoji}</span>
+                                <span style={{ fontSize: "12px", opacity: 0.8, fontWeight: "500" }}>{count}</span>
+                              </button>
+                            ))}
                           </div>
                         )}
                         {isOwn && msg.sender && (

@@ -180,3 +180,88 @@ body:not(:has(main[data-chat-page="true"])) {
   position: static;
   min-height: 100vh;
 }
+
+/* Dark Mode Styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background: #1a1a1a !important;
+  color: #e0e0e0 !important;
+}
+
+.dark .site-header {
+  background: #2a2a2a !important;
+  border-bottom-color: #3a3a3a !important;
+}
+
+.dark main {
+  background: #1a1a1a !important;
+}
+
+.dark .site-footer {
+  background: #2a2a2a !important;
+  color: #e0e0e0 !important;
+}
+
+/* Dark mode for white backgrounds in cards */
+.dark div[style*="background: white"],
+.dark div[style*="background: #fff"] {
+  background: #2a2a2a !important;
+  color: #e0e0e0 !important;
+  border-color: #3a3a3a !important;
+}
+
+/* Dark mode for inputs */
+.dark input,
+.dark textarea,
+.dark select {
+  background: #1a1a1a !important;
+  color: #e0e0e0 !important;
+  border-color: #3a3a3a !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #0a66c2 !important;
+  background: #1a1a1a !important;
+}
+
+/* Dark mode for buttons */
+.dark button {
+  color: #e0e0e0;
+}
+
+.dark button[style*="background: white"],
+.dark button[style*="background: #fff"] {
+  background: #2a2a2a !important;
+  border-color: #3a3a3a !important;
+  color: #e0e0e0 !important;
+}
+
+/* Dark mode for links */
+.dark a {
+  color: #4a9eff;
+}
+
+.dark a:hover {
+  color: #6bb3ff;
+}
+
+/* Dark mode for text colors */
+.dark p[style*="color: #666"],
+.dark span[style*="color: #666"],
+.dark div[style*="color: #666"] {
+  color: #a0a0a0 !important;
+}
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #e0e0e0;
+}

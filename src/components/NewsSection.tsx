@@ -44,37 +44,40 @@ export async function NewsSection({ locale = "me" }: NewsSectionProps) {
       </div>
 
       {posts.length > 0 && (
-        <swiper-container
-          className="mySwiper"
-          data-aos="fade-up"
-          slides-per-view="4"
-          space-between="30"
-          loop="true"
-          slides-offset-before="180"
-          breakpoints='{"0":{"slidesPerView":2,"spaceBetween":10,"slidesOffsetBefore":50},"768":{"slidesPerView":2,"spaceBetween":20,"slidesOffsetBefore":80},"1024":{"slidesPerView":4,"spaceBetween":30,"slidesOffsetBefore":180}}'
-        >
-          {posts.map((post: Post) => (
-            <swiper-slide key={post._id} className="news-item" data-aos="fade-up">
-              {post.featuredImage && (
-                <Link href={localeLink(`/posts/${post.slug}`, locale)}>
-                  <img
-                    src={post.featuredImage}
-                    alt={post.title}
-                    className="news-thumb"
-                  />
-                </Link>
-              )}
-              <h3 className="news-item-title">
-                <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
-              </h3>
-              {post.excerpt && (
-                <p className="news-excerpt">
-                  {post.excerpt.replace(/<[^>]*>/g, '').substring(0, 100)}...
-                </p>
-              )}
-            </swiper-slide>
-          ))}
-        </swiper-container>
+        <div className="news-swiper-wrapper">
+          <swiper-container
+            className="news-swiper"
+            data-aos="fade-up"
+            slides-per-view="auto"
+            space-between="30"
+            loop="false"
+            navigation="true"
+            pagination="true"
+            breakpoints='{"0":{"slidesPerView":1.2,"spaceBetween":15},"640":{"slidesPerView":2,"spaceBetween":20},"1024":{"slidesPerView":3,"spaceBetween":25},"1280":{"slidesPerView":4,"spaceBetween":30}}'
+          >
+            {posts.map((post: Post) => (
+              <swiper-slide key={post._id} className="news-item" data-aos="fade-up">
+                {post.featuredImage && (
+                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>
+                    <img
+                      src={post.featuredImage}
+                      alt={post.title}
+                      className="news-thumb"
+                    />
+                  </Link>
+                )}
+                <h3 className="news-item-title">
+                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
+                </h3>
+                {post.excerpt && (
+                  <p className="news-excerpt">
+                    {post.excerpt.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                  </p>
+                )}
+              </swiper-slide>
+            ))}
+          </swiper-container>
+        </div>
       )}
     </section>
   );

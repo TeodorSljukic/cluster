@@ -27,11 +27,22 @@ export async function GET(request: NextRequest) {
             return null;
           }
           
+          // Get file extension to determine type
+          const ext = filename.split(".").pop()?.toLowerCase() || "";
+          const isImage = ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(ext);
+          const isPdf = ext === "pdf";
+          const isDocument = ["doc", "docx", "txt", "rtf"].includes(ext);
+          const isVideo = ["mp4", "avi", "mov", "wmv", "flv", "webm"].includes(ext);
+          const isAudio = ["mp3", "wav", "ogg", "m4a"].includes(ext);
+          const isArchive = ["zip", "rar", "7z", "tar", "gz"].includes(ext);
+
           return {
             filename,
             url: `/uploads/${filename}`,
             size: stats.size,
             createdAt: stats.birthtime.toISOString(),
+            type: isImage ? "image" : isPdf ? "pdf" : isDocument ? "document" : isVideo ? "video" : isAudio ? "audio" : isArchive ? "archive" : "other",
+            extension: ext,
           };
         })
       );
@@ -42,6 +53,8 @@ export async function GET(request: NextRequest) {
         url: string;
         size: number;
         createdAt: string;
+        type: string;
+        extension: string;
       }>;
 
       // Sort by creation date (newest first)
