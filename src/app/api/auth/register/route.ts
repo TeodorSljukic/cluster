@@ -98,19 +98,26 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
+    // Create user in LMS first (we'll rollback if ECOMMERCE or DMS fails)
     const result = await collection.insertOne(user);
+    const userId = result.insertedId.toString();
 
     // Registration results from all systems
     const registrationResults: any = {
       lms: {
         success: true,
-        userId: result.insertedId.toString(),
+        userId: userId,
       },
       ecommerce: null,
       dms: null,
     };
 
-    // -------- ECOMMERCE Registration --------
+    let ecommerceSuccess = false;
+    let dmsSuccess = false;
+    let ecommerceError: string | null = null;
+    let dmsError: string | null = null;
+
+    // -------- ECOMMERCE Registration (REQUIRED) --------
     try {
       const ecommerceResponse = await fetch(ECOMMERCE_URL, {
         method: "POST",
@@ -120,38 +127,38 @@ export async function POST(request: NextRequest) {
           email: email,
           password: password,
           role: "buyer",
-          // Add any additional required fields if ECOMMERCE system needs them
         }),
       });
 
       if (ecommerceResponse.ok) {
+        ecommerceSuccess = true;
         registrationResults.ecommerce = {
           success: true,
           data: await ecommerceResponse.json(),
         };
       } else {
         // Try to parse as JSON first, fallback to text
-        let errorMessage;
         try {
           const errorData = await ecommerceResponse.json();
-          errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+          ecommerceError = errorData.message || errorData.error || JSON.stringify(errorData);
         } catch {
-          errorMessage = await ecommerceResponse.text();
+          ecommerceError = await ecommerceResponse.text();
         }
         registrationResults.ecommerce = {
           success: false,
-          error: errorMessage,
+          error: ecommerceError,
           status: ecommerceResponse.status,
         };
       }
-    } catch (ecommerceError: any) {
+    } catch (ecommerceErr: any) {
+      ecommerceError = ecommerceErr.message;
       registrationResults.ecommerce = {
         success: false,
-        error: ecommerceError.message,
+        error: ecommerceError,
       };
     }
 
-    // -------- DMS Registration --------
+    // -------- DMS Registration (REQUIRED) --------
     try {
       // First, get DMS token
       const tokenResponse = await fetch(`${DMS_URL}/api/token/`, {
@@ -210,27 +217,58 @@ export async function POST(request: NextRequest) {
         });
 
         if (dmsResponse.ok) {
+          dmsSuccess = true;
           registrationResults.dms = {
             success: true,
             data: await dmsResponse.json(),
           };
         } else {
+          dmsError = await dmsResponse.text();
           registrationResults.dms = {
             success: false,
-            error: await dmsResponse.text(),
+            error: dmsError,
           };
         }
       } else {
+        dmsError = "Failed to get DMS token";
         registrationResults.dms = {
           success: false,
-          error: "Failed to get DMS token",
+          error: dmsError,
         };
       }
-    } catch (dmsError: any) {
+    } catch (dmsErr: any) {
+      dmsError = dmsErr.message;
       registrationResults.dms = {
         success: false,
-        error: dmsError.message,
+        error: dmsError,
       };
+    }
+
+    // -------- CHECK IF ALL REGISTRATIONS SUCCEEDED --------
+    // If ECOMMERCE or DMS failed, rollback LMS registration
+    if (!ecommerceSuccess || !dmsSuccess) {
+      // Rollback: Delete user from LMS
+      await collection.deleteOne({ _id: result.insertedId });
+      
+      // Build error message
+      const errors: string[] = [];
+      if (!ecommerceSuccess) {
+        errors.push(`ECOMMERCE: ${ecommerceError || "Registration failed"}`);
+      }
+      if (!dmsSuccess) {
+        errors.push(`DMS: ${dmsError || "Registration failed"}`);
+      }
+
+      const errorResponse = NextResponse.json(
+        {
+          error: "Registration failed in one or more systems",
+          details: errors,
+          registrations: registrationResults,
+        },
+        { status: 500 }
+      );
+      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+      return errorResponse;
     }
 
     // Create token for LMS

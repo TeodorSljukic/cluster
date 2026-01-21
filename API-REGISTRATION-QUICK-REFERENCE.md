@@ -86,7 +86,7 @@ const data = await response.json();
 
 ## 📝 Napomene
 
-- ✅ LMS registracija je **uvek uspešna** (primarna)
-- ⚠️ ECOMMERCE i DMS registracije su **opcione**
+- ✅ **Sve tri registracije su OBAVEZNE** (LMS, ECOMMERCE, DMS)
+- ⚠️ Ako bilo koja registracija ne uspe, **sve se rollback-uje** i korisnik se ne kreira
 - 🔐 Lozinka se **hash-uje** automatski
-- 🍪 Korisnik se **automatski loguje** (cookie se postavlja)
+- 🍪 Korisnik se **automatski loguje** samo ako sve tri registracije uspeju (cookie se postavlja)
