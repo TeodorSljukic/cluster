@@ -39,7 +39,6 @@ interface DashboardStats {
     news: number;
     events: number;
     resources: number;
-    skills: number;
   };
 }
 
@@ -80,7 +79,7 @@ export function ChartsSection() {
   }
 
   const postsByTypeData = {
-    labels: ["News", "Events", "Resources", "Skills"],
+    labels: ["News", "Events", "Resources"],
     datasets: [
       {
         data: stats
@@ -88,9 +87,8 @@ export function ChartsSection() {
               stats.postsByType.news,
               stats.postsByType.events,
               stats.postsByType.resources,
-              stats.postsByType.skills,
             ]
-          : [0, 0, 0, 0],
+          : [0, 0, 0],
         backgroundColor: [
           "rgba(0, 95, 153, 0.8)",
           "rgba(0, 153, 76, 0.8)",

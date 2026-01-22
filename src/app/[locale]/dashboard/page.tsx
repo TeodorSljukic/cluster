@@ -66,7 +66,6 @@ interface DashboardStats {
     news: number;
     events: number;
     resources: number;
-    skills: number;
   };
   recentPosts: Array<{
     _id: string;
@@ -243,7 +242,7 @@ export default function DashboardPage() {
   };
 
   const postsByTypeData = {
-    labels: ["News", "Events", "Resources", "Skills"],
+    labels: ["News", "Events", "Resources"],
     datasets: [
       {
         data: stats
@@ -251,9 +250,8 @@ export default function DashboardPage() {
               stats.postsByType.news,
               stats.postsByType.events,
               stats.postsByType.resources,
-              stats.postsByType.skills,
             ]
-          : [0, 0, 0, 0],
+          : [0, 0, 0],
         backgroundColor: [
           "rgba(0, 95, 153, 0.8)",
           "rgba(0, 153, 76, 0.8)",

@@ -1,6 +1,6 @@
 export interface Post {
   _id?: string;
-  type: "news" | "event" | "resource" | "skill";
+  type: "news" | "event" | "resource";
   title: string;
   slug: string;
   content: string;

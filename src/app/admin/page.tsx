@@ -14,11 +14,10 @@ export default function AdminDashboardPage() {
 
   async function loadStats() {
     try {
-      const [news, events, resources, skills, users] = await Promise.all([
+      const [news, events, resources, users] = await Promise.all([
         fetch("/api/posts?type=news&status=published").then((r) => r.json()),
         fetch("/api/posts?type=event&status=published").then((r) => r.json()),
         fetch("/api/posts?type=resource&status=published").then((r) => r.json()),
-        fetch("/api/posts?type=skill&status=published").then((r) => r.json()),
         fetch("/api/admin/users").then((r) => r.json()),
       ]);
 
@@ -26,7 +25,6 @@ export default function AdminDashboardPage() {
         news: news.posts?.length || 0,
         events: events.posts?.length || 0,
         resources: resources.posts?.length || 0,
-        skills: skills.posts?.length || 0,
         users: users.users?.length || 0,
       });
     } catch (error) {
@@ -104,12 +102,6 @@ export default function AdminDashboardPage() {
               border: "1px solid #c3c4c7",
             }}
           >
-            <div style={{ fontSize: "30px", marginBottom: "10px" }}>🎯</div>
-            <div style={{ fontSize: "28px", fontWeight: "600", marginBottom: "5px" }}>
-              {stats.skills || 0}
-            </div>
-            <div style={{ fontSize: "13px", color: "#50575e" }}>Skills</div>
-          </div>
 
           <div
             style={{
@@ -202,29 +194,6 @@ export default function AdminDashboardPage() {
               Manage Resources
             </a>
             <a
-              href="/admin/posts?type=skill"
-              style={{
-                display: "inline-block",
-                padding: "8px 16px",
-                background: "#2271b1",
-                color: "white",
-                textDecoration: "none",
-                borderRadius: "3px",
-                fontSize: "13px",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#135e96";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#2271b1";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              Manage Skills
-            </a>
-            <a
               href="/admin/users"
               style={{
                 display: "inline-block",
@@ -262,7 +231,7 @@ function PostForm({
   onSave,
 }: {
   post: Post | null;
-  type: "news" | "event" | "resource" | "skill";
+  type: "news" | "event" | "resource";
   onClose: () => void;
   onSave: () => void;
 }) {

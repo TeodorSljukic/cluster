@@ -162,12 +162,11 @@ export function Header() {
             <li>
               <Link href={`/${currentLocale}/resources`}>{t.common.resources}</Link>
             </li>
-            <li>
-              <Link href={`/${currentLocale}/skills`}>{t.common.skills}</Link>
-            </li>
-            <li>
-              <Link href={`/${currentLocale}/dashboard`}>{t.common.dashboard}</Link>
-            </li>
+            {user && (
+              <li>
+                <Link href={`/${currentLocale}/dashboard`}>{t.common.dashboard}</Link>
+              </li>
+            )}
             <li>
               <Link href={`/${currentLocale}/contact`}>{t.common.contact}</Link>
             </li>
@@ -415,7 +414,7 @@ export function Header() {
             ) : (
               <Link href={`/${currentLocale}/login`} className="btn-register">
                 <User size={20} className="register-icon" />
-                <span>{t.common.register}</span>
+                <span>{t.common.login}</span>
               </Link>
             )
           )}
@@ -479,22 +478,16 @@ export function Header() {
                 {t.common.resources}
               </Link>
             </li>
-            <li>
-              <Link 
-                href={`/${currentLocale}/skills`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {t.common.skills}
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href={`/${currentLocale}/dashboard`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {t.common.dashboard}
-              </Link>
-            </li>
+            {user && (
+              <li>
+                <Link 
+                  href={`/${currentLocale}/dashboard`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {t.common.dashboard}
+                </Link>
+              </li>
+            )}
             <li>
               <Link 
                 href={`/${currentLocale}/contact`}
@@ -565,7 +558,7 @@ export function Header() {
               ) : (
                 <Link href={`/${currentLocale}/login`} className="btn-register">
                   <User size={20} className="register-icon" />
-                  <span>{t.common.register}</span>
+                  <span>{t.common.login}</span>
                 </Link>
               )
             )}

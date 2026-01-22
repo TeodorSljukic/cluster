@@ -42,8 +42,6 @@ function getBackLink(type: string, locale: Locale): { href: string; label: strin
       return { href: localeLink("/", locale), label: "Back to Home" };
     case "resource":
       return { href: localeLink("/resources", locale), label: "Back to Resources" };
-    case "skill":
-      return { href: localeLink("/skills", locale), label: "Back to Skills" };
     default:
       return { href: localeLink("/", locale), label: "Back to Home" };
   }

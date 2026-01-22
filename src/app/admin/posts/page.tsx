@@ -133,8 +133,7 @@ function PostsPageInner() {
           >
             {type === "news" && t.cms.news}
             {type === "event" && t.cms.events}
-            {type === "resource" && t.cms.resources}
-            {type === "skill" && t.cms.skills} {t.cms.posts}
+            {type === "resource" && t.cms.resources} {t.cms.posts}
           </h1>
           <button
             onClick={handleNew}
@@ -164,7 +163,7 @@ function PostsPageInner() {
         {showForm && (
           <PostForm
             post={editingPost}
-            type={type as "news" | "event" | "resource" | "skill"}
+            type={type as "news" | "event" | "resource"}
             currentLocale={selectedLocale}
             onClose={() => {
               setShowForm(false);
@@ -412,7 +411,7 @@ function PostForm({
   currentLocale,
 }: {
   post: Post | null;
-  type: "news" | "event" | "resource" | "skill";
+  type: "news" | "event" | "resource";
   onClose: () => void;
   onSave: () => void;
   currentLocale: Locale;
