@@ -6,7 +6,8 @@
     "build": "next build",
     "start": "next start",
     "dev": "next dev",
-    "register": "node registerAll.mjs"
+    "register": "node registerAll.mjs",
+    "test:registration": "node test-registration.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4",

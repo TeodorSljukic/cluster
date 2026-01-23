@@ -68,6 +68,8 @@
     "organization": "Naziv organizacije",
     "country": "Država",
     "sector": "Sektor",
+    "platforms": "Odaberite platforme:",
+    "allPlatforms": "Sve platforme",
     "newsletter": "Želim da primam obavještenja i biltene od ABGC",
     "terms": "Slažem se sa Uslovima korištenja i Politikom privatnosti",
     "register": "Registruj se"

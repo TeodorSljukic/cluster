@@ -68,6 +68,8 @@
     "organization": "Organization Name",
     "country": "Country",
     "sector": "Sector",
+    "platforms": "Select platforms:",
+    "allPlatforms": "All platforms",
     "newsletter": "I want to receive updates and newsletters from ABGC",
     "terms": "I agree to the Terms and Conditions and the Privacy Policy",
     "register": "Register"
