@@ -102,15 +102,6 @@ export default function AdminDashboardPage() {
               border: "1px solid #c3c4c7",
             }}
           >
-
-          <div
-            style={{
-              background: "#f6f7f7",
-              padding: "20px",
-              borderRadius: "4px",
-              border: "1px solid #c3c4c7",
-            }}
-          >
             <div style={{ fontSize: "30px", marginBottom: "10px" }}>👥</div>
             <div style={{ fontSize: "28px", fontWeight: "600", marginBottom: "5px" }}>
               {stats.users || 0}
