@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile, Reply, Forward, MoreVertical, Edit, Copy, CheckCircle, Languages, Trash2 } from "lucide-react";
@@ -453,7 +453,7 @@ function ChatPageInner() {
     }
   }
 
-  async function loadUnreadCounts() {
+  const loadUnreadCounts = useCallback(async () => {
     try {
       const res = await fetch("/api/messages/unread");
       if (res.ok) {
@@ -463,7 +463,7 @@ function ChatPageInner() {
     } catch (error) {
       console.error("Error loading unread counts:", error);
     }
-  }
+  }, []);
 
   const sendMessage = useCallback(async () => {
     // Allow sending if there's text OR a file

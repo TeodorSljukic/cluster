@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
       query._id = { $lt: new ObjectId(beforeId) };
     }
 
-    const limit = 50;
+    // Optimize limit - reduce for better performance
+    const limit = 30; // Reduced from 50 to 30 for faster loading
     const messages = await db
       .collection("messages")
       .find(query)
