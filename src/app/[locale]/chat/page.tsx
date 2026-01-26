@@ -730,38 +730,6 @@ function ChatPageInner() {
     }
   }
 
-  async function togglePin(messageId: string, currentPinState: boolean) {
-    if (!currentUserId) {
-      console.log("Cannot toggle pin: no currentUserId");
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/messages/${messageId}/pin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin: !currentPinState }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        console.log("Pin updated:", data);
-        // Update message in state
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg._id === messageId ? { ...msg, isPinned: data.isPinned } : msg
-          )
-        );
-      } else {
-        const error = await res.json().catch(() => ({ error: "Unknown error" }));
-        console.error("Failed to toggle pin:", error);
-        alert(`Failed to pin/unpin message: ${error.error || "Unknown error"}`);
-      }
-    } catch (error) {
-      console.error("Error toggling pin:", error);
-      alert("Error pinning/unpinning message. Please try again.");
-    }
-  }
 
   async function toggleReaction(messageId: string, emoji: string) {
     if (!currentUserId) {
@@ -2129,37 +2097,6 @@ function ChatPageInner() {
                           >
                             <Copy size={16} color="#666" />
                             <span style={{ color: "#333" }}>Copy message</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              togglePin(msg._id, msg.isPinned || false);
-                              setContextMenuOpen(null);
-                              setContextMenuPosition(null);
-                            }}
-                            style={{
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              padding: "8px 12px",
-                              borderRadius: "4px",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              fontSize: "14px",
-                              transition: "all 0.2s ease",
-                              textAlign: "left",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "#f0f0f0";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "transparent";
-                            }}
-                          >
-                            <Pin size={16} color={msg.isPinned ? "#0a66c2" : "#666"} />
-                            <span style={{ color: msg.isPinned ? "#0a66c2" : "#333" }}>
-                              {msg.isPinned ? "Unpin" : "Pin"}
-                            </span>
                           </button>
                           <button
                             onClick={() => {
