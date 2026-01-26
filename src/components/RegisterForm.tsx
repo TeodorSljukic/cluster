@@ -24,6 +24,11 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     role_custom: "Student",
     interests: "",
     platforms: [] as string[],
+    platformRoles: {
+      lms: "user" as "user" | "instructor" | "admin",
+      ecommerce: "buyer" as "buyer" | "seller" | "admin",
+      dms: "1" as "1" | "2" | "3", // Groups: 1=viewer, 2=editor, 3=admin
+    },
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -57,7 +62,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           ...formData,
           location: formData.city ? `${formData.city}, ${formData.region}, ${formData.country}` : undefined,
           selectedPlatforms: selectedPlatforms,
-          role: formData.role, // Explicitly send role
+          role: formData.role, // Local system role
+          platformRoles: formData.platformRoles, // Platform-specific roles
         }),
       });
 
@@ -404,7 +410,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 </div>
               </div>
 
-              {/* Role Selection */}
+              {/* Role Selection - Global (for local system) */}
               <div style={{ marginBottom: "20px" }}>
                 <label style={{ 
                   display: "block", 
@@ -413,13 +419,13 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   fontSize: "14px",
                   color: "#333"
                 }}>
-                  Nivo korisnika <span style={{ color: "#B53251" }}>*</span>
+                  Nivo korisnika (lokalni sistem) <span style={{ color: "#B53251" }}>*</span>
                 </label>
                 <select
-                  value={formData.role === "admin" ? "user" : formData.role} // Force user if somehow admin is set
+                  value={formData.role}
                   onChange={(e) => {
                     const newRole = e.target.value;
-                    // Prevent admin from being selected
+                    // Prevent admin from being selected (shouldn't be possible, but just in case)
                     if (newRole !== "admin") {
                       setFormData({ ...formData, role: newRole as "moderator" | "editor" | "user" });
                     }
@@ -442,18 +448,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   <option value="user">User - Osnovni korisnik</option>
                   <option value="editor">Editor - Može kreirati i uređivati sadržaj</option>
                   <option value="moderator">Moderator - Može moderirati i upravljati korisnicima</option>
-                  {/* Admin option removed - cannot be selected during registration */}
                 </select>
-                <p style={{ 
-                  marginTop: "4px", 
-                  fontSize: "12px", 
-                  color: "#666",
-                  lineHeight: "1.4"
-                }}>
-                  {formData.role === "user" && "Osnovni pristup - može pregledati sadržaj"}
-                  {formData.role === "editor" && "Može kreirati i uređivati postove, vesti i resurse"}
-                  {formData.role === "moderator" && "Može moderirati sadržaj i upravljati korisnicima (osim admina)"}
-                </p>
                 <p style={{ 
                   marginTop: "4px", 
                   fontSize: "11px", 
@@ -578,6 +573,104 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                     );
                   })}
                 </div>
+                
+                {/* Platform-specific role selection */}
+                {formData.platforms.length > 0 && formData.platforms.filter(p => p !== "all").length > 0 && (
+                  <div style={{ marginTop: "20px", padding: "15px", background: "#f9f9f9", borderRadius: "8px" }}>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "12px", 
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#333"
+                    }}>
+                      Nivo korisnika po platformama:
+                    </label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {formData.platforms.filter(p => p !== "all").map((platformId) => {
+                        if (platformId === "lms") {
+                          return (
+                            <div key="lms" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>LMS:</span>
+                              <select
+                                value={formData.platformRoles.lms}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  platformRoles: { ...formData.platformRoles, lms: e.target.value as "user" | "instructor" | "admin" }
+                                })}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #ddd",
+                                  fontSize: "13px",
+                                  outline: "none"
+                                }}
+                              >
+                                <option value="user">User - Regular student</option>
+                                <option value="instructor">Instructor - Course instructor</option>
+                                <option value="admin">Admin - Administrator</option>
+                              </select>
+                            </div>
+                          );
+                        }
+                        if (platformId === "ecommerce") {
+                          return (
+                            <div key="ecommerce" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>Ecommerce:</span>
+                              <select
+                                value={formData.platformRoles.ecommerce}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  platformRoles: { ...formData.platformRoles, ecommerce: e.target.value as "buyer" | "seller" | "admin" }
+                                })}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #ddd",
+                                  fontSize: "13px",
+                                  outline: "none"
+                                }}
+                              >
+                                <option value="buyer">Buyer - Default role</option>
+                                <option value="seller">Seller - Seller account</option>
+                                <option value="admin">Admin - Administrator</option>
+                              </select>
+                            </div>
+                          );
+                        }
+                        if (platformId === "dms") {
+                          return (
+                            <div key="dms" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>DMS:</span>
+                              <select
+                                value={formData.platformRoles.dms}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  platformRoles: { ...formData.platformRoles, dms: e.target.value as "1" | "2" | "3" }
+                                })}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #ddd",
+                                  fontSize: "13px",
+                                  outline: "none"
+                                }}
+                              >
+                                <option value="1">Group 1 - Viewer</option>
+                                <option value="2">Group 2 - Editor</option>
+                                <option value="3">Group 3 - Admin</option>
+                              </select>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Terms */}

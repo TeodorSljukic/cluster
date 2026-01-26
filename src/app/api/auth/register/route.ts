@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     // Support both userName/userEmail (for external API calls) and username/email
     const username = body.username || body.userName;
     const email = body.email || body.userEmail;
-    const { password, displayName, organization, location, role_custom, interests, selectedPlatforms, role: requestedRole } = body;
+    const { password, displayName, organization, location, role_custom, interests, selectedPlatforms, role: requestedRole, platformRoles } = body;
     
     // Determine which platforms to register on (default to all if not specified)
     const platforms = selectedPlatforms && Array.isArray(selectedPlatforms) && selectedPlatforms.length > 0
@@ -299,8 +299,9 @@ export async function POST(request: NextRequest) {
 
       console.log("\n📚 Starting LMS registration (independent call)...");
       console.log("   URL:", LMS_URL);
-      const lmsRole = mapToLMSRole(role);
-      console.log(`   Role mapping: ${role} -> ${lmsRole} (LMS)`);
+      // Use platform-specific role if provided, otherwise map from global role
+      const lmsRole = platformRoles?.lms || mapToLMSRole(role);
+      console.log(`   Role: ${lmsRole} (LMS) - ${platformRoles?.lms ? "from platformRoles" : "mapped from global role"}`);
       try {
         const lmsResponse = await fetchWithTimeout(
           LMS_URL,
@@ -363,8 +364,9 @@ export async function POST(request: NextRequest) {
 
       console.log("\n🛒 Starting ECOMMERCE registration (independent call)...");
       console.log("   URL:", ECOMMERCE_URL);
-      const ecommerceRole = mapToEcommerceRole(role);
-      console.log(`   Role mapping: ${role} -> ${ecommerceRole} (Ecommerce)`);
+      // Use platform-specific role if provided, otherwise map from global role
+      const ecommerceRole = platformRoles?.ecommerce || mapToEcommerceRole(role);
+      console.log(`   Role: ${ecommerceRole} (Ecommerce) - ${platformRoles?.ecommerce ? "from platformRoles" : "mapped from global role"}`);
       try {
         const ecommerceResponse = await fetchWithTimeout(
           ECOMMERCE_URL,
@@ -463,8 +465,15 @@ export async function POST(request: NextRequest) {
           // Now, create DMS user
           console.log("   Step 2: Creating DMS user...");
           console.log("   Users URL:", DMS_USERS_URL);
-          const dmsGroups = mapToDMSGroups(role, false);
-          console.log(`   Role mapping: ${role} -> groups ${JSON.stringify(dmsGroups)} (DMS)`);
+          // Use platform-specific groups if provided, otherwise map from global role
+          let dmsGroups: number[];
+          if (platformRoles?.dms) {
+            dmsGroups = [parseInt(platformRoles.dms)];
+            console.log(`   Groups: ${JSON.stringify(dmsGroups)} (DMS) - from platformRoles`);
+          } else {
+            dmsGroups = mapToDMSGroups(role, false);
+            console.log(`   Groups: ${JSON.stringify(dmsGroups)} (DMS) - mapped from global role`);
+          }
           
           const dmsResponse = await fetchWithTimeout(
             DMS_USERS_URL,
@@ -483,7 +492,7 @@ export async function POST(request: NextRequest) {
                 is_active: true,
                 is_staff: false,
                 is_superuser: false,
-                groups: dmsGroups, // Regular DMS groups: [1]=viewer, [2]=editor, [3]=admin
+                groups: dmsGroups, // DMS groups: [1]=viewer, [2]=editor, [3]=admin
                 user_permissions: [
                   "add_document",
                   "view_document",
