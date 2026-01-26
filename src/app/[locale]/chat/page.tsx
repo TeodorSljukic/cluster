@@ -551,7 +551,7 @@ function ChatPageInner() {
     } finally {
       setSending(false);
     }
-  }
+  }, [messageText, selectedFile, sending, userId, groupId, currentUserId, replyingTo]);
 
   async function editMessage(messageId: string, newText: string) {
     if (!newText.trim() || !messageId) {
