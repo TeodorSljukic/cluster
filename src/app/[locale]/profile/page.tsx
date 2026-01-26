@@ -563,6 +563,7 @@ export default function ProfilePage({
                 {/* Profile Picture */}
                 <div style={{ position: "relative", display: "inline-block" }}>
                   <div
+                    key={formData.profilePicture || user.profilePicture || 'no-image'}
                     style={{
                       width: "168px",
                       height: "168px",
