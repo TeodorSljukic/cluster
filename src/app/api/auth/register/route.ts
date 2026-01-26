@@ -47,6 +47,15 @@ export async function POST(request: NextRequest) {
   console.log("🚀 REGISTRATION REQUEST STARTED");
   console.log("=".repeat(80));
   
+  // Declare variables outside try block so they're accessible in catch
+  let registrationResults: any = {
+    lms: null,
+    ecommerce: null,
+    dms: null,
+  };
+  let lmsUserId: string | null = null;
+  let result: any = null;
+  
   try {
     const body = await request.json();
     
@@ -149,8 +158,8 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
-    // Registration results from all systems
-    const registrationResults: any = {
+    // Registration results from all systems (already declared above)
+    registrationResults = {
       lms: null,
       ecommerce: null,
       dms: null,
@@ -162,10 +171,8 @@ export async function POST(request: NextRequest) {
     let lmsError: string | null = null;
     let ecommerceError: string | null = null;
     let dmsError: string | null = null;
-    let lmsUserId: string | null = null;
 
     // Always create user locally first (for authentication in our app)
-    let result;
     try {
       console.log("💾 Creating user in local database (MongoDB)...");
       result = await collection.insertOne(user);
