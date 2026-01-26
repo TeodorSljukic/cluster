@@ -247,9 +247,18 @@ export default function ProfilePage({
     }
   }
 
-  async function handleImageUpload(file: File, type: "cover" | "profile") {
+  async function handleImageUpload(file: File, type: "cover" | "profile", inputElement?: HTMLInputElement) {
     if (!file.type.startsWith("image/")) {
       alert(locale === "en" ? "Please upload an image file" : locale === "me" ? "Molimo učitajte sliku" : locale === "sq" ? "Ju lutem ngarkoni një skedar imazhi" : "Si prega di caricare un file immagine");
+      if (inputElement) inputElement.value = "";
+      return;
+    }
+
+    // Check file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert(locale === "en" ? "Image size must be less than 5MB" : locale === "me" ? "Veličina slike mora biti manja od 5MB" : locale === "sq" ? "Madhësia e imazhit duhet të jetë më pak se 5MB" : "La dimensione dell'immagine deve essere inferiore a 5MB");
+      if (inputElement) inputElement.value = "";
       return;
     }
 
@@ -286,24 +295,27 @@ export default function ProfilePage({
         if (saveRes.ok) {
           const updated = await saveRes.json();
           setUser(updated);
-          // Image uploaded successfully - no alert needed
+          // Update formData to reflect the change immediately
+          setFormData(updatedFormData);
         } else {
           const error = await saveRes.json();
           alert(`Error saving: ${error.error}`);
         }
       } else {
         const error = await res.json();
-        alert(`Error: ${error.error}`);
+        alert(`Error: ${error.error || "Upload failed"}`);
       }
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert("Error uploading image");
+      alert(locale === "en" ? "Error uploading image" : locale === "me" ? "Greška pri učitavanju slike" : locale === "sq" ? "Gabim gjatë ngarkimit të imazhit" : "Errore durante il caricamento dell'immagine");
     } finally {
       if (type === "cover") {
         setUploadingCover(false);
       } else {
         setUploadingProfile(false);
       }
+      // Reset input to allow same file to be selected again
+      if (inputElement) inputElement.value = "";
     }
   }
 
@@ -500,8 +512,8 @@ export default function ProfilePage({
           <div
             style={{
               height: "200px",
-              background: user.coverImage
-                ? `url(${user.coverImage}) center/cover`
+              background: (formData.coverImage || user.coverImage)
+                ? `url(${formData.coverImage || user.coverImage}${(formData.coverImage || user.coverImage)?.includes('?') ? '&' : '?'}t=${Date.now()}) center/cover`
                 : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               position: "relative",
             }}
@@ -527,11 +539,12 @@ export default function ProfilePage({
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        handleImageUpload(file, "cover");
+                        handleImageUpload(file, "cover", e.target);
                       }
                     }}
                     disabled={uploadingCover}
                     style={{ display: "none" }}
+                    id="cover-image-input"
                   />
                 </label>
               </div>
@@ -550,8 +563,8 @@ export default function ProfilePage({
                       height: "168px",
                       borderRadius: "50%",
                       border: "4px solid white",
-                      background: user.profilePicture
-                        ? `url(${user.profilePicture}) center/cover`
+                      background: (formData.profilePicture || user.profilePicture)
+                        ? `url(${formData.profilePicture || user.profilePicture}${(formData.profilePicture || user.profilePicture)?.includes('?') ? '&' : '?'}t=${Date.now()}) center/cover`
                         : "#e4e4e4",
                       display: "flex",
                       alignItems: "center",
@@ -634,11 +647,12 @@ export default function ProfilePage({
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                handleImageUpload(file, "profile");
+                                handleImageUpload(file, "profile", e.target);
                               }
                             }}
                             disabled={uploadingProfile}
                             style={{ display: "none" }}
+                            id="profile-image-input"
                           />
                         </label>
                       </div>
