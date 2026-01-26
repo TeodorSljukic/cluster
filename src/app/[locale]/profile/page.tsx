@@ -294,8 +294,11 @@ export default function ProfilePage({
         
         if (saveRes.ok) {
           const updated = await saveRes.json();
-          setUser(updated);
-          // Update formData to reflect the change immediately
+          // Update both user and formData with the new image URL
+          setUser({
+            ...updated,
+            [type === "cover" ? "coverImage" : "profilePicture"]: data.url,
+          });
           setFormData(updatedFormData);
         } else {
           const error = await saveRes.json();
@@ -513,7 +516,9 @@ export default function ProfilePage({
             style={{
               height: "200px",
               background: (formData.coverImage || user.coverImage)
-                ? `url(${formData.coverImage || user.coverImage}${(formData.coverImage || user.coverImage)?.includes('?') ? '&' : '?'}t=${Date.now()}) center/cover`
+                ? (formData.coverImage || user.coverImage).startsWith('data:')
+                  ? `url(${formData.coverImage || user.coverImage}) center/cover`
+                  : `url(${formData.coverImage || user.coverImage}?t=${Date.now()}) center/cover`
                 : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               position: "relative",
             }}
@@ -564,7 +569,9 @@ export default function ProfilePage({
                       borderRadius: "50%",
                       border: "4px solid white",
                       background: (formData.profilePicture || user.profilePicture)
-                        ? `url(${formData.profilePicture || user.profilePicture}${(formData.profilePicture || user.profilePicture)?.includes('?') ? '&' : '?'}t=${Date.now()}) center/cover`
+                        ? (formData.profilePicture || user.profilePicture).startsWith('data:')
+                          ? `url(${formData.profilePicture || user.profilePicture}) center/cover`
+                          : `url(${formData.profilePicture || user.profilePicture}?t=${Date.now()}) center/cover`
                         : "#e4e4e4",
                       display: "flex",
                       alignItems: "center",
@@ -575,7 +582,7 @@ export default function ProfilePage({
                       position: "relative",
                     }}
                   >
-                    {!user.profilePicture && (user.displayName || user.username)?.[0]?.toUpperCase()}
+                    {!(formData.profilePicture || user.profilePicture) && (user.displayName || user.username)?.[0]?.toUpperCase()}
                     {editing && (
                       <div
                         style={{
