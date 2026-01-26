@@ -516,11 +516,11 @@ export default function ProfilePage({
             key={String(formData.coverImage || user.coverImage || 'no-cover')}
             style={{
               height: "200px",
-              background: (formData.coverImage || user.coverImage)
-                ? (formData.coverImage || user.coverImage).startsWith('data:')
-                  ? `url(${formData.coverImage || user.coverImage}) center/cover`
-                  : `url(${formData.coverImage || user.coverImage}) center/cover`
-                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              background: (() => {
+                const coverImg = formData.coverImage || user.coverImage;
+                if (!coverImg) return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+                return `url(${coverImg}) center/cover`;
+              })(),
               position: "relative",
             }}
           >
@@ -570,11 +570,11 @@ export default function ProfilePage({
                       height: "168px",
                       borderRadius: "50%",
                       border: "4px solid white",
-                      background: (formData.profilePicture || user.profilePicture)
-                        ? (formData.profilePicture || user.profilePicture).startsWith('data:')
-                          ? `url(${formData.profilePicture || user.profilePicture}) center/cover`
-                          : `url(${formData.profilePicture || user.profilePicture}) center/cover`
-                        : "#e4e4e4",
+                      background: (() => {
+                        const profileImg = formData.profilePicture || user.profilePicture;
+                        if (!profileImg) return "#e4e4e4";
+                        return `url(${profileImg}) center/cover`;
+                      })(),
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
