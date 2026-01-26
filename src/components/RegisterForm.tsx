@@ -25,9 +25,9 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     interests: "",
     platforms: [] as string[],
     platformRoles: {
-      lms: "user" as "user" | "instructor" | "admin",
-      ecommerce: "buyer" as "buyer" | "seller" | "admin",
-      dms: "1" as "1" | "2" | "3", // Groups: 1=viewer, 2=editor, 3=admin
+      lms: "user" as "user" | "instructor",
+      ecommerce: "buyer" as "buyer" | "seller",
+      dms: "1" as "1" | "2", // Groups: 1=viewer, 2=editor (admin=3 not selectable)
     },
   });
   const [error, setError] = useState("");
@@ -410,55 +410,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 </div>
               </div>
 
-              {/* Role Selection - Global (for local system) */}
-              <div style={{ marginBottom: "20px" }}>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "6px", 
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  color: "#333"
-                }}>
-                  Nivo korisnika (lokalni sistem) <span style={{ color: "#B53251" }}>*</span>
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => {
-                    const newRole = e.target.value;
-                    // Prevent admin from being selected (shouldn't be possible, but just in case)
-                    if (newRole !== "admin") {
-                      setFormData({ ...formData, role: newRole as "moderator" | "editor" | "user" });
-                    }
-                  }}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    borderRadius: "6px",
-                    border: "1px solid #ddd",
-                    fontSize: "14px",
-                    outline: "none",
-                    boxSizing: "border-box",
-                    background: "white",
-                    cursor: "pointer"
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
-                  onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
-                >
-                  <option value="user">User - Osnovni korisnik</option>
-                  <option value="editor">Editor - Može kreirati i uređivati sadržaj</option>
-                  <option value="moderator">Moderator - Može moderirati i upravljati korisnicima</option>
-                </select>
-                <p style={{ 
-                  marginTop: "4px", 
-                  fontSize: "11px", 
-                  color: "#999",
-                  fontStyle: "italic"
-                }}>
-                  Napomena: Admin role se dodeljuje samo od strane sistema.
-                </p>
-              </div>
-
               {/* Platform Selection */}
               <div style={{ marginBottom: "25px" }}>
                 <label style={{ 
@@ -594,10 +545,15 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>LMS:</span>
                               <select
                                 value={formData.platformRoles.lms}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  platformRoles: { ...formData.platformRoles, lms: e.target.value as "user" | "instructor" | "admin" }
-                                })}
+                                onChange={(e) => {
+                                  const newRole = e.target.value;
+                                  if (newRole !== "admin") {
+                                    setFormData({
+                                      ...formData,
+                                      platformRoles: { ...formData.platformRoles, lms: newRole as "user" | "instructor" }
+                                    });
+                                  }
+                                }}
                                 style={{
                                   flex: 1,
                                   padding: "8px",
@@ -609,7 +565,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               >
                                 <option value="user">User - Regular student</option>
                                 <option value="instructor">Instructor - Course instructor</option>
-                                <option value="admin">Admin - Administrator</option>
                               </select>
                             </div>
                           );
@@ -620,10 +575,15 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>Ecommerce:</span>
                               <select
                                 value={formData.platformRoles.ecommerce}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  platformRoles: { ...formData.platformRoles, ecommerce: e.target.value as "buyer" | "seller" | "admin" }
-                                })}
+                                onChange={(e) => {
+                                  const newRole = e.target.value;
+                                  if (newRole !== "admin") {
+                                    setFormData({
+                                      ...formData,
+                                      platformRoles: { ...formData.platformRoles, ecommerce: newRole as "buyer" | "seller" }
+                                    });
+                                  }
+                                }}
                                 style={{
                                   flex: 1,
                                   padding: "8px",
@@ -635,7 +595,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               >
                                 <option value="buyer">Buyer - Default role</option>
                                 <option value="seller">Seller - Seller account</option>
-                                <option value="admin">Admin - Administrator</option>
                               </select>
                             </div>
                           );
@@ -646,10 +605,15 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>DMS:</span>
                               <select
                                 value={formData.platformRoles.dms}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  platformRoles: { ...formData.platformRoles, dms: e.target.value as "1" | "2" | "3" }
-                                })}
+                                onChange={(e) => {
+                                  const newGroup = e.target.value;
+                                  if (newGroup !== "3") {
+                                    setFormData({
+                                      ...formData,
+                                      platformRoles: { ...formData.platformRoles, dms: newGroup as "1" | "2" }
+                                    });
+                                  }
+                                }}
                                 style={{
                                   flex: 1,
                                   padding: "8px",
@@ -661,7 +625,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               >
                                 <option value="1">Group 1 - Viewer</option>
                                 <option value="2">Group 2 - Editor</option>
-                                <option value="3">Group 3 - Admin</option>
                               </select>
                             </div>
                           );
