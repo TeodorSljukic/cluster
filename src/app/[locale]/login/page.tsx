@@ -29,8 +29,8 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // Redirect all logged in users to dashboard with locale
-        router.push(`/${locale}/dashboard`);
+        // Redirect all logged in users to homepage with locale
+        router.push(`/${locale}`);
         router.refresh();
       } else {
         setError(data.error || "Login failed");

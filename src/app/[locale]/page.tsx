@@ -6,6 +6,7 @@ import { AccordionSection } from "@/components/AccordionSection";
 import { getTranslations, type Locale } from "@/lib/getTranslations";
 import { getCurrentUser } from "@/lib/auth";
 import { RegisterForm } from "@/components/RegisterForm";
+import { PlatformLinksSection } from "@/components/PlatformLinksSection";
 
 export const dynamic = "force-dynamic";
 
@@ -61,39 +62,7 @@ export default async function Home({
             </div>
           </section>
 
-          <section className="platform">
-            <div className="container">
-              <h2 className="platform-title" data-aos="fade-up">
-                {t.platform.title}
-              </h2>
-
-              <div className="platform-grid">
-                <div className="platform-item" data-aos="zoom-in" data-aos-delay="100">
-                  <img
-                    src="/wp-content/uploads/2025/09/Frame-10000022262.webp"
-                    alt={t.platform.documents}
-                  />
-                  <h3>{t.platform.documents}</h3>
-                </div>
-
-                <div className="platform-item" data-aos="zoom-in" data-aos-delay="200">
-                  <img
-                    src="/wp-content/uploads/2025/09/Frame-1000002235.webp"
-                    alt={t.platform.elearning}
-                  />
-                  <h3>{t.platform.elearning}</h3>
-                </div>
-
-                <div className="platform-item" data-aos="zoom-in" data-aos-delay="300">
-                  <img
-                    src="/wp-content/uploads/2025/09/Frame-1000002234.webp"
-                    alt={t.platform.ecommerce}
-                  />
-                  <h3>{t.platform.ecommerce}</h3>
-                </div>
-              </div>
-            </div>
-          </section>
+          <PlatformLinksSection locale={locale} />
 
           <AccordionSection locale={locale} />
 
@@ -128,6 +97,7 @@ export default async function Home({
       ) : (
         <>
           <RegisterForm locale={locale} />
+          <PlatformLinksSection locale={locale} />
           <section className="about" style={{ 
             padding: "80px 20px",
             background: "linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(234,243,250,0.75) 100%)"

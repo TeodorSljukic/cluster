@@ -182,11 +182,13 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   ];
 
   return (
-    <section style={{ 
-      padding: "60px 20px 80px",
-      background: "#FFFFFF",
-      minHeight: "100vh"
-    }}>
+    <section 
+      data-register-form
+      style={{ 
+        padding: "60px 20px 80px",
+        background: "#FFFFFF",
+        minHeight: "100vh"
+      }}>
       <div className="container" style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Main Content: Form Left, Logo Right */}
         <div style={{ 
