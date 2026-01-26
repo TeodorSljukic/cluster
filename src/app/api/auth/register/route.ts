@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     // Support both userName/userEmail (for external API calls) and username/email
     const username = body.username || body.userName;
     const email = body.email || body.userEmail;
-    const { password, displayName, organization, location, role_custom, interests, selectedPlatforms } = body;
+    const { password, displayName, organization, location, role_custom, interests, selectedPlatforms, role: requestedRole } = body;
     
     // Determine which platforms to register on (default to all if not specified)
     const platforms = selectedPlatforms && Array.isArray(selectedPlatforms) && selectedPlatforms.length > 0
@@ -210,11 +210,27 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user:
-    // - if there is no admin in DB (common after migrations), make this user admin
-    // - otherwise normal user
+    // Determine user role:
+    // - If role is provided in request, use it (but validate it's a valid role)
+    // - Otherwise, if there is no admin in DB, make this user admin
+    // - Otherwise, default to "user"
+    const validRoles: UserRole[] = ["admin", "moderator", "editor", "user"];
     const adminExists = (await collection.countDocuments({ role: "admin" })) > 0;
-    const role = adminExists ? "user" : "admin";
+    
+    let role: UserRole;
+    if (requestedRole && validRoles.includes(requestedRole as UserRole)) {
+      // Use requested role if valid
+      role = requestedRole as UserRole;
+      console.log(`✅ Using requested role: ${role}`);
+    } else if (!adminExists) {
+      // First user becomes admin if no admin exists
+      role = "admin";
+      console.log("✅ First user - automatically set as admin");
+    } else {
+      // Default to user
+      role = "user";
+      console.log("✅ Default role: user");
+    }
 
     const now = new Date();
     const user: Omit<User, "_id"> = {

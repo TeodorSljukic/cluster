@@ -16,6 +16,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     username: "",
     email: "",
     password: "",
+    role: "user" as "admin" | "moderator" | "editor" | "user",
     organization: "",
     city: "",
     region: "",
@@ -56,6 +57,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           ...formData,
           location: formData.city ? `${formData.city}, ${formData.region}, ${formData.country}` : undefined,
           selectedPlatforms: selectedPlatforms,
+          role: formData.role, // Explicitly send role
         }),
       });
 
@@ -337,6 +339,52 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
                   onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
                 />
+              </div>
+
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#333"
+                }}>
+                  Nivo korisnika <span style={{ color: "#B53251" }}>*</span>
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as "admin" | "moderator" | "editor" | "user" })}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "6px",
+                    border: "1px solid #ddd",
+                    fontSize: "14px",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    background: "white",
+                    cursor: "pointer"
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
+                  onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
+                >
+                  <option value="user">User - Osnovni korisnik</option>
+                  <option value="editor">Editor - Može kreirati i uređivati sadržaj</option>
+                  <option value="moderator">Moderator - Može moderirati i upravljati korisnicima</option>
+                  <option value="admin">Admin - Puni pristup svim funkcionalnostima</option>
+                </select>
+                <p style={{ 
+                  marginTop: "4px", 
+                  fontSize: "12px", 
+                  color: "#666",
+                  lineHeight: "1.4"
+                }}>
+                  {formData.role === "user" && "Osnovni pristup - može pregledati sadržaj"}
+                  {formData.role === "editor" && "Može kreirati i uređivati postove, vesti i resurse"}
+                  {formData.role === "moderator" && "Može moderirati sadržaj i upravljati korisnicima (osim admina)"}
+                  {formData.role === "admin" && "Puni pristup - može upravljati svim korisnicima i sistemom"}
+                </p>
               </div>
 
               <div style={{ 
