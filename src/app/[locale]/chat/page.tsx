@@ -194,13 +194,20 @@ function ChatPageInner() {
   }
 
   useEffect(() => {
-    // Scroll to bottom when messages change
-    setTimeout(() => {
-      scrollToBottom();
-    }, 100);
-  }, [messages]);
+    // Only scroll to bottom if user is near bottom (not scrolled up)
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+      if (isNearBottom) {
+        setTimeout(() => {
+          scrollToBottom();
+        }, 50);
+      }
+    }
+  }, [messages.length]); // Only trigger on message count change, not content change
 
   useEffect(() => {
+    // Increase polling interval to 5 seconds for better performance
     const interval = setInterval(() => {
       if (userId) {
         loadNewMessages(userId, null);
@@ -208,7 +215,7 @@ function ChatPageInner() {
         loadNewMessages(null, groupId);
       }
       loadUnreadCounts();
-    }, 2000);
+    }, 5000); // Increased from 2000ms to 5000ms
 
     return () => clearInterval(interval);
   }, [userId, groupId]);
@@ -224,24 +231,26 @@ function ChatPageInner() {
     }
   }, [userId, groupId]);
 
-  // Handle scroll to load older messages with debouncing
+  // Handle scroll to load older messages with throttling (better performance than debouncing)
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container || (!userId && !groupId)) return;
 
-    let timeoutId: NodeJS.Timeout;
+    let lastScrollTime = 0;
+    const throttleDelay = 200; // Throttle to max once per 200ms
+    
     const handleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
+      const now = Date.now();
+      if (now - lastScrollTime >= throttleDelay) {
+        lastScrollTime = now;
         if (container.scrollTop < 100 && hasMore && !loadingMore) {
           loadOlderMessages(userId, groupId);
         }
-      }, 150);
+      }
     };
 
     container.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
-      clearTimeout(timeoutId);
       container.removeEventListener("scroll", handleScroll);
     };
   }, [userId, groupId, hasMore, loadingMore, firstMessageIdRef]);
@@ -456,16 +465,14 @@ function ChatPageInner() {
     }
   }
 
-  async function sendMessage() {
+  const sendMessage = useCallback(async () => {
     // Allow sending if there's text OR a file
     if (!messageText.trim() && !selectedFile) {
-      console.log("Cannot send: no text and no file");
       return;
     }
 
     // Prevent sending if already sending
     if (sending) {
-      console.log("Already sending a message");
       return;
     }
 
