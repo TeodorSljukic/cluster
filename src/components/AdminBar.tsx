@@ -60,8 +60,8 @@ export function AdminBar() {
     return null;
   }
 
-  // Don't show admin bar on login/register pages
-  if (pathname === "/login" || pathname === "/register") {
+  // Don't show admin bar on login page
+  if (pathname === "/login") {
     return null;
   }
 

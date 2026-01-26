@@ -78,7 +78,7 @@ export default function LoginPage() {
         </form>
 
         <p className="login-register-link">
-          Nemaš nalog? <a href={`/${locale}/register`}>Registruj se ovdje</a>
+          Nemaš nalog? <a href={`/${locale}`}>Registruj se ovdje</a>
         </p>
       </div>
     </main>
