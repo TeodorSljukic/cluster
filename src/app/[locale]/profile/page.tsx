@@ -513,6 +513,7 @@ export default function ProfilePage({
         >
           {/* Cover Image */}
           <div
+            key={formData.coverImage || user.coverImage || 'no-cover'}
             style={{
               height: "200px",
               background: (formData.coverImage || user.coverImage)
