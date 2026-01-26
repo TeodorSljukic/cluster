@@ -97,6 +97,12 @@ interface InterestData {
   count: number;
 }
 
+interface RegisteredPlatforms {
+  lms?: boolean;
+  ecommerce?: boolean;
+  dms?: boolean;
+}
+
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
@@ -106,6 +112,11 @@ export default function DashboardPage() {
   const [usersByCountry, setUsersByCountry] = useState<LocationData[]>([]);
   const [interests, setInterests] = useState<InterestData[]>([]);
   const [visitors, setVisitors] = useState({ today: "0", total: "0" });
+  const [registeredPlatforms, setRegisteredPlatforms] = useState<RegisteredPlatforms>({
+    lms: false,
+    ecommerce: false,
+    dms: false,
+  });
   const router = useRouter();
   const pathname = usePathname();
 
@@ -128,6 +139,11 @@ export default function DashboardPage() {
       const data = await res.json();
       if (data.user) {
         setAuthenticated(true);
+        setRegisteredPlatforms(data.user.registeredPlatforms || {
+          lms: false,
+          ecommerce: false,
+          dms: false,
+        });
         loadDashboardData();
       } else {
         router.push(localeLink("/login", locale));
@@ -492,6 +508,167 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Platform Links Section */}
+      {(registeredPlatforms.lms || registeredPlatforms.ecommerce || registeredPlatforms.dms) && (
+        <div className="dashboard-platforms-section" style={{
+          marginTop: "32px",
+          background: "white",
+          borderRadius: "12px",
+          padding: "24px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        }}>
+          <h3 style={{
+            fontSize: "20px",
+            fontWeight: "600",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}>
+            <Globe size={20} />
+            Your Platforms
+          </h3>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+            gap: "16px",
+          }}>
+            {registeredPlatforms.lms && (
+              <a
+                href="http://edu.southadriaticskills.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "16px",
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  borderRadius: "8px",
+                  color: "white",
+                  textDecoration: "none",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <div style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  <FileText size={20} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: "600", fontSize: "16px" }}>E-Learning</div>
+                  <div style={{ fontSize: "12px", opacity: 0.9 }}>LMS Platform</div>
+                </div>
+                <ArrowRight size={16} style={{ marginLeft: "auto" }} />
+              </a>
+            )}
+            {registeredPlatforms.ecommerce && (
+              <a
+                href="https://market.southadriaticskills.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "16px",
+                  background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                  borderRadius: "8px",
+                  color: "white",
+                  textDecoration: "none",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <div style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  <TrendingUp size={20} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: "600", fontSize: "16px" }}>Marketplace</div>
+                  <div style={{ fontSize: "12px", opacity: 0.9 }}>E-Commerce Platform</div>
+                </div>
+                <ArrowRight size={16} style={{ marginLeft: "auto" }} />
+              </a>
+            )}
+            {registeredPlatforms.dms && (
+              <a
+                href="https://info.southadriaticskills.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "16px",
+                  background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                  borderRadius: "8px",
+                  color: "white",
+                  textDecoration: "none",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                }}
+              >
+                <div style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  <FileText size={20} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: "600", fontSize: "16px" }}>Documents</div>
+                  <div style={{ fontSize: "12px", opacity: 0.9 }}>DMS Platform</div>
+                </div>
+                <ArrowRight size={16} style={{ marginLeft: "auto" }} />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="dashboard-activity-grid" style={{ gridTemplateColumns: "1fr" }}>

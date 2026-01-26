@@ -24,6 +24,11 @@ export interface User {
   twitter?: string;
   lastActivity?: Date;
   status?: "online" | "away" | "offline";
+  registeredPlatforms?: {
+    lms?: boolean;
+    ecommerce?: boolean;
+    dms?: boolean;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

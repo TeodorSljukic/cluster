@@ -31,6 +31,11 @@ export async function GET() {
         role_custom: user.role_custom,
         interests: user.interests,
         profilePicture: user.profilePicture,
+        registeredPlatforms: user.registeredPlatforms || {
+          lms: false,
+          ecommerce: false,
+          dms: false,
+        },
       },
     });
   } catch (error: any) {

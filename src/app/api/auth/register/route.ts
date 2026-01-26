@@ -688,6 +688,26 @@ export async function POST(request: NextRequest) {
       console.log("✅ All selected registrations succeeded!");
     }
 
+    // Update user with registered platforms information
+    try {
+      console.log("\n💾 Updating user with platform registration info...");
+      await collection.updateOne(
+        { _id: result.insertedId },
+        {
+          $set: {
+            registeredPlatforms: {
+              lms: lmsSuccess,
+              ecommerce: ecommerceSuccess,
+              dms: dmsSuccess,
+            },
+          },
+        }
+      );
+      console.log("✅ User updated with platform info");
+    } catch (updateErr: any) {
+      console.error("⚠️  Failed to update user with platform info:", updateErr.message);
+      // Don't fail the registration if this update fails
+    }
 
     // Create token for LMS
     console.log("\n🔐 Creating authentication token...");
