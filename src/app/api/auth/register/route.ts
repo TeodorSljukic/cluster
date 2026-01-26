@@ -11,6 +11,17 @@ const DMS_TOKEN_URL = "https://info.southadriaticskills.org/api/token/";
 const DMS_USERS_URL = "https://info.southadriaticskills.org/api/users/";
 const DMS_ADMIN_USERNAME = "lemiclemic";
 const DMS_ADMIN_PASSWORD = "automobi1";
+const REQUEST_TIMEOUT = 60000; // 1 minute timeout for each request
+
+// Helper function to create a fetch with timeout
+function fetchWithTimeout(url: string, options: RequestInit, timeout: number = REQUEST_TIMEOUT): Promise<Response> {
+  return Promise.race([
+    fetch(url, options),
+    new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout)
+    ),
+  ]);
+}
 
 // Handle CORS preflight requests
 export async function OPTIONS() {
@@ -57,6 +68,11 @@ export async function POST(request: NextRequest) {
       : ["lms", "ecommerce", "dms"]; // Default to all platforms
     
     console.log("🎯 Selected platforms:", platforms);
+    console.log("📋 Platforms breakdown:", {
+      lms: platforms.includes("lms") ? "✅ WILL REGISTER" : "⏭️ SKIP",
+      ecommerce: platforms.includes("ecommerce") ? "✅ WILL REGISTER" : "⏭️ SKIP",
+      dms: platforms.includes("dms") ? "✅ WILL REGISTER" : "⏭️ SKIP",
+    });
 
     // Validate required fields
     if (!username || !email || !password) {
@@ -159,30 +175,36 @@ export async function POST(request: NextRequest) {
       return errorResponse;
     }
 
-    // -------- LMS Registration (if selected) --------
-    if (platforms.includes("lms")) {
-      console.log("\n📚 Starting LMS registration...");
+    // Helper function for LMS registration (independent call)
+    const registerLMS = async () => {
+      if (!platforms.includes("lms")) {
+        lmsSuccess = true;
+        registrationResults.lms = {
+          success: true,
+          userId: lmsUserId,
+          note: "Created locally only (not registered on external LMS)",
+        };
+        console.log("   ⏭️  LMS registration SKIPPED (not selected)");
+        return;
+      }
+
+      console.log("\n📚 Starting LMS registration (independent call)...");
       console.log("   URL:", LMS_URL);
       try {
-        // Register on external LMS server
-        const lmsRequestPayload = {
-          userName: username,
-          userEmail: email,
-          password: "***", // Don't log password
-          role: role,
-        };
-        console.log("   Request payload:", { ...lmsRequestPayload, password: "***" });
-        
-        const lmsResponse = await fetch(LMS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userName: username,
-            userEmail: email,
-            password: password,
-            role: role,
-          }),
-        });
+        const lmsResponse = await fetchWithTimeout(
+          LMS_URL,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userName: username,
+              userEmail: email,
+              password: password,
+              role: role,
+            }),
+          },
+          REQUEST_TIMEOUT
+        );
 
         console.log("   Response status:", lmsResponse.status, lmsResponse.statusText);
 
@@ -217,39 +239,34 @@ export async function POST(request: NextRequest) {
         };
         console.error("   ❌ LMS registration ERROR:", lmsErr.message);
       }
-    } else {
-      lmsSuccess = true; // Not required if not selected (already created locally)
-      registrationResults.lms = {
-        success: true,
-        userId: lmsUserId,
-        note: "Created locally only (not registered on external LMS)",
-      };
-      console.log("   ⏭️  LMS registration SKIPPED (not selected)");
-    }
+    };
 
-    // -------- ECOMMERCE Registration (if selected) --------
-    if (platforms.includes("ecommerce")) {
-      console.log("\n🛒 Starting ECOMMERCE registration...");
+    // Helper function for ECOMMERCE registration (independent call)
+    const registerEcommerce = async () => {
+      if (!platforms.includes("ecommerce")) {
+        ecommerceSuccess = true;
+        registrationResults.ecommerce = { success: true, message: "Skipped by user" };
+        console.log("   ⏭️  ECOMMERCE registration SKIPPED (not selected)");
+        return;
+      }
+
+      console.log("\n🛒 Starting ECOMMERCE registration (independent call)...");
       console.log("   URL:", ECOMMERCE_URL);
       try {
-        const ecommercePayload = {
-          name: displayName || username,
-          email: email,
-          password: "***",
-          role: "buyer",
-        };
-        console.log("   Request payload:", { ...ecommercePayload, password: "***" });
-        
-        const ecommerceResponse = await fetch(ECOMMERCE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: displayName || username,
-            email: email,
-            password: password,
-            role: "buyer",
-          }),
-        });
+        const ecommerceResponse = await fetchWithTimeout(
+          ECOMMERCE_URL,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: displayName || username,
+              email: email,
+              password: password,
+              role: "buyer",
+            }),
+          },
+          REQUEST_TIMEOUT
+        );
 
         console.log("   Response status:", ecommerceResponse.status, ecommerceResponse.statusText);
 
@@ -262,7 +279,6 @@ export async function POST(request: NextRequest) {
           };
           console.log("   ✅ ECOMMERCE registration SUCCESS");
         } else {
-          // Try to parse as JSON first, fallback to text
           try {
             const errorData = await ecommerceResponse.json();
             ecommerceError = errorData.message || errorData.error || JSON.stringify(errorData);
@@ -284,27 +300,34 @@ export async function POST(request: NextRequest) {
         };
         console.error("   ❌ ECOMMERCE registration ERROR:", ecommerceErr.message);
       }
-    } else {
-      ecommerceSuccess = true; // Not required if not selected
-      registrationResults.ecommerce = { success: true, message: "Skipped by user" };
-      console.log("   ⏭️  ECOMMERCE registration SKIPPED (not selected)");
-    }
+    };
 
-    // -------- DMS Registration (if selected) --------
-    if (platforms.includes("dms")) {
-      console.log("\n📁 Starting DMS registration...");
+    // Helper function for DMS registration (independent call)
+    const registerDMS = async () => {
+      if (!platforms.includes("dms")) {
+        dmsSuccess = true;
+        registrationResults.dms = { success: true, message: "Skipped by user" };
+        console.log("   ⏭️  DMS registration SKIPPED (not selected)");
+        return;
+      }
+
+      console.log("\n📁 Starting DMS registration (independent call)...");
       console.log("   Token URL:", DMS_TOKEN_URL);
       try {
         // First, get DMS token
         console.log("   Step 1: Getting DMS token...");
-        const tokenResponse = await fetch(DMS_TOKEN_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: DMS_ADMIN_USERNAME,
-            password: DMS_ADMIN_PASSWORD,
-          }),
-        });
+        const tokenResponse = await fetchWithTimeout(
+          DMS_TOKEN_URL,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: DMS_ADMIN_USERNAME,
+              password: DMS_ADMIN_PASSWORD,
+            }),
+          },
+          REQUEST_TIMEOUT
+        );
 
         console.log("   Token response status:", tokenResponse.status, tokenResponse.statusText);
 
@@ -321,53 +344,46 @@ export async function POST(request: NextRequest) {
           // Now, create DMS user
           console.log("   Step 2: Creating DMS user...");
           console.log("   Users URL:", DMS_USERS_URL);
-          const dmsPayload = {
-            username: username,
-            email: email,
-            password: "***",
-            first_name: first_name,
-            last_name: last_name,
-            is_active: true,
-            is_staff: false,
-            is_superuser: false,
-          };
-          console.log("   Request payload:", { ...dmsPayload, password: "***" });
           
-          const dmsResponse = await fetch(DMS_USERS_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Token ${TOKEN}`,
+          const dmsResponse = await fetchWithTimeout(
+            DMS_USERS_URL,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${TOKEN}`,
+              },
+              body: JSON.stringify({
+                username: username,
+                email: email,
+                password: password,
+                first_name: first_name,
+                last_name: last_name,
+                is_active: true,
+                is_staff: false,
+                is_superuser: false,
+                user_permissions: [
+                  "add_document",
+                  "view_document",
+                  "change_document",
+                  "delete_document",
+                  "add_documenttype",
+                  "view_documenttype",
+                  "change_documenttype",
+                  "delete_documenttype",
+                  "add_storagepath",
+                  "view_storagepath",
+                  "change_storagepath",
+                  "delete_storagepath",
+                  "add_savedview",
+                  "view_savedview",
+                  "change_savedview",
+                  "delete_savedview",
+                ],
+              }),
             },
-            body: JSON.stringify({
-              username: username,
-              email: email,
-              password: password,
-              first_name: first_name,
-              last_name: last_name,
-              is_active: true,
-              is_staff: false,
-              is_superuser: false,
-              user_permissions: [
-                "add_document",
-                "view_document",
-                "change_document",
-                "delete_document",
-                "add_documenttype",
-                "view_documenttype",
-                "change_documenttype",
-                "delete_documenttype",
-                "add_storagepath",
-                "view_storagepath",
-                "change_storagepath",
-                "delete_storagepath",
-                "add_savedview",
-                "view_savedview",
-                "change_savedview",
-                "delete_savedview",
-              ],
-            }),
-          });
+            REQUEST_TIMEOUT
+          );
 
           console.log("   Response status:", dmsResponse.status, dmsResponse.statusText);
 
@@ -409,60 +425,99 @@ export async function POST(request: NextRequest) {
         };
         console.error("   ❌ DMS registration ERROR:", dmsErr.message);
       }
-    } else {
-      dmsSuccess = true; // Not required if not selected
-      registrationResults.dms = { success: true, message: "Skipped by user" };
-      console.log("   ⏭️  DMS registration SKIPPED (not selected)");
-    }
+    };
 
-    // -------- CHECK IF ALL SELECTED REGISTRATIONS SUCCEEDED --------
-    // If any selected registration failed, rollback local user registration
+    // Execute all registrations in parallel (independently)
+    console.log("\n🚀 Starting parallel registrations (independent calls)...");
+    console.log("📊 Registration plan:", {
+      lms: platforms.includes("lms") ? "✅ WILL CREATE USER" : "⏭️ SKIP",
+      ecommerce: platforms.includes("ecommerce") ? "✅ WILL CREATE USER" : "⏭️ SKIP",
+      dms: platforms.includes("dms") ? "✅ WILL CREATE USER" : "⏭️ SKIP",
+    });
+    
+    const registrationPromises = [];
+    if (platforms.includes("lms")) {
+      registrationPromises.push(registerLMS());
+    }
+    if (platforms.includes("ecommerce")) {
+      registrationPromises.push(registerEcommerce());
+    }
+    if (platforms.includes("dms")) {
+      registrationPromises.push(registerDMS());
+    }
+    
+    await Promise.allSettled(registrationPromises);
+    console.log("\n✅ All registration calls completed (independent execution)");
+    console.log("📊 Final registration status:", {
+      lms: lmsSuccess ? "✅ CREATED" : `❌ FAILED: ${lmsError || "Unknown error"}`,
+      ecommerce: ecommerceSuccess ? "✅ CREATED" : `❌ FAILED: ${ecommerceError || "Unknown error"}`,
+      dms: dmsSuccess ? "✅ CREATED" : `❌ FAILED: ${dmsError || "Unknown error"}`,
+    });
+
+    // -------- CHECK REGISTRATION RESULTS --------
+    // Count successful registrations
     console.log("\n🔍 Checking registration results...");
     console.log("   LMS:", lmsSuccess ? "✅" : "❌", platforms.includes("lms") ? "(required)" : "(skipped)");
     console.log("   ECOMMERCE:", ecommerceSuccess ? "✅" : "❌", platforms.includes("ecommerce") ? "(required)" : "(skipped)");
     console.log("   DMS:", dmsSuccess ? "✅" : "❌", platforms.includes("dms") ? "(required)" : "(skipped)");
+    
+    const selectedPlatformsCount = platforms.length;
+    const successfulRegistrations = [
+      platforms.includes("lms") && lmsSuccess,
+      platforms.includes("ecommerce") && ecommerceSuccess,
+      platforms.includes("dms") && dmsSuccess,
+    ].filter(Boolean).length;
     
     const allSelectedSucceeded = 
       (platforms.includes("lms") ? lmsSuccess : true) &&
       (platforms.includes("ecommerce") ? ecommerceSuccess : true) &&
       (platforms.includes("dms") ? dmsSuccess : true);
 
-    if (!allSelectedSucceeded && lmsUserId) {
-      console.error("\n❌ ROLLBACK REQUIRED: One or more registrations failed");
-      // Rollback: Delete user from local database
-      try {
-        await collection.deleteOne({ _id: result.insertedId });
-        console.log("   ✅ User rolled back (deleted from local database)");
-      } catch (rollbackErr) {
-        console.error("   ❌ Failed to rollback user:", rollbackErr);
-      }
-      
-      // Build error message
-      const errors: string[] = [];
-      if (platforms.includes("lms") && !lmsSuccess) {
-        errors.push(`LMS: ${lmsError || "Registration failed"}`);
-      }
-      if (platforms.includes("ecommerce") && !ecommerceSuccess) {
-        errors.push(`ECOMMERCE: ${ecommerceError || "Registration failed"}`);
-      }
-      if (platforms.includes("dms") && !dmsSuccess) {
-        errors.push(`DMS: ${dmsError || "Registration failed"}`);
-      }
-
-      console.error("   Error details:", errors);
-      const errorResponse = NextResponse.json(
-        {
-          error: "Registration failed in one or more selected systems",
-          details: errors,
-          registrations: registrationResults,
-        },
-        { status: 500 }
-      );
-      errorResponse.headers.set("Access-Control-Allow-Origin", "*");
-      return errorResponse;
+    // Build warnings/errors for failed registrations
+    const warnings: string[] = [];
+    if (platforms.includes("lms") && !lmsSuccess) {
+      warnings.push(`LMS: ${lmsError || "Registration failed"}`);
     }
-    
-    console.log("✅ All selected registrations succeeded!");
+    if (platforms.includes("ecommerce") && !ecommerceSuccess) {
+      warnings.push(`ECOMMERCE: ${ecommerceError || "Registration failed"}`);
+    }
+    if (platforms.includes("dms") && !dmsSuccess) {
+      warnings.push(`DMS: ${dmsError || "Registration failed"}`);
+    }
+
+    // If at least one registration succeeded OR local user was created, proceed
+    // Only rollback if ALL registrations failed AND user was created locally
+    if (!allSelectedSucceeded) {
+      if (successfulRegistrations === 0 && lmsUserId) {
+        // All registrations failed - rollback
+        console.error("\n❌ ROLLBACK REQUIRED: All registrations failed");
+        try {
+          await collection.deleteOne({ _id: result.insertedId });
+          console.log("   ✅ User rolled back (deleted from local database)");
+        } catch (rollbackErr) {
+          console.error("   ❌ Failed to rollback user:", rollbackErr);
+        }
+        
+        console.error("   Error details:", warnings);
+        const errorResponse = NextResponse.json(
+          {
+            error: "Registration failed in all selected systems",
+            details: warnings,
+            registrations: registrationResults,
+          },
+          { status: 500 }
+        );
+        errorResponse.headers.set("Access-Control-Allow-Origin", "*");
+        return errorResponse;
+      } else {
+        // Some registrations succeeded - continue but log warnings
+        console.warn("\n⚠️  PARTIAL SUCCESS: Some registrations failed");
+        console.warn("   Successful:", successfulRegistrations, "out of", selectedPlatformsCount);
+        console.warn("   Warnings:", warnings);
+      }
+    } else {
+      console.log("✅ All selected registrations succeeded!");
+    }
 
 
     // Create token for LMS
@@ -483,6 +538,7 @@ export async function POST(request: NextRequest) {
         displayName: user.displayName,
       },
       registrations: registrationResults,
+      ...(warnings.length > 0 && { warnings, partialSuccess: true }),
     });
 
     // Add CORS headers for external API calls

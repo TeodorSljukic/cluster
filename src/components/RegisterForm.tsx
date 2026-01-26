@@ -36,24 +36,72 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     setLoading(true);
 
     try {
+      const selectedPlatforms = formData.platforms.filter(p => p !== "all");
+      console.log("📤 Sending registration request:", {
+        username: formData.username,
+        email: formData.email,
+        selectedPlatforms: selectedPlatforms,
+        platformsCount: selectedPlatforms.length,
+        willRegisterOn: {
+          lms: selectedPlatforms.includes("lms") || selectedPlatforms.length === 0,
+          ecommerce: selectedPlatforms.includes("ecommerce") || selectedPlatforms.length === 0,
+          dms: selectedPlatforms.includes("dms") || selectedPlatforms.length === 0,
+        }
+      });
+      
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           location: formData.city ? `${formData.city}, ${formData.region}, ${formData.country}` : undefined,
-          selectedPlatforms: formData.platforms.filter(p => p !== "all"),
+          selectedPlatforms: selectedPlatforms,
         }),
       });
 
       const data = await res.json();
+      
+      console.log("📥 Registration response:", {
+        ok: res.ok,
+        status: res.status,
+        registrations: data.registrations,
+        warnings: data.warnings,
+        partialSuccess: data.partialSuccess,
+      });
 
       if (res.ok) {
-        setSuccess("✅ Registracija uspješna! Preusmjeravam...");
-        setTimeout(() => {
-          router.push(localeLink("/dashboard", locale));
-          router.refresh();
-        }, 1500);
+        // Log registration results
+        if (data.registrations) {
+          console.log("📊 Registration results:", {
+            lms: data.registrations.lms?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.lms?.error || "Unknown"}`,
+            ecommerce: data.registrations.ecommerce?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.ecommerce?.error || "Unknown"}`,
+            dms: data.registrations.dms?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.dms?.error || "Unknown"}`,
+          });
+        }
+        
+        // Check if there are warnings (partial success)
+        if (data.warnings && data.warnings.length > 0) {
+          const warningMessage = `⚠️ Registracija delimično uspješna:\n${data.warnings.join("\n")}\n\nMožete se prijaviti, ali neke platforme nisu dostupne.`;
+          setError(warningMessage);
+          // Still allow login after a delay
+          setTimeout(() => {
+            router.push(localeLink("/dashboard", locale));
+            router.refresh();
+          }, 3000);
+        } else {
+          const successMessage = `✅ Registracija uspješna!\n\nKorisnik kreiran na:\n${
+            data.registrations?.lms?.success ? "✅ LMS\n" : ""
+          }${
+            data.registrations?.ecommerce?.success ? "✅ Ecommerce\n" : ""
+          }${
+            data.registrations?.dms?.success ? "✅ DMS\n" : ""
+          }`;
+          setSuccess(successMessage);
+          setTimeout(() => {
+            router.push(localeLink("/dashboard", locale));
+            router.refresh();
+          }, 1500);
+        }
       } else {
         setError(`❌ Greška: ${data.error || data.message || "Nešto je pošlo po zlu"}`);
       }
