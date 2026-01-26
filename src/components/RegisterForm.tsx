@@ -623,8 +623,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                                   outline: "none"
                                 }}
                               >
-                                <option value="1">Group 1 - Viewer</option>
-                                <option value="2">Group 2 - Editor</option>
+                                <option value="1">Viewer</option>
+                                <option value="2">Editor</option>
                               </select>
                             </div>
                           );
