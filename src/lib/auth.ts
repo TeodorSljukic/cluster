@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import type { UserRole } from "@/models/User";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 export interface JWTPayload {
   userId: string;
   username: string;
-  role: string;
+  role: UserRole;
+}
+
+// Role hierarchy: admin > moderator > editor > user
+const ROLE_HIERARCHY: Record<UserRole, number> = {
+  admin: 4,
+  moderator: 3,
+  editor: 2,
+  user: 1,
+};
+
+// Check if user has required role or higher
+export function hasRole(userRole: UserRole, requiredRole: UserRole): boolean {
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
 }
 
 export function createToken(payload: JWTPayload): string {
@@ -41,6 +55,24 @@ export async function requireAdmin(): Promise<JWTPayload> {
   const user = await requireAuth();
   if (user.role !== "admin") {
     throw new Error("Forbidden - Admin access required");
+  }
+  return user;
+}
+
+// Require moderator or higher (moderator, admin)
+export async function requireModerator(): Promise<JWTPayload> {
+  const user = await requireAuth();
+  if (!hasRole(user.role, "moderator")) {
+    throw new Error("Forbidden - Moderator access required");
+  }
+  return user;
+}
+
+// Require editor or higher (editor, moderator, admin)
+export async function requireEditor(): Promise<JWTPayload> {
+  const user = await requireAuth();
+  if (!hasRole(user.role, "editor")) {
+    throw new Error("Forbidden - Editor access required");
   }
   return user;
 }

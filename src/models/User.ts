@@ -1,9 +1,11 @@
+export type UserRole = "admin" | "moderator" | "editor" | "user";
+
 export interface User {
   _id?: string;
   username: string;
   email: string;
   password: string; // hashed
-  role: "admin" | "user";
+  role: UserRole;
   displayName?: string;
   organization?: string;
   location?: string;
