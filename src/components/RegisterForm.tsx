@@ -81,8 +81,37 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         
         // Check if there are warnings (partial success)
         if (data.warnings && data.warnings.length > 0) {
-          const warningMessage = `⚠️ Registracija delimično uspješna:\n${data.warnings.join("\n")}\n\nMožete se prijaviti, ali neke platforme nisu dostupne.`;
-          setError(warningMessage);
+          // Build detailed message showing what succeeded and what failed
+          const succeeded = [];
+          const failed = [];
+          
+          if (data.registrations?.lms?.success) {
+            succeeded.push("✅ LMS");
+          } else if (data.registrations?.lms?.error) {
+            failed.push(`❌ LMS: ${data.registrations.lms.error}`);
+          }
+          
+          if (data.registrations?.ecommerce?.success) {
+            succeeded.push("✅ Ecommerce");
+          } else if (data.registrations?.ecommerce?.error) {
+            failed.push(`❌ Ecommerce: ${data.registrations.ecommerce.error}`);
+          }
+          
+          if (data.registrations?.dms?.success) {
+            succeeded.push("✅ DMS");
+          } else if (data.registrations?.dms?.error) {
+            failed.push(`❌ DMS: ${data.registrations.dms.error}`);
+          }
+          
+          const warningMessage = `⚠️ Registracija delimično uspješna:\n\n${succeeded.length > 0 ? "Uspješno kreiran na:\n" + succeeded.join("\n") + "\n\n" : ""}${failed.length > 0 ? "Neuspješno:\n" + failed.join("\n") + "\n\n" : ""}Možete se prijaviti i koristiti platforme na kojima ste kreirani.`;
+          
+          // Use success style if at least one succeeded
+          if (succeeded.length > 0) {
+            setSuccess(warningMessage);
+          } else {
+            setError(warningMessage);
+          }
+          
           // Still allow login after a delay
           setTimeout(() => {
             router.push(localeLink("/dashboard", locale));
