@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { localeLink } from "@/lib/localeLink";
 import { type Locale } from "@/lib/i18n";
+import { getTranslations } from "@/lib/getTranslations";
 
 // Register Chart.js components
 ChartJS.register(
@@ -128,6 +129,8 @@ export default function DashboardPage() {
     }
     return "me";
   })();
+
+  const t = getTranslations(locale);
 
   useEffect(() => {
     checkAuth();
@@ -357,7 +360,7 @@ export default function DashboardPage() {
     return (
       <div className="dashboard-loading">
         <div className="loading-spinner"></div>
-        <p>Loading dashboard...</p>
+        <p>{t.dashboard.loading}</p>
       </div>
     );
   }
@@ -365,9 +368,9 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
+        <h1>{t.dashboard.title}</h1>
         <p className="dashboard-subtitle">
-          Overview of your cluster community
+          {t.dashboard.subtitle}
         </p>
       </div>
 
@@ -378,10 +381,10 @@ export default function DashboardPage() {
             <Users size={28} />
           </div>
           <div className="stat-card-content">
-            <h3>Total Users</h3>
+            <h3>{t.dashboard.totalUsers}</h3>
             <p className="stat-card-value">{stats?.stats?.totalUsers ?? 0}</p>
             <span className="stat-card-label">
-              {stats?.stats?.onlineUsers ?? 0} online
+              {stats?.stats?.onlineUsers ?? 0} {t.dashboard.online}
             </span>
           </div>
         </div>
@@ -391,10 +394,10 @@ export default function DashboardPage() {
             <FileText size={28} />
           </div>
           <div className="stat-card-content">
-            <h3>Total Posts</h3>
+            <h3>{t.dashboard.totalPosts}</h3>
             <p className="stat-card-value">{stats?.stats?.totalPosts ?? 0}</p>
             <span className="stat-card-label">
-              {stats?.stats?.publishedPosts ?? 0} published
+              {stats?.stats?.publishedPosts ?? 0} {t.dashboard.published}
             </span>
           </div>
         </div>
@@ -404,12 +407,12 @@ export default function DashboardPage() {
             <UserCheck size={28} />
           </div>
           <div className="stat-card-content">
-            <h3>Connections</h3>
+            <h3>{t.dashboard.connections}</h3>
             <p className="stat-card-value">
               {stats?.stats?.acceptedConnections ?? 0}
             </p>
             <span className="stat-card-label">
-              {stats?.stats?.totalConnections ?? 0} total
+              {stats?.stats?.totalConnections ?? 0} {t.dashboard.total}
             </span>
           </div>
         </div>
@@ -419,7 +422,7 @@ export default function DashboardPage() {
             <Eye size={28} />
           </div>
           <div className="stat-card-content">
-            <h3>Visitors Today</h3>
+            <h3>{t.dashboard.visitorsToday}</h3>
             <p className="stat-card-value">{visitors.today}</p>
             <span className="stat-card-label">{visitors.total} total</span>
           </div>
@@ -432,14 +435,14 @@ export default function DashboardPage() {
           <div className="chart-card-header">
             <h3>
               <Globe size={20} />
-              Users by City
+              {t.dashboard.usersByCity}
             </h3>
           </div>
           <div className="chart-card-body">
             {usersByCity.length > 0 ? (
               <Bar data={cityChartData} options={chartOptions} />
             ) : (
-              <div className="chart-empty">No data available</div>
+              <div className="chart-empty">{t.dashboard.noDataAvailable}</div>
             )}
           </div>
         </div>
@@ -448,14 +451,14 @@ export default function DashboardPage() {
           <div className="chart-card-header">
             <h3>
               <Activity size={20} />
-              Users by Region
+              {t.dashboard.usersByRegion}
             </h3>
           </div>
           <div className="chart-card-body">
             {usersByRegion.length > 0 ? (
               <Bar data={regionChartData} options={chartOptions} />
             ) : (
-              <div className="chart-empty">No data available</div>
+              <div className="chart-empty">{t.dashboard.noDataAvailable}</div>
             )}
           </div>
         </div>
@@ -464,14 +467,14 @@ export default function DashboardPage() {
           <div className="chart-card-header">
             <h3>
               <Globe size={20} />
-              Users by Country
+              {t.dashboard.usersByCountry}
             </h3>
           </div>
           <div className="chart-card-body">
             {usersByCountry.length > 0 ? (
               <Bar data={countryChartData} options={chartOptions} />
             ) : (
-              <div className="chart-empty">No data available</div>
+              <div className="chart-empty">{t.dashboard.noDataAvailable}</div>
             )}
           </div>
         </div>
@@ -480,14 +483,14 @@ export default function DashboardPage() {
           <div className="chart-card-header">
             <h3>
               <FileText size={20} />
-              Posts by Type
+              {t.dashboard.postsByType}
             </h3>
           </div>
           <div className="chart-card-body">
             {stats && stats.postsByType ? (
               <Doughnut data={postsByTypeData} options={doughnutOptions} />
             ) : (
-              <div className="chart-empty">No data available</div>
+              <div className="chart-empty">{t.dashboard.noDataAvailable}</div>
             )}
           </div>
         </div>
@@ -496,14 +499,14 @@ export default function DashboardPage() {
           <div className="chart-card-header">
             <h3>
               <TrendingUp size={20} />
-              Top Interests
+              {t.dashboard.topInterests}
             </h3>
           </div>
           <div className="chart-card-body">
             {interests.length > 0 ? (
               <Bar data={interestsChartData} options={chartOptions} />
             ) : (
-              <div className="chart-empty">No data available</div>
+              <div className="chart-empty">{t.dashboard.noDataAvailable}</div>
             )}
           </div>
         </div>
@@ -527,7 +530,7 @@ export default function DashboardPage() {
             gap: "8px",
           }}>
             <Globe size={20} />
-            Your Platforms
+            {t.dashboard.yourPlatforms}
           </h3>
           <div style={{
             display: "grid",
@@ -572,8 +575,8 @@ export default function DashboardPage() {
                   <FileText size={20} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: "600", fontSize: "16px" }}>E-Learning</div>
-                  <div style={{ fontSize: "12px", opacity: 0.9 }}>LMS Platform</div>
+                  <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.eLearning}</div>
+                  <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.lmsPlatform}</div>
                 </div>
                 <ArrowRight size={16} style={{ marginLeft: "auto" }} />
               </a>
@@ -616,8 +619,8 @@ export default function DashboardPage() {
                   <TrendingUp size={20} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: "600", fontSize: "16px" }}>Marketplace</div>
-                  <div style={{ fontSize: "12px", opacity: 0.9 }}>E-Commerce Platform</div>
+                  <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.marketplace}</div>
+                  <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.ecommercePlatform}</div>
                 </div>
                 <ArrowRight size={16} style={{ marginLeft: "auto" }} />
               </a>
@@ -660,8 +663,8 @@ export default function DashboardPage() {
                   <FileText size={20} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: "600", fontSize: "16px" }}>Documents</div>
-                  <div style={{ fontSize: "12px", opacity: 0.9 }}>DMS Platform</div>
+                  <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.documents}</div>
+                  <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.dmsPlatform}</div>
                 </div>
                 <ArrowRight size={16} style={{ marginLeft: "auto" }} />
               </a>
@@ -676,10 +679,10 @@ export default function DashboardPage() {
           <div className="activity-card-header">
             <h3>
               <FileText size={20} />
-              Recent Posts
+              {t.dashboard.recentPosts}
             </h3>
             <Link href={localeLink("/news", locale)} className="activity-card-link">
-              View all <ArrowRight size={16} />
+              {t.dashboard.viewAll} <ArrowRight size={16} />
             </Link>
           </div>
           <div className="activity-card-body">
@@ -715,7 +718,7 @@ export default function DashboardPage() {
                 ))}
               </ul>
             ) : (
-              <div className="activity-empty">No recent posts</div>
+              <div className="activity-empty">{t.dashboard.noRecentPosts}</div>
             )}
           </div>
         </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
+import { getTranslations } from "@/lib/getTranslations";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,7 @@ export default async function NewsPage({
 }) {
   const resolvedParams = params instanceof Promise ? await params : params;
   const locale = (resolvedParams.locale as Locale) || "me";
+  const t = getTranslations(locale);
   const posts = await getNews(locale);
 
   function formatDate(dateValue?: string | Date) {
@@ -58,7 +60,7 @@ export default async function NewsPage({
 
   return (
     <main className="blog-archive container">
-      <h2 data-aos="fade-up">News &amp; Events</h2>
+      <h2 data-aos="fade-up">{t.newsPage.title}</h2>
 
       <div className="posts-grid">
         {posts.length > 0 ? (
@@ -87,13 +89,13 @@ export default async function NewsPage({
                   <p>{post.excerpt.replace(/<[^>]*>/g, '')}</p>
                 )}
                 <Link href={localeLink(`/posts/${post.slug}`, locale)} className="btn">
-                  Read more
+                  {t.newsPage.readMore}
                 </Link>
               </div>
             </article>
           ))
         ) : (
-          <p>No news posts found.</p>
+          <p>{t.newsPage.noPostsFound}</p>
         )}
       </div>
     </main>

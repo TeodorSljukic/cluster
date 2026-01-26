@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
+import { getTranslations } from "@/lib/getTranslations";
 
 interface User {
   _id: string;
@@ -31,6 +32,8 @@ export default function SearchPage({
   const router = useRouter();
   const pathname = usePathname();
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const t = getTranslations(locale);
 
   // Extract locale from params
   useEffect(() => {
@@ -117,11 +120,11 @@ export default function SearchPage({
         setConnectionStatuses((prev) => ({ ...prev, [userId]: "pending" }));
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to send connection request");
+        alert(error.error || t.search.failedToSend);
       }
     } catch (error) {
       console.error("Error sending connection request:", error);
-      alert("Error sending connection request");
+      alert(t.search.errorSending);
     } finally {
       setSending(null);
     }
@@ -142,7 +145,7 @@ export default function SearchPage({
             fontWeight: "500",
           }}
         >
-          Connected
+          {t.search.connected}
         </span>
       );
     }
@@ -159,7 +162,7 @@ export default function SearchPage({
             fontWeight: "500",
           }}
         >
-          Pending
+          {t.search.pending}
         </span>
       );
     }
@@ -193,7 +196,7 @@ export default function SearchPage({
           }
         }}
       >
-        {sending === userId ? "Sending..." : "Connect"}
+        {sending === userId ? t.search.sending : t.search.connect}
       </button>
     );
   }
@@ -202,7 +205,7 @@ export default function SearchPage({
     <main style={{ background: "#f3f2ef", minHeight: "100vh", padding: "24px" }}>
       <div style={{ maxWidth: "1128px", margin: "0 auto" }}>
         <h1 style={{ fontSize: "32px", fontWeight: "600", marginBottom: "24px" }}>
-          Search Users
+          {t.search.title}
         </h1>
 
         <div
@@ -218,7 +221,7 @@ export default function SearchPage({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter name or email..."
+            placeholder={t.search.placeholder}
             style={{
               width: "100%",
               padding: "12px 16px",
@@ -251,6 +254,7 @@ export default function SearchPage({
                 animation: "spin 0.8s linear infinite",
               }}
             />
+            <p style={{ marginTop: "12px" }}>{t.search.loading}</p>
           </div>
         )}
 
@@ -264,7 +268,7 @@ export default function SearchPage({
             }}
           >
             <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-              Search Results {users.length > 0 && `(${users.length})`}
+              {t.search.searchResults} {users.length > 0 && `(${users.length})`}
             </h2>
             {users.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -345,7 +349,7 @@ export default function SearchPage({
               </div>
             ) : (
               <p style={{ fontSize: "14px", color: "#666" }}>
-                No users found. Try a different search term.
+                {t.search.noUsersFound}
               </p>
             )}
           </div>
@@ -362,7 +366,7 @@ export default function SearchPage({
             }}
           >
             <p style={{ fontSize: "14px", color: "#666" }}>
-              Enter at least 2 characters to search for users.
+              {t.search.enterAtLeast2}
             </p>
           </div>
         )}

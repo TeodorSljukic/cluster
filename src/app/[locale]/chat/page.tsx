@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile, Reply, Forward, MoreVertical, Edit, Copy, CheckCircle, Languages, Trash2 } from "lucide-react";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
+import { getTranslations } from "@/lib/getTranslations";
 
 interface Message {
   _id: string;
@@ -68,6 +69,8 @@ function ChatPageInner() {
     }
     return "me";
   })();
+
+  const t = getTranslations(locale);
 
   const [connections, setConnections] = useState<Connection[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -543,11 +546,11 @@ function ChatPageInner() {
       } else {
         const error = await res.json().catch(() => ({ error: "Unknown error" }));
         console.error("Failed to send message:", error);
-        alert(error.error || "Failed to send message");
+        alert(error.error || t.chat.messageFailed);
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("Error sending message: " + (error instanceof Error ? error.message : "Unknown error"));
+      alert(t.chat.errorSending);
     } finally {
       setSending(false);
     }
@@ -581,11 +584,11 @@ function ChatPageInner() {
       } else {
         const error = await res.json().catch(() => ({ error: "Unknown error" }));
         console.error("Failed to edit message:", error);
-        alert(error.error || "Failed to edit message");
+        alert(error.error || t.chat.messageFailed);
       }
     } catch (error) {
       console.error("Error editing message:", error);
-      alert("Error editing message. Please try again.");
+      alert(t.chat.errorSending);
     } finally {
       setSending(false);
     }
@@ -618,11 +621,11 @@ function ChatPageInner() {
         router.push(localeLink(`/chat?groupId=${data._id}`, locale));
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to create group");
+        alert(error.error || t.chat.messageFailed);
       }
     } catch (error) {
       console.error("Error creating group:", error);
-      alert("Error creating group");
+      alert(t.chat.errorSending);
     }
   }
 
@@ -660,7 +663,7 @@ function ChatPageInner() {
 
   async function addMemberToGroup() {
     if (!groupId || !newMemberId) {
-      alert("Please select a user to add");
+      alert(t.chat.addMember);
       return;
     }
 
@@ -674,21 +677,21 @@ function ChatPageInner() {
       if (res.ok) {
         await loadGroups();
         setNewMemberId("");
-        alert("Member added successfully");
+        alert(t.chat.messageSent);
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to add member");
+        alert(error.error || t.chat.messageFailed);
       }
     } catch (error) {
       console.error("Error adding member:", error);
-      alert("Error adding member");
+      alert(t.chat.errorSending);
     }
   }
 
   async function removeMemberFromGroup(memberId: string) {
     if (!groupId) return;
     
-    if (!confirm("Are you sure you want to remove this member?")) return;
+    if (!confirm(t.chat.areYouSure)) return;
 
     try {
       const res = await fetch(`/api/groups/${groupId}/members?userId=${memberId}`, {
@@ -697,14 +700,14 @@ function ChatPageInner() {
 
       if (res.ok) {
         await loadGroups();
-        alert("Member removed successfully");
+        alert(t.chat.messageSent);
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to remove member");
+        alert(error.error || t.chat.messageFailed);
       }
     } catch (error) {
       console.error("Error removing member:", error);
-      alert("Error removing member");
+      alert(t.chat.errorSending);
     }
   }
 
@@ -1181,7 +1184,7 @@ function ChatPageInner() {
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = "scale(1)";
                     }}
-                    title="Search messages"
+                    title={t.chat.searchMessages}
                   >
                     <Search size={20} color={showSearchInput ? "#0a66c2" : "#666"} />
                   </button>
@@ -1209,7 +1212,7 @@ function ChatPageInner() {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = "scale(1)";
                       }}
-                      title="View gallery"
+                      title={t.chat.searchMessages}
                     >
                       <ImageIcon size={20} color="#666" />
                     </button>
@@ -1239,7 +1242,7 @@ function ChatPageInner() {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = "scale(1)";
                       }}
-                      title="Group settings"
+                      title={t.chat.groupSettings}
                     >
                       <Settings size={20} color="#666" />
                     </button>
@@ -1263,7 +1266,7 @@ function ChatPageInner() {
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search messages..."
+                      placeholder={t.chat.searchMessages}
                       autoFocus
                       style={{
                         width: "100%",
@@ -1307,16 +1310,16 @@ function ChatPageInner() {
                 }}
               >
                 {loading ? (
-                  <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>Loading...</div>
+                  <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>{t.chat.loading}</div>
                 ) : messages.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
-                    No messages yet. Start the conversation!
+                    {t.chat.noMessages}
                   </div>
                 ) : (
                   <>
                     {loadingMore && (
                       <div style={{ textAlign: "center", padding: "12px", color: "#666", fontSize: "14px" }}>
-                        Loading older messages...
+                        {t.chat.loading}
                       </div>
                     )}
                     {messages
@@ -2330,7 +2333,7 @@ function ChatPageInner() {
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "scale(1)";
                   }}
-                  title="Attach file"
+                  title={t.chat.attachFile}
                 >
                   <Paperclip size={20} color="#666" />
                 </button>
@@ -2460,7 +2463,7 @@ function ChatPageInner() {
                       }
                     }
                   }}
-                  placeholder={editingMessageId ? "Editing message..." : "Type a message..."}
+                  placeholder={editingMessageId ? t.chat.editMessage : t.chat.typeMessage}
                   rows={1}
                   style={{
                     flex: 1,
@@ -2645,7 +2648,7 @@ function ChatPageInner() {
                     color: "#1a1a1a"
                   }}>
                     <MessageSquare size={20} color="#0a66c2" />
-                    <span>Kontakti ({connections.length})</span>
+                    <span>{t.chat.connections} ({connections.length})</span>
                   </h3>
                   <div className="chat-grid" style={{ 
                     display: "grid", 
@@ -2757,7 +2760,7 @@ function ChatPageInner() {
                     color: "#1a1a1a"
                   }}>
                     <Users size={20} color="#0a66c2" />
-                    <span>Grupe ({groups.length})</span>
+                    <span>{t.chat.groups} ({groups.length})</span>
                   </h3>
                   <div className="chat-grid" style={{ 
                     display: "grid", 
@@ -2920,7 +2923,7 @@ function ChatPageInner() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h2 style={{ fontSize: "20px", fontWeight: "600" }}>Create New Group</h2>
+              <h2 style={{ fontSize: "20px", fontWeight: "600" }}>{t.chat.createGroup}</h2>
               <button
                 onClick={() => setShowCreateGroup(false)}
                 style={{
@@ -2936,7 +2939,7 @@ function ChatPageInner() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div>
                 <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>
-                  Group Name *
+                  {t.chat.groupName} *
                 </label>
                 <input
                   type="text"
@@ -2953,7 +2956,7 @@ function ChatPageInner() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>
-                  Description
+                  {t.chat.groupDescription}
                 </label>
                 <textarea
                   value={groupDescription}
@@ -2970,7 +2973,7 @@ function ChatPageInner() {
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "500" }}>
-                  Members
+                  {t.chat.selectMembers}
                 </label>
                 <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #e0e0e0", borderRadius: "8px", padding: "8px" }}>
                   {availableUsers.map((user) => (
@@ -3032,7 +3035,7 @@ function ChatPageInner() {
                   e.currentTarget.style.transform = "scale(1)";
                 }}
               >
-                Create Group
+                {t.chat.create}
               </button>
             </div>
           </div>
