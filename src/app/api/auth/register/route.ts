@@ -16,9 +16,15 @@ const REQUEST_TIMEOUT = 60000; // 1 minute timeout for each request
 // Helper function to create a fetch with timeout
 function fetchWithTimeout(url: string, options: RequestInit, timeout: number = REQUEST_TIMEOUT): Promise<Response> {
   return Promise.race([
-    fetch(url, options),
+    fetch(url, options).catch((err) => {
+      console.error(`   ⚠️  Fetch error for ${url}:`, err.message);
+      throw err;
+    }),
     new Promise<Response>((_, reject) =>
-      setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout)
+      setTimeout(() => {
+        console.error(`   ⏱️  Request timeout for ${url} after ${timeout}ms`);
+        reject(new Error(`Request timeout after ${timeout}ms`));
+      }, timeout)
     ),
   ]);
 }
@@ -435,24 +441,56 @@ export async function POST(request: NextRequest) {
       dms: platforms.includes("dms") ? "✅ WILL CREATE USER" : "⏭️ SKIP",
     });
     
-    const registrationPromises = [];
-    if (platforms.includes("lms")) {
-      registrationPromises.push(registerLMS());
+    try {
+      const registrationPromises = [];
+      if (platforms.includes("lms")) {
+        console.log("   📝 Adding LMS registration to queue...");
+        registrationPromises.push(
+          registerLMS().catch((err) => {
+            console.error("   ❌ LMS registration promise rejected:", err.message);
+            throw err;
+          })
+        );
+      }
+      if (platforms.includes("ecommerce")) {
+        console.log("   📝 Adding ECOMMERCE registration to queue...");
+        registrationPromises.push(
+          registerEcommerce().catch((err) => {
+            console.error("   ❌ ECOMMERCE registration promise rejected:", err.message);
+            throw err;
+          })
+        );
+      }
+      if (platforms.includes("dms")) {
+        console.log("   📝 Adding DMS registration to queue...");
+        registrationPromises.push(
+          registerDMS().catch((err) => {
+            console.error("   ❌ DMS registration promise rejected:", err.message);
+            throw err;
+          })
+        );
+      }
+      
+      console.log(`   📦 Executing ${registrationPromises.length} registration(s) in parallel...`);
+      const results = await Promise.allSettled(registrationPromises);
+      
+      console.log("\n✅ All registration calls completed (independent execution)");
+      console.log("📊 Promise.allSettled results:", results.map((r, i) => ({
+        index: i,
+        status: r.status,
+        value: r.status === "fulfilled" ? "fulfilled" : r.reason?.message || "unknown error"
+      })));
+      console.log("📊 Final registration status:", {
+        lms: lmsSuccess ? "✅ CREATED" : `❌ FAILED: ${lmsError || "Unknown error"}`,
+        ecommerce: ecommerceSuccess ? "✅ CREATED" : `❌ FAILED: ${ecommerceError || "Unknown error"}`,
+        dms: dmsSuccess ? "✅ CREATED" : `❌ FAILED: ${dmsError || "Unknown error"}`,
+      });
+      console.log("📊 Registration results object:", JSON.stringify(registrationResults, null, 2));
+    } catch (registrationErr: any) {
+      console.error("❌ Error during parallel registration execution:", registrationErr.message);
+      console.error("Stack:", registrationErr.stack);
+      // Don't throw here - let the code continue to check results
     }
-    if (platforms.includes("ecommerce")) {
-      registrationPromises.push(registerEcommerce());
-    }
-    if (platforms.includes("dms")) {
-      registrationPromises.push(registerDMS());
-    }
-    
-    await Promise.allSettled(registrationPromises);
-    console.log("\n✅ All registration calls completed (independent execution)");
-    console.log("📊 Final registration status:", {
-      lms: lmsSuccess ? "✅ CREATED" : `❌ FAILED: ${lmsError || "Unknown error"}`,
-      ecommerce: ecommerceSuccess ? "✅ CREATED" : `❌ FAILED: ${ecommerceError || "Unknown error"}`,
-      dms: dmsSuccess ? "✅ CREATED" : `❌ FAILED: ${dmsError || "Unknown error"}`,
-    });
 
     // -------- CHECK REGISTRATION RESULTS --------
     // Count successful registrations
@@ -460,6 +498,12 @@ export async function POST(request: NextRequest) {
     console.log("   LMS:", lmsSuccess ? "✅" : "❌", platforms.includes("lms") ? "(required)" : "(skipped)");
     console.log("   ECOMMERCE:", ecommerceSuccess ? "✅" : "❌", platforms.includes("ecommerce") ? "(required)" : "(skipped)");
     console.log("   DMS:", dmsSuccess ? "✅" : "❌", platforms.includes("dms") ? "(required)" : "(skipped)");
+    console.log("   Registration results object keys:", Object.keys(registrationResults));
+    console.log("   Registration results values:", {
+      lms: registrationResults.lms ? (registrationResults.lms.success ? "✅ success" : "❌ failed") : "null",
+      ecommerce: registrationResults.ecommerce ? (registrationResults.ecommerce.success ? "✅ success" : "❌ failed") : "null",
+      dms: registrationResults.dms ? (registrationResults.dms.success ? "✅ success" : "❌ failed") : "null",
+    });
     
     const selectedPlatformsCount = platforms.length;
     const successfulRegistrations = [
@@ -575,10 +619,26 @@ export async function POST(request: NextRequest) {
     console.error("⏱️  Duration:", duration + "ms");
     console.error("❌ Error:", error.message);
     console.error("Stack:", error.stack);
+    console.error("Registration results so far:", registrationResults);
     console.error("=".repeat(80) + "\n");
     
+    // If user was created locally, try to rollback
+    if (lmsUserId && result) {
+      try {
+        const collection = await getCollection("users");
+        await collection.deleteOne({ _id: result.insertedId });
+        console.log("   ✅ User rolled back (deleted from local database)");
+      } catch (rollbackErr) {
+        console.error("   ❌ Failed to rollback user:", rollbackErr);
+      }
+    }
+    
     const errorResponse = NextResponse.json(
-      { error: error.message },
+      { 
+        error: error.message || "Registration failed",
+        details: error.stack,
+        registrations: registrationResults,
+      },
       { status: 500 }
     );
     errorResponse.headers.set("Access-Control-Allow-Origin", "*");
