@@ -201,34 +201,11 @@ export function RegisterForm({ locale }: RegisterFormProps) {
               fontSize: "32px", 
               fontWeight: "600", 
               color: "#52484C",
-              marginBottom: "8px",
+              marginBottom: "30px",
               lineHeight: "1.2"
             }}>
               {t.join.title}
             </h1>
-            <p style={{ 
-              fontSize: "16px", 
-              color: "#666",
-              marginBottom: "30px",
-              lineHeight: "1.5"
-            }}>
-              {t.join.subtitle.split("<a>").map((part, i) => {
-                if (i === 0) return part;
-                const [linkText, rest] = part.split("</a>");
-                return (
-                  <span key={i}>
-                    <a href={localeLink("/register", locale)} style={{ 
-                      color: "#0073e6", 
-                      textDecoration: "none",
-                      fontWeight: "500"
-                    }}>
-                      {linkText}
-                    </a>
-                    {rest}
-                  </span>
-                );
-              })}
-            </p>
 
             {/* Messages */}
             {error && (
