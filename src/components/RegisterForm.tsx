@@ -416,8 +416,14 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   Nivo korisnika <span style={{ color: "#B53251" }}>*</span>
                 </label>
                 <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as "moderator" | "editor" | "user" })}
+                  value={formData.role === "admin" ? "user" : formData.role} // Force user if somehow admin is set
+                  onChange={(e) => {
+                    const newRole = e.target.value;
+                    // Prevent admin from being selected
+                    if (newRole !== "admin") {
+                      setFormData({ ...formData, role: newRole as "moderator" | "editor" | "user" });
+                    }
+                  }}
                   required
                   style={{
                     width: "100%",
@@ -436,6 +442,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   <option value="user">User - Osnovni korisnik</option>
                   <option value="editor">Editor - Može kreirati i uređivati sadržaj</option>
                   <option value="moderator">Moderator - Može moderirati i upravljati korisnicima</option>
+                  {/* Admin option removed - cannot be selected during registration */}
                 </select>
                 <p style={{ 
                   marginTop: "4px", 
