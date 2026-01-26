@@ -513,13 +513,13 @@ export default function ProfilePage({
         >
           {/* Cover Image */}
           <div
-            key={formData.coverImage || user.coverImage || 'no-cover'}
+            key={String(formData.coverImage || user.coverImage || 'no-cover')}
             style={{
               height: "200px",
               background: (formData.coverImage || user.coverImage)
                 ? (formData.coverImage || user.coverImage).startsWith('data:')
                   ? `url(${formData.coverImage || user.coverImage}) center/cover`
-                  : `url(${formData.coverImage || user.coverImage}?t=${Date.now()}) center/cover`
+                  : `url(${formData.coverImage || user.coverImage}) center/cover`
                 : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               position: "relative",
             }}
@@ -564,7 +564,7 @@ export default function ProfilePage({
                 {/* Profile Picture */}
                 <div style={{ position: "relative", display: "inline-block" }}>
                   <div
-                    key={formData.profilePicture || user.profilePicture || 'no-image'}
+                    key={String(formData.profilePicture || user.profilePicture || 'no-image')}
                     style={{
                       width: "168px",
                       height: "168px",
@@ -573,7 +573,7 @@ export default function ProfilePage({
                       background: (formData.profilePicture || user.profilePicture)
                         ? (formData.profilePicture || user.profilePicture).startsWith('data:')
                           ? `url(${formData.profilePicture || user.profilePicture}) center/cover`
-                          : `url(${formData.profilePicture || user.profilePicture}?t=${Date.now()}) center/cover`
+                          : `url(${formData.profilePicture || user.profilePicture}) center/cover`
                         : "#e4e4e4",
                       display: "flex",
                       alignItems: "center",
