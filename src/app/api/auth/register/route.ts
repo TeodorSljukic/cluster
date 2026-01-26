@@ -29,6 +29,20 @@ function fetchWithTimeout(url: string, options: RequestInit, timeout: number = R
   ]);
 }
 
+// Helper function to sanitize username for DMS (only letters, numbers, and @/./+/-/_ characters)
+function sanitizeDMSUsername(username: string): string {
+  // Replace spaces with underscores
+  let sanitized = username.replace(/\s+/g, "_");
+  // Remove any characters that are not letters, numbers, or @/./+/-/_
+  sanitized = sanitized.replace(/[^a-zA-Z0-9@.+_-]/g, "");
+  // Ensure it's not empty
+  if (!sanitized || sanitized.length === 0) {
+    // Fallback: use email prefix if username becomes empty
+    sanitized = username.split("@")[0]?.replace(/[^a-zA-Z0-9@.+_-]/g, "") || "user";
+  }
+  return sanitized;
+}
+
 // Handle CORS preflight requests
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -354,6 +368,12 @@ export async function POST(request: NextRequest) {
           const first_name = nameParts[0] || username;
           const last_name = nameParts.slice(1).join(" ") || username;
 
+          // Sanitize username for DMS (only letters, numbers, and @/./+/-/_ characters)
+          const dmsUsername = sanitizeDMSUsername(username);
+          if (dmsUsername !== username) {
+            console.log(`   ⚠️  Username sanitized for DMS: "${username}" -> "${dmsUsername}"`);
+          }
+
           // Now, create DMS user
           console.log("   Step 2: Creating DMS user...");
           console.log("   Users URL:", DMS_USERS_URL);
@@ -367,7 +387,7 @@ export async function POST(request: NextRequest) {
                 Authorization: `Token ${TOKEN}`,
               },
               body: JSON.stringify({
-                username: username,
+                username: dmsUsername,
                 email: email,
                 password: password,
                 first_name: first_name,
