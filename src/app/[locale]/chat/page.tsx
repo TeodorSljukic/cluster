@@ -321,7 +321,7 @@ function ChatPageInner() {
     return () => observer.disconnect();
   }, []);
 
-  async function loadConnections() {
+  const loadConnections = useCallback(async () => {
     try {
       const res = await fetch("/api/connections");
       if (res.ok) {
@@ -332,9 +332,9 @@ function ChatPageInner() {
     } catch (error) {
       console.error("Error loading connections:", error);
     }
-  }
+  }, []);
 
-  async function loadGroups() {
+  const loadGroups = useCallback(async () => {
     try {
       const res = await fetch("/api/groups");
       if (res.ok) {
@@ -344,7 +344,7 @@ function ChatPageInner() {
     } catch (error) {
       console.error("Error loading groups:", error);
     }
-  }
+  }, []);
 
   async function loadMessages(receiverId: string | null, groupIdParam: string | null) {
     setLoading(true);
