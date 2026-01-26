@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile, Reply, Forward, MoreVertical, Edit, Copy, CheckCircle, Languages, Pin, Trash2 } from "lucide-react";
+import { MessageSquare, Users, Plus, ArrowLeft, Send, Paperclip, X, Settings, UserPlus, Image as ImageIcon, UserMinus, Search, Smile, Reply, Forward, MoreVertical, Edit, Copy, CheckCircle, Languages, Trash2 } from "lucide-react";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
 
@@ -2499,7 +2499,9 @@ function ChatPageInner() {
                     if (editingMessageId) {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        editMessage(editingMessageId, editingText);
+                        if (!sending) {
+                          editMessage(editingMessageId, editingText);
+                        }
                       }
                       if (e.key === "Escape") {
                         setEditingMessageId(null);
@@ -2508,7 +2510,9 @@ function ChatPageInner() {
                     } else {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        sendMessage();
+                        if (!sending && (messageText.trim() || selectedFile)) {
+                          sendMessage();
+                        }
                       }
                     }
                   }}
@@ -2578,7 +2582,12 @@ function ChatPageInner() {
                   </>
                 ) : (
                   <button
-                    onClick={sendMessage}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!sending && (messageText.trim() || selectedFile)) {
+                        sendMessage();
+                      }
+                    }}
                     disabled={sending || (!messageText.trim() && !selectedFile)}
                     style={{
                       border: "none",
