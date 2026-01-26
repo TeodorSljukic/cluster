@@ -16,7 +16,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     username: "",
     email: "",
     password: "",
-    role: "user" as "admin" | "moderator" | "editor" | "user",
+    role: "user" as "moderator" | "editor" | "user", // Admin cannot be selected during registration
     organization: "",
     city: "",
     region: "",
@@ -417,7 +417,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 </label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as "admin" | "moderator" | "editor" | "user" })}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as "moderator" | "editor" | "user" })}
                   required
                   style={{
                     width: "100%",
@@ -436,7 +436,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   <option value="user">User - Osnovni korisnik</option>
                   <option value="editor">Editor - Može kreirati i uređivati sadržaj</option>
                   <option value="moderator">Moderator - Može moderirati i upravljati korisnicima</option>
-                  <option value="admin">Admin - Puni pristup svim funkcionalnostima</option>
                 </select>
                 <p style={{ 
                   marginTop: "4px", 
@@ -447,7 +446,14 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   {formData.role === "user" && "Osnovni pristup - može pregledati sadržaj"}
                   {formData.role === "editor" && "Može kreirati i uređivati postove, vesti i resurse"}
                   {formData.role === "moderator" && "Može moderirati sadržaj i upravljati korisnicima (osim admina)"}
-                  {formData.role === "admin" && "Puni pristup - može upravljati svim korisnicima i sistemom"}
+                </p>
+                <p style={{ 
+                  marginTop: "4px", 
+                  fontSize: "11px", 
+                  color: "#999",
+                  fontStyle: "italic"
+                }}>
+                  Napomena: Admin role se dodeljuje samo od strane sistema.
                 </p>
               </div>
 

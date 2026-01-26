@@ -211,7 +211,8 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Determine user role:
-    // - If role is provided in request, use it (but validate it's a valid role)
+    // - Admin role CANNOT be selected during registration (security)
+    // - If role is provided in request, use it (but validate it's not admin)
     // - Otherwise, if there is no admin in DB, make this user admin
     // - Otherwise, default to "user"
     const validRoles: UserRole[] = ["admin", "moderator", "editor", "user"];
@@ -219,11 +220,17 @@ export async function POST(request: NextRequest) {
     
     let role: UserRole;
     if (requestedRole && validRoles.includes(requestedRole as UserRole)) {
-      // Use requested role if valid
-      role = requestedRole as UserRole;
-      console.log(`✅ Using requested role: ${role}`);
+      // Prevent admin role from being set via registration form
+      if (requestedRole === "admin") {
+        console.warn("⚠️  Admin role cannot be set via registration - defaulting to user");
+        role = "user";
+      } else {
+        // Use requested role if valid and not admin
+        role = requestedRole as UserRole;
+        console.log(`✅ Using requested role: ${role}`);
+      }
     } else if (!adminExists) {
-      // First user becomes admin if no admin exists
+      // First user becomes admin if no admin exists (only automatic, not via form)
       role = "admin";
       console.log("✅ First user - automatically set as admin");
     } else {
