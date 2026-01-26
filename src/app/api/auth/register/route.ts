@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { createToken } from "@/lib/auth";
-import { User } from "@/models/User";
+import { User, UserRole } from "@/models/User";
 
 // External API URLs
 const LMS_URL = "https://edu.southadriaticskills.org/api/auth/register";
@@ -12,6 +12,65 @@ const DMS_USERS_URL = "https://info.southadriaticskills.org/api/users/";
 const DMS_ADMIN_USERNAME = "lemiclemic";
 const DMS_ADMIN_PASSWORD = "automobi1";
 const REQUEST_TIMEOUT = 60000; // 1 minute timeout for each request
+
+// Map our internal roles to LMS roles
+function mapToLMSRole(role: UserRole): "user" | "instructor" | "admin" {
+  switch (role) {
+    case "admin":
+      return "admin";
+    case "moderator":
+    case "editor":
+      return "instructor";
+    case "user":
+    default:
+      return "user";
+  }
+}
+
+// Map our internal roles to Ecommerce roles
+function mapToEcommerceRole(role: UserRole): "buyer" | "seller" | "admin" {
+  switch (role) {
+    case "admin":
+      return "admin";
+    case "moderator":
+    case "editor":
+      return "seller";
+    case "user":
+    default:
+      return "buyer";
+  }
+}
+
+// Map our internal roles to DMS groups
+// Groups: [1] = viewer, [2] = editor, [3] = admin
+// For info platform use groups [2] or [3]
+function mapToDMSGroups(role: UserRole, forInfo: boolean = false): number[] {
+  if (forInfo) {
+    // Info platform: use groups [2] or [3]
+    switch (role) {
+      case "admin":
+        return [3];
+      case "moderator":
+      case "editor":
+        return [2];
+      case "user":
+      default:
+        return [2]; // Default to editor for info
+    }
+  } else {
+    // Regular DMS: use groups [1], [2], or [3]
+    switch (role) {
+      case "admin":
+        return [3];
+      case "moderator":
+      case "editor":
+        return [2];
+      case "user":
+      default:
+        return [1];
+    }
+  }
+}
 
 // Helper function to create a fetch with timeout
 function fetchWithTimeout(url: string, options: RequestInit, timeout: number = REQUEST_TIMEOUT): Promise<Response> {
@@ -217,6 +276,8 @@ export async function POST(request: NextRequest) {
 
       console.log("\n📚 Starting LMS registration (independent call)...");
       console.log("   URL:", LMS_URL);
+      const lmsRole = mapToLMSRole(role);
+      console.log(`   Role mapping: ${role} -> ${lmsRole} (LMS)`);
       try {
         const lmsResponse = await fetchWithTimeout(
           LMS_URL,
@@ -227,7 +288,7 @@ export async function POST(request: NextRequest) {
               userName: username,
               userEmail: email,
               password: password,
-              role: role,
+              role: lmsRole,
             }),
           },
           REQUEST_TIMEOUT
@@ -279,6 +340,8 @@ export async function POST(request: NextRequest) {
 
       console.log("\n🛒 Starting ECOMMERCE registration (independent call)...");
       console.log("   URL:", ECOMMERCE_URL);
+      const ecommerceRole = mapToEcommerceRole(role);
+      console.log(`   Role mapping: ${role} -> ${ecommerceRole} (Ecommerce)`);
       try {
         const ecommerceResponse = await fetchWithTimeout(
           ECOMMERCE_URL,
@@ -289,7 +352,7 @@ export async function POST(request: NextRequest) {
               name: displayName || username,
               email: email,
               password: password,
-              role: "buyer",
+              role: ecommerceRole,
             }),
           },
           REQUEST_TIMEOUT
@@ -377,6 +440,8 @@ export async function POST(request: NextRequest) {
           // Now, create DMS user
           console.log("   Step 2: Creating DMS user...");
           console.log("   Users URL:", DMS_USERS_URL);
+          const dmsGroups = mapToDMSGroups(role, false);
+          console.log(`   Role mapping: ${role} -> groups ${JSON.stringify(dmsGroups)} (DMS)`);
           
           const dmsResponse = await fetchWithTimeout(
             DMS_USERS_URL,
@@ -395,6 +460,7 @@ export async function POST(request: NextRequest) {
                 is_active: true,
                 is_staff: false,
                 is_superuser: false,
+                groups: dmsGroups, // Regular DMS groups: [1]=viewer, [2]=editor, [3]=admin
                 user_permissions: [
                   "add_document",
                   "view_document",
