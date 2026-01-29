@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { UserStatus } from "@/components/UserStatus";
@@ -18,7 +18,7 @@ interface User {
   location?: string;
 }
 
-export default function SearchPage({
+function SearchPageContent({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -494,5 +494,35 @@ export default function SearchPage({
         )}
       </div>
     </main>
+  );
+}
+
+export default function SearchPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  return (
+    <Suspense fallback={
+      <main style={{ background: "#f3f2ef", minHeight: "100vh", padding: "24px" }}>
+        <div style={{ maxWidth: "1128px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <div
+              style={{
+                display: "inline-block",
+                width: "30px",
+                height: "30px",
+                border: "3px solid #2271b1",
+                borderTop: "3px solid transparent",
+                borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+              }}
+            />
+          </div>
+        </div>
+      </main>
+    }>
+      <SearchPageContent params={params} />
+    </Suspense>
   );
 }
