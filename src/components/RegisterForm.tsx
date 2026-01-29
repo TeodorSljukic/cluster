@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { type Locale } from "@/lib/i18n";
 import { getTranslations } from "@/lib/getTranslations";
@@ -30,6 +30,14 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       dms: "1" as "1" | "2", // Groups: 1=viewer, 2=editor (admin=3 not selectable)
     },
   });
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [cityQuery, setCityQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const fetchAbortRef = useRef<AbortController | null>(null);
+  const cityDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,7 +68,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          location: formData.city ? `${formData.city}, ${formData.region}, ${formData.country}` : undefined,
+          location: formData.city ? `${formData.city}, ${formData.region}, ${countries.find(c => c.code === formData.country)?.name || formData.country}` : undefined,
           selectedPlatforms: selectedPlatforms,
           role: formData.role, // Local system role
           platformRoles: formData.platformRoles, // Platform-specific roles
@@ -180,6 +188,103 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       label: t.join.allPlatforms || "Sve platforme"
     }
   ];
+
+  useEffect(() => {
+    // Load countries once
+    let mounted = true;
+    fetch("/api/locations/countries")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        setCountries(data.countries || []);
+      })
+      .catch((err) => {
+        console.error("Failed to load countries:", err);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Load cities when country changes
+    let mounted = true;
+    if (!formData.country) {
+      setCities([]);
+      return;
+    }
+    fetch(`/api/locations/cities?country=${encodeURIComponent(formData.country)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        setCities(data.cities || []);
+      })
+      .catch((err) => {
+        console.error("Failed to load cities:", err);
+        setCities([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [formData.country]);
+
+  useEffect(() => {
+    // Autocomplete suggestions for cityQuery
+    if (cityDebounceRef.current) {
+      clearTimeout(cityDebounceRef.current);
+      cityDebounceRef.current = null;
+    }
+
+    // If no country selected, use static cities list as suggestions
+    if (!formData.country) {
+      setSuggestions([]);
+      setSuggestionLoading(false);
+      return;
+    }
+
+    // If no input, show full static cities list
+    if (!cityQuery || cityQuery.trim().length === 0) {
+      setSuggestions(cities);
+      setSuggestionLoading(false);
+      return;
+    }
+
+    setSuggestionLoading(true);
+    const controller = new AbortController();
+    if (fetchAbortRef.current) {
+      fetchAbortRef.current.abort();
+    }
+    fetchAbortRef.current = controller;
+
+    cityDebounceRef.current = setTimeout(() => {
+      fetch(`/api/locations/search?q=${encodeURIComponent(cityQuery)}&country=${encodeURIComponent(formData.country)}`, {
+        signal: controller.signal,
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          setSuggestions(data.cities || []);
+        })
+        .catch((err) => {
+          if (err.name === "AbortError") return;
+          console.error("City search failed:", err);
+          setSuggestions([]);
+        })
+        .finally(() => {
+          setSuggestionLoading(false);
+        });
+    }, 250);
+
+    return () => {
+      if (cityDebounceRef.current) {
+        clearTimeout(cityDebounceRef.current);
+        cityDebounceRef.current = null;
+      }
+      if (fetchAbortRef.current) {
+        fetchAbortRef.current.abort();
+        fetchAbortRef.current = null;
+      }
+    };
+  }, [cityQuery, formData.country, cities]);
 
   return (
     <section 
@@ -345,10 +450,11 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   <input
                     type="text"
                     value={formData.organization}
-                    onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
                     style={{
                       width: "100%",
                       padding: "12px",
+                      height: "48px",
                       borderRadius: "6px",
                       border: "1px solid #ddd",
                       fontSize: "14px",
@@ -370,23 +476,112 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   }}>
                     {t.join.country}
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value, city: "" })}
                     style={{
                       width: "100%",
                       padding: "12px",
+                      height: "48px",
                       borderRadius: "6px",
                       border: "1px solid #ddd",
                       fontSize: "14px",
                       outline: "none",
                       boxSizing: "border-box"
                     }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
-                    onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
-                  />
+                  >
+                    <option value="">--</option>
+                    {countries.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              <div style={{ marginBottom: "20px", position: "relative" }}>
+                <label style={{
+                  display: "block",
+                  marginBottom: "6px",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  color: "#333"
+                }}>
+                  {t.join.city || "City"}
+                </label>
+                <input
+                  type="text"
+                  value={cityQuery || formData.city}
+                  onChange={(e) => {
+                    setCityQuery(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => {
+                    setShowSuggestions(true);
+                    // preload static cities if any (show full list)
+                    if (cities.length > 0 && !cityQuery) {
+                      setSuggestions(cities);
+                    }
+                  }}
+                  onBlur={() => {
+                    // small timeout to allow click selection
+                    setTimeout(() => setShowSuggestions(false), 150);
+                  }}
+                  placeholder={t.join.cityPlaceholder || "Type city..."}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    height: "48px",
+                    borderRadius: "6px",
+                    border: "1px solid #ddd",
+                    fontSize: "14px",
+                    outline: "none",
+                    boxSizing: "border-box"
+                  }}
+                />
+
+                {/* Suggestions dropdown */}
+                {showSuggestions && (suggestionLoading || suggestions.length > 0) && (
+                  <div style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    top: "100%",
+                    marginTop: "6px",
+                    background: "white",
+                    border: "1px solid #e6e6e6",
+                    borderRadius: "6px",
+                    zIndex: 40,
+                    maxHeight: "220px",
+                    overflowY: "auto",
+                    boxShadow: "0 6px 18px rgba(0,0,0,0.06)"
+                  }}>
+                    {suggestionLoading ? (
+                      <div style={{ padding: "12px", color: "#666" }}>Loading...</div>
+                    ) : suggestions.map((s) => (
+                      <div
+                        key={s}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setFormData({ ...formData, city: s });
+                          setCityQuery(s);
+                          setShowSuggestions(false);
+                        }}
+                        style={{
+                          padding: "10px 12px",
+                          cursor: "pointer",
+                          borderBottom: "1px solid #f2f2f2"
+                        }}
+                      >
+                        {s}
+                      </div>
+                    ))}
+                    {!suggestionLoading && suggestions.length === 0 && (
+                      <div style={{ padding: "12px", color: "#666" }}>No results</div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Platform Selection */}
@@ -705,6 +900,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 maxHeight: "600px"
               }}
             />
+            
           </div>
         </div>
       </div>

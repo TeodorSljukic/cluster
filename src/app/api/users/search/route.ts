@@ -12,27 +12,34 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get("q") || "";
+  const query = searchParams.get("q") || "";
+  const country = searchParams.get("country") || "";
+  const city = searchParams.get("city") || "";
 
-    if (!query || query.trim().length < 2) {
-      return NextResponse.json({ users: [] });
-    }
+  // If no criteria provided, return empty.
+  if ((!query || query.trim().length < 2) && !country && !city) {
+    return NextResponse.json({ users: [] });
+  }
 
     const db = await getDb();
 
     // Pretraga po username, email, displayName
-    const users = await db
-      .collection("users")
-      .find({
-        _id: { $ne: new ObjectId(currentUser.userId) }, // Isključi trenutnog korisnika
-        $or: [
-          { username: { $regex: query, $options: "i" } },
-          { email: { $regex: query, $options: "i" } },
-          { displayName: { $regex: query, $options: "i" } },
-        ],
-      })
-      .limit(20)
-      .toArray();
+  const filter: any = { _id: { $ne: new ObjectId(currentUser.userId) } };
+  if (query && query.trim().length >= 2) {
+    filter.$or = [
+      { username: { $regex: query, $options: "i" } },
+      { email: { $regex: query, $options: "i" } },
+      { displayName: { $regex: query, $options: "i" } },
+    ];
+  }
+  if (country) {
+    filter.country = country;
+  }
+  if (city) {
+    filter.city = city;
+  }
+
+  const users = await db.collection("users").find(filter).limit(50).toArray();
 
     // Ukloni password iz rezultata
     const sanitizedUsers = users.map((u) => ({

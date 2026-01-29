@@ -9,6 +9,9 @@ export interface User {
   displayName?: string;
   organization?: string;
   location?: string;
+  country?: string;
+  city?: string;
+  region?: string;
   role_custom?: string;
   interests?: string;
   profilePicture?: string;

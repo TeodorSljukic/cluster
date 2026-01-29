@@ -26,6 +26,9 @@ interface User {
   phone?: string;
   linkedin?: string;
   twitter?: string;
+  country?: string;
+  city?: string;
+  region?: string;
 }
 
 export default function ProfilePage({
@@ -734,8 +737,9 @@ export default function ProfilePage({
                 )}
 
                 <p style={{ fontSize: "14px", color: "#666", margin: "4px 0" }}>
-                  {user.location && `📍 ${user.location}`}
-                  {user.location && user.organization && " • "}
+                  {user.city && <span>📍 {user.city}{user.country ? ", " : ""}{user.country}</span>}
+                  {!user.city && user.location && <span>📍 {user.location}</span>}
+                  {(user.city || user.location) && user.organization && " • "}
                   {user.organization && user.organization}
                 </p>
               </div>

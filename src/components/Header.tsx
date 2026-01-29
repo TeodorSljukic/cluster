@@ -15,6 +15,8 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [connectedUsers, setConnectedUsers] = useState<any[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,6 +44,13 @@ export function Header() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+
+  // Load connected users when search dropdown opens
+  useEffect(() => {
+    if (showSearch && user && searchQuery.trim().length === 0) {
+      loadConnectedUsers();
+    }
+  }, [showSearch, user]);
 
   // Live search functionality
   useEffect(() => {
@@ -87,6 +96,25 @@ export function Header() {
       };
     }
   }, [showSearch, showLangMenu]);
+
+  async function loadConnectedUsers() {
+    if (!user) return;
+    setLoadingConnections(true);
+    try {
+      const res = await fetch("/api/connections");
+      if (res.ok) {
+        const data = await res.json();
+        // Filter only accepted connections
+        const accepted = (data.connections || []).filter((conn: any) => conn.status === "accepted");
+        const users = accepted.map((conn: any) => conn.user).filter(Boolean);
+        setConnectedUsers(users);
+      }
+    } catch (error) {
+      console.error("Error loading connections:", error);
+    } finally {
+      setLoadingConnections(false);
+    }
+  }
 
   async function searchUsers(query: string) {
     try {
@@ -163,9 +191,14 @@ export function Header() {
               <Link href={`/${currentLocale}/resources`}>{t.common.resources}</Link>
             </li>
             {user && (
-              <li>
-                <Link href={`/${currentLocale}/dashboard`}>{t.common.dashboard}</Link>
-              </li>
+              <>
+                <li>
+                  <Link href={`/${currentLocale}/search`}>{t.common.search || "Search"}</Link>
+                </li>
+                <li>
+                  <Link href={`/${currentLocale}/dashboard`}>{t.common.dashboard}</Link>
+                </li>
+              </>
             )}
             <li>
               <Link href={`/${currentLocale}/contact`}>{t.common.contact}</Link>
@@ -253,6 +286,14 @@ export function Header() {
                         setShowSearch(false);
                         setSearchQuery("");
                         setSearchResults([]);
+                      } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        // Always redirect to search page, with or without query
+                        const queryParam = searchQuery.trim().length > 0 ? `?q=${encodeURIComponent(searchQuery.trim())}` : "";
+                        router.push(localeLink(`/search${queryParam}`, currentLocale));
+                        setShowSearch(false);
+                        setSearchQuery("");
+                        setSearchResults([]);
                       }
                     }}
                   />
@@ -285,78 +326,157 @@ export function Header() {
                     padding: "8px",
                   }}
                 >
-                  {searchLoading ? (
-                    <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "14px" }}>
-                      Searching...
-                    </div>
-                  ) : searchQuery.trim().length < 2 ? (
-                    <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "14px" }}>
-                      Type at least 2 characters to search
-                    </div>
-                  ) : searchResults.length === 0 ? (
-                    <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "14px" }}>
-                      No users found
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {searchResults.map((user) => (
-                        <Link
-                          key={user._id}
-                          href={localeLink(`/user-profile?id=${user._id}`, currentLocale)}
-                          onClick={() => {
-                            setShowSearch(false);
-                            setSearchQuery("");
-                            setSearchResults([]);
-                          }}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                            padding: "10px",
-                            borderRadius: "6px",
-                            textDecoration: "none",
-                            color: "inherit",
-                            transition: "background 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#f5f5f5";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent";
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              borderRadius: "50%",
-                              background: user.profilePicture
-                                ? `url(${user.profilePicture}) center/cover`
-                                : "#e4e4e4",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "16px",
-                              color: "#666",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {!user.profilePicture &&
-                              (user.displayName || user.username)?.[0]?.toUpperCase()}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>
-                              {user.displayName || user.username}
-                            </div>
-                            {user.headline && (
-                              <div style={{ fontSize: "12px", color: "#666", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {user.headline}
+                  {searchQuery.trim().length >= 2 ? (
+                    // Show search results when query is entered
+                    <>
+                      {searchLoading ? (
+                        <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "14px" }}>
+                          Searching...
+                        </div>
+                      ) : searchResults.length === 0 ? (
+                        <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "14px" }}>
+                          No users found
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                          {searchResults.map((user) => (
+                            <Link
+                              key={user._id}
+                              href={localeLink(`/user-profile?id=${user._id}`, currentLocale)}
+                              onClick={() => {
+                                setShowSearch(false);
+                                setSearchQuery("");
+                                setSearchResults([]);
+                              }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                padding: "10px",
+                                borderRadius: "6px",
+                                textDecoration: "none",
+                                color: "inherit",
+                                transition: "background 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f5f5f5";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: "40px",
+                                  height: "40px",
+                                  borderRadius: "50%",
+                                  background: user.profilePicture
+                                    ? `url(${user.profilePicture}) center/cover`
+                                    : "#e4e4e4",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "16px",
+                                  color: "#666",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {!user.profilePicture &&
+                                  (user.displayName || user.username)?.[0]?.toUpperCase()}
                               </div>
-                            )}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>
+                                  {user.displayName || user.username}
+                                </div>
+                                {user.headline && (
+                                  <div style={{ fontSize: "12px", color: "#666", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {user.headline}
+                                  </div>
+                                )}
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    // Show connected users when no query
+                    <>
+                      {loadingConnections ? (
+                        <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "14px" }}>
+                          Loading...
+                        </div>
+                      ) : connectedUsers.length === 0 ? (
+                        <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "14px" }}>
+                          No connected users. Press Enter to search.
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ padding: "8px 12px", fontSize: "12px", fontWeight: "600", color: "#666", textTransform: "uppercase", borderBottom: "1px solid #e0e0e0", marginBottom: "4px" }}>
+                            Connected Users
                           </div>
-                        </Link>
-                      ))}
-                    </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                            {connectedUsers.map((user) => (
+                              <Link
+                                key={user._id}
+                                href={localeLink(`/user-profile?id=${user._id}`, currentLocale)}
+                                onClick={() => {
+                                  setShowSearch(false);
+                                  setSearchQuery("");
+                                  setSearchResults([]);
+                                }}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "10px",
+                                  padding: "10px",
+                                  borderRadius: "6px",
+                                  textDecoration: "none",
+                                  color: "inherit",
+                                  transition: "background 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "#f5f5f5";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "transparent";
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    borderRadius: "50%",
+                                    background: user.profilePicture
+                                      ? `url(${user.profilePicture}) center/cover`
+                                      : "#e4e4e4",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: "16px",
+                                    color: "#666",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {!user.profilePicture &&
+                                    (user.displayName || user.username)?.[0]?.toUpperCase()}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#333" }}>
+                                    {user.displayName || user.username}
+                                  </div>
+                                  {user.headline && (
+                                    <div style={{ fontSize: "12px", color: "#666", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {user.headline}
+                                    </div>
+                                  )}
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -479,14 +599,24 @@ export function Header() {
               </Link>
             </li>
             {user && (
-              <li>
-                <Link 
-                  href={`/${currentLocale}/dashboard`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t.common.dashboard}
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link 
+                    href={`/${currentLocale}/search`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t.common.search || "Search"}
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href={`/${currentLocale}/dashboard`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t.common.dashboard}
+                  </Link>
+                </li>
+              </>
             )}
             <li>
               <Link 

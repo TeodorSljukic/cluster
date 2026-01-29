@@ -58,6 +58,9 @@ export async function PUT(request: NextRequest) {
     if (body.about !== undefined) update.about = body.about;
     if (body.organization !== undefined) update.organization = body.organization;
     if (body.location !== undefined) update.location = body.location;
+    if (body.country !== undefined) update.country = body.country;
+    if (body.city !== undefined) update.city = body.city;
+    if (body.region !== undefined) update.region = body.region;
     if (body.role_custom !== undefined) update.role_custom = body.role_custom;
     if (body.interests !== undefined) update.interests = body.interests;
     if (body.profilePicture !== undefined) update.profilePicture = body.profilePicture;

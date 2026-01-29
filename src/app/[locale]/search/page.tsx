@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { UserStatus } from "@/components/UserStatus";
 import { localeLink, type Locale } from "@/lib/localeLink";
@@ -23,8 +23,13 @@ export default function SearchPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [countryFilter, setCountryFilter] = useState<string>("");
+  const [cityFilter, setCityFilter] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [connectionStatuses, setConnectionStatuses] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<string | null>(null);
@@ -43,20 +48,32 @@ export default function SearchPage({
     });
   }, [params]);
 
+  // Load query from URL on mount
   useEffect(() => {
-    // Debounce search
+    const urlQuery = searchParams.get("q");
+    if (urlQuery) {
+      setQuery(urlQuery);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    // Debounce search (trigger when query or filters change)
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    if (query.trim().length >= 2) {
+    const shouldSearch = query.trim().length >= 2 || countryFilter || cityFilter;
+    if (shouldSearch) {
       setLoading(true);
       searchTimeoutRef.current = setTimeout(() => {
         searchUsers(query);
       }, 300);
     } else {
-      setUsers([]);
-      setLoading(false);
+      // Load recent registered users when no query/filters
+      setLoading(true);
+      searchTimeoutRef.current = setTimeout(() => {
+        loadRegisteredUsers();
+      }, 200);
     }
 
     return () => {
@@ -64,7 +81,44 @@ export default function SearchPage({
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [query]);
+  }, [query, countryFilter, cityFilter]);
+
+  useEffect(() => {
+    // Load countries once
+    let mounted = true;
+    fetch("/api/locations/countries")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        setCountries(data.countries || []);
+      })
+      .catch((err) => console.error("Failed to load countries:", err));
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Load cities when countryFilter changes
+    let mounted = true;
+    if (!countryFilter) {
+      setCities([]);
+      return;
+    }
+    fetch(`/api/locations/cities?country=${encodeURIComponent(countryFilter)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        setCities(data.cities || []);
+      })
+      .catch((err) => {
+        console.error("Failed to load cities:", err);
+        setCities([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [countryFilter]);
 
   useEffect(() => {
     loadConnectionStatuses();
@@ -72,7 +126,11 @@ export default function SearchPage({
 
   async function searchUsers(searchQuery: string) {
     try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`);
+      const params = new URLSearchParams();
+      if (searchQuery) params.append("q", searchQuery);
+      if (countryFilter) params.append("country", countryFilter);
+      if (cityFilter) params.append("city", cityFilter);
+      const res = await fetch(`/api/users/search?${params.toString()}`);
       if (res.status === 401) {
         router.push(localeLink("/login", locale));
         return;
@@ -81,6 +139,27 @@ export default function SearchPage({
       setUsers(data.users || []);
     } catch (error) {
       console.error("Error searching users:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadRegisteredUsers(page = 1, limit = 20) {
+    try {
+      const params = new URLSearchParams();
+      params.append("page", String(page));
+      params.append("limit", String(limit));
+      if (countryFilter) params.append("country", countryFilter);
+      if (cityFilter) params.append("city", cityFilter);
+      const res = await fetch(`/api/users/list?${params.toString()}`);
+      if (res.status === 401) {
+        router.push(localeLink("/login", locale));
+        return;
+      }
+      const data = await res.json();
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error("Error loading registered users:", error);
     } finally {
       setLoading(false);
     }
@@ -217,6 +296,49 @@ export default function SearchPage({
             boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
           }}
         >
+          <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+            <select
+              value={countryFilter}
+              onChange={(e) => {
+                setCountryFilter(e.target.value);
+                setCityFilter("");
+              }}
+              style={{
+                padding: "10px",
+                borderRadius: "8px",
+                border: "1px solid #ddd",
+                fontSize: "14px",
+                flex: "0 0 220px"
+              }}
+            >
+              <option value="">{t.search.allCountries || "-- Country --"}</option>
+              {countries.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              style={{
+                padding: "10px",
+                borderRadius: "8px",
+                border: "1px solid #ddd",
+                fontSize: "14px",
+                flex: "0 0 220px"
+              }}
+            >
+              <option value="">{t.search.allCities || "-- City --"}</option>
+              {cities.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <input
             type="text"
             value={query}
