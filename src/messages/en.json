@@ -276,7 +276,9 @@
     "connect": "Connect",
     "sending": "Sending...",
     "failedToSend": "Failed to send connection request",
-    "errorSending": "Error sending connection request"
+    "errorSending": "Error sending connection request",
+    "allCountries": "-- Country --",
+    "allCities": "-- City --"
   },
   "newsPage": {
     "title": "News & Events",

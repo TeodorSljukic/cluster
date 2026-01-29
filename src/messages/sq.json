@@ -276,7 +276,9 @@
     "connect": "Lidhu",
     "sending": "Duke dërguar...",
     "failedToSend": "Dështoi dërgimi i kërkesës për lidhje",
-    "errorSending": "Gabim gjatë dërgimit të kërkesës për lidhje"
+    "errorSending": "Gabim gjatë dërgimit të kërkesës për lidhje",
+    "allCountries": "-- Shteti --",
+    "allCities": "-- Qyteti --"
   },
   "newsPage": {
     "title": "Lajme dhe Ngjarje",

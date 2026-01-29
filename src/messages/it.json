@@ -276,7 +276,9 @@
     "connect": "Connetti",
     "sending": "Invio...",
     "failedToSend": "Invio richiesta di connessione fallito",
-    "errorSending": "Errore nell'invio della richiesta di connessione"
+    "errorSending": "Errore nell'invio della richiesta di connessione",
+    "allCountries": "-- Paese --",
+    "allCities": "-- Città --"
   },
   "newsPage": {
     "title": "Notizie e Eventi",

@@ -276,7 +276,9 @@
     "connect": "Poveži",
     "sending": "Slanje...",
     "failedToSend": "Neuspješno slanje zahtjeva za povezivanje",
-    "errorSending": "Greška pri slanju zahtjeva za povezivanje"
+    "errorSending": "Greška pri slanju zahtjeva za povezivanje",
+    "allCountries": "-- Država --",
+    "allCities": "-- Grad --"
   },
   "newsPage": {
     "title": "Vijesti i Događaji",
