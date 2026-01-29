@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
       return true;
     };
 
-    cities = Array.from(new Set(cities.filter(isLikelyCity))).sort((a: string, b: string) =>
-      a.localeCompare(b)
+    cities = Array.from(new Set(cities.filter(isLikelyCity) as string[])).sort((a, b) =>
+      (a as string).localeCompare(b as string)
     );
 
     return NextResponse.json({ cities });
