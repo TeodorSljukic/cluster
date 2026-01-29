@@ -1,6 +1,8 @@
 "use client";
  
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { getTranslations, type Locale } from "@/lib/getTranslations";
 
 interface Country {
   code: string;
@@ -8,6 +10,15 @@ interface Country {
 }
 
 export default function LocationList() {
+  const pathname = usePathname();
+  const locale: Locale = (() => {
+    const match = pathname?.match(/^\/([^\/]+)/);
+    if (match && ["me", "en", "it", "sq"].includes(match[1])) {
+      return match[1] as Locale;
+    }
+    return "me";
+  })();
+  const t = getTranslations(locale);
   const [countries, setCountries] = useState<Country[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [citiesMap, setCitiesMap] = useState<Record<string, string[]>>({});
@@ -42,7 +53,7 @@ export default function LocationList() {
 
   return (
     <div style={{ marginTop: "24px" }}>
-      <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "12px" }}>Available countries & cities</h3>
+      <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "12px" }}>{t.locationList.title}</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {countries.map((c) => (
           <div key={c.code} style={{ border: "1px solid #eee", borderRadius: 8, padding: 12 }}>
@@ -58,13 +69,13 @@ export default function LocationList() {
                   cursor: "pointer",
                 }}
               >
-                {expanded[c.code] ? "Hide" : "Show cities"}
+                {expanded[c.code] ? t.locationList.hide : t.locationList.showCities}
               </button>
             </div>
             {expanded[c.code] && (
               <div style={{ marginTop: 10 }}>
                 {loadingMap[c.code] ? (
-                  <div style={{ color: "#666" }}>Loading cities...</div>
+                  <div style={{ color: "#666" }}>{t.locationList.loadingCities}</div>
                 ) : (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {(citiesMap[c.code] || []).map((city) => (
@@ -81,7 +92,7 @@ export default function LocationList() {
                       </div>
                     ))}
                     {(citiesMap[c.code] || []).length === 0 && (
-                      <div style={{ color: "#666" }}>No cities available</div>
+                      <div style={{ color: "#666" }}>{t.locationList.noCitiesAvailable}</div>
                     )}
                   </div>
                 )}

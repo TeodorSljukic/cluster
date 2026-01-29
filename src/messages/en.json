@@ -97,6 +97,8 @@
     "slug": "Slug",
     "content": "Content",
     "excerpt": "Excerpt",
+    "excerptPlaceholder": "Enter a short excerpt...",
+    "contentPlaceholder": "Enter your content here...",
     "featuredImage": "Featured Image",
     "status": "Status",
     "published": "Published",
@@ -154,9 +156,13 @@
     "email": "Email",
     "emailCannotChange": "Email cannot be changed",
     "phone": "Phone",
+    "phonePlaceholder": "+1234567890",
     "website": "Website",
+    "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "https://linkedin.com/in/username",
     "twitter": "Twitter",
+    "twitterPlaceholder": "https://twitter.com/username",
     "noContactInfo": "No contact info added yet.",
     "changeCover": "Change cover",
     "uploading": "Uploading...",
@@ -269,6 +275,7 @@
   "search": {
     "title": "Search Users",
     "placeholder": "Enter name or email...",
+    "searchUsersPlaceholder": "Search users...",
     "loading": "Loading...",
     "searchResults": "Search Results",
     "noUsersFound": "No users found. Try a different search term.",
@@ -337,5 +344,12 @@
     "read": "Read",
     "unread": "Unread",
     "newMessage": "New message"
+  },
+  "locationList": {
+    "title": "Available countries & cities",
+    "hide": "Hide",
+    "showCities": "Show cities",
+    "loadingCities": "Loading cities...",
+    "noCitiesAvailable": "No cities available"
   }
 }

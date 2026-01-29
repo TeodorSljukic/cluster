@@ -273,7 +273,7 @@ export function Header() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search users..."
+                    placeholder={t.search.searchUsersPlaceholder}
                     style={{
                       flex: 1,
                       border: "none",

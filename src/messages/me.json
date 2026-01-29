@@ -97,6 +97,8 @@
     "slug": "Slug",
     "content": "Sadržaj",
     "excerpt": "Izvod",
+    "excerptPlaceholder": "Unesite kratak izvod...",
+    "contentPlaceholder": "Unesite vaš sadržaj ovdje...",
     "featuredImage": "Istaknuta slika",
     "status": "Status",
     "published": "Objavljeno",
@@ -154,9 +156,13 @@
     "email": "Email",
     "emailCannotChange": "Email se ne može promijeniti",
     "phone": "Telefon",
+    "phonePlaceholder": "+1234567890",
     "website": "Website",
+    "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "https://linkedin.com/in/username",
     "twitter": "Twitter",
+    "twitterPlaceholder": "https://twitter.com/username",
     "noContactInfo": "Nema dodanih kontakt informacija.",
     "changeCover": "Promijeni naslovnu",
     "uploading": "Učitavanje...",
@@ -269,6 +275,7 @@
   "search": {
     "title": "Pretraga korisnika",
     "placeholder": "Unesite ime ili email...",
+    "searchUsersPlaceholder": "Pretraži korisnike...",
     "loading": "Učitavanje...",
     "searchResults": "Rezultati pretrage",
     "noUsersFound": "Nema pronađenih korisnika. Pokušajte sa drugim pojmom.",
@@ -337,5 +344,12 @@
     "read": "Pročitano",
     "unread": "Nepročitano",
     "newMessage": "Nova poruka"
+  },
+  "locationList": {
+    "title": "Dostupne države i gradovi",
+    "hide": "Sakrij",
+    "showCities": "Prikaži gradove",
+    "loadingCities": "Učitavanje gradova...",
+    "noCitiesAvailable": "Nema dostupnih gradova"
   }
 }

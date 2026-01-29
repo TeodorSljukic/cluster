@@ -97,6 +97,8 @@
     "slug": "Slug",
     "content": "Përmbajtja",
     "excerpt": "Përmbledhje",
+    "excerptPlaceholder": "Shkruani një përmbledhje të shkurtër...",
+    "contentPlaceholder": "Shkruani përmbajtjen tuaj këtu...",
     "featuredImage": "Imazhi i zgjedhur",
     "status": "Statusi",
     "published": "Publikuar",
@@ -154,9 +156,13 @@
     "email": "Email",
     "emailCannotChange": "Email-i nuk mund të ndryshohet",
     "phone": "Telefoni",
+    "phonePlaceholder": "+1234567890",
     "website": "Website",
+    "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "https://linkedin.com/in/username",
     "twitter": "Twitter",
+    "twitterPlaceholder": "https://twitter.com/username",
     "noContactInfo": "Nuk ka informacion kontakti të shtuar.",
     "changeCover": "Ndrysho kopertinën",
     "uploading": "Duke ngarkuar...",
@@ -269,6 +275,7 @@
   "search": {
     "title": "Kërko Përdorues",
     "placeholder": "Shkruani emër ose email...",
+    "searchUsersPlaceholder": "Kërko përdorues...",
     "loading": "Duke ngarkuar...",
     "searchResults": "Rezultatet e Kërkimit",
     "noUsersFound": "Nuk u gjetën përdorues. Provoni me një term tjetër kërkimi.",
@@ -337,5 +344,12 @@
     "read": "E lexuar",
     "unread": "E palexuar",
     "newMessage": "Mesazh i ri"
+  },
+  "locationList": {
+    "title": "Shtetet dhe qytetet e disponueshme",
+    "hide": "Fshih",
+    "showCities": "Shfaq qytetet",
+    "loadingCities": "Duke ngarkuar qytetet...",
+    "noCitiesAvailable": "Nuk ka qytete të disponueshme"
   }
 }

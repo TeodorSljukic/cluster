@@ -1838,7 +1838,7 @@ export default function ProfilePage({
                       type="tel"
                       value={formData.phone || ""}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+1234567890"
+                      placeholder={t.profile.phonePlaceholder}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1856,7 +1856,7 @@ export default function ProfilePage({
                       type="url"
                       value={formData.website || ""}
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      placeholder="https://example.com"
+                      placeholder={t.profile.websitePlaceholder}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1874,7 +1874,7 @@ export default function ProfilePage({
                       type="url"
                       value={formData.linkedin || ""}
                       onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                      placeholder="https://linkedin.com/in/username"
+                      placeholder={t.profile.linkedinPlaceholder}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1892,7 +1892,7 @@ export default function ProfilePage({
                       type="url"
                       value={formData.twitter || ""}
                       onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
-                      placeholder="https://twitter.com/username"
+                      placeholder={t.profile.twitterPlaceholder}
                       style={{
                         width: "100%",
                         padding: "8px",

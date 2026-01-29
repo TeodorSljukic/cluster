@@ -690,7 +690,7 @@ function PostForm({
             <RichTextEditor
               value={formData.excerpt || ""}
               onChange={(value) => setFormData({ ...formData, excerpt: value })}
-              placeholder="Enter a short excerpt..."
+              placeholder={t.cms.excerptPlaceholder}
             />
           </div>
 
@@ -701,7 +701,7 @@ function PostForm({
             <RichTextEditor
               value={formData.content || ""}
               onChange={(value) => setFormData({ ...formData, content: value })}
-              placeholder="Enter your content here..."
+              placeholder={t.cms.contentPlaceholder}
             />
           </div>
 

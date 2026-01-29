@@ -97,6 +97,8 @@
     "slug": "Slug",
     "content": "Contenuto",
     "excerpt": "Estratto",
+    "excerptPlaceholder": "Inserisci un breve estratto...",
+    "contentPlaceholder": "Inserisci il tuo contenuto qui...",
     "featuredImage": "Immagine in evidenza",
     "status": "Stato",
     "published": "Pubblicato",
@@ -154,9 +156,13 @@
     "email": "Email",
     "emailCannotChange": "L'email non può essere modificata",
     "phone": "Telefono",
+    "phonePlaceholder": "+1234567890",
     "website": "Sito web",
+    "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "https://linkedin.com/in/username",
     "twitter": "Twitter",
+    "twitterPlaceholder": "https://twitter.com/username",
     "noContactInfo": "Nessuna informazione di contatto aggiunta.",
     "changeCover": "Cambia copertina",
     "uploading": "Caricamento...",
@@ -269,6 +275,7 @@
   "search": {
     "title": "Cerca Utenti",
     "placeholder": "Inserisci nome o email...",
+    "searchUsersPlaceholder": "Cerca utenti...",
     "loading": "Caricamento...",
     "searchResults": "Risultati di Ricerca",
     "noUsersFound": "Nessun utente trovato. Prova con un termine di ricerca diverso.",
@@ -337,5 +344,12 @@
     "read": "Letto",
     "unread": "Non letto",
     "newMessage": "Nuovo messaggio"
+  },
+  "locationList": {
+    "title": "Paesi e città disponibili",
+    "hide": "Nascondi",
+    "showCities": "Mostra città",
+    "loadingCities": "Caricamento città...",
+    "noCitiesAvailable": "Nessuna città disponibile"
   }
 }
