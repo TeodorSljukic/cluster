@@ -67,6 +67,8 @@
     "password": "Password",
     "organization": "Nome organizzazione",
     "country": "Paese",
+    "city": "Città",
+    "cityPlaceholder": "Digita città...",
     "sector": "Settore",
     "platforms": "Seleziona piattaforme:",
     "allPlatforms": "Tutte le piattaforme",

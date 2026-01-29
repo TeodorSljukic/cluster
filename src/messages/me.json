@@ -67,6 +67,8 @@
     "password": "Lozinka",
     "organization": "Naziv organizacije",
     "country": "Država",
+    "city": "Grad",
+    "cityPlaceholder": "Unesite grad...",
     "sector": "Sektor",
     "platforms": "Odaberite platforme:",
     "allPlatforms": "Sve platforme",

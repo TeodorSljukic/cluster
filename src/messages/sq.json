@@ -67,6 +67,8 @@
     "password": "Fjalëkalimi",
     "organization": "Emri i organizatës",
     "country": "Shteti",
+    "city": "Qyteti",
+    "cityPlaceholder": "Shkruani qytet...",
     "sector": "Sektori",
     "platforms": "Zgjidh platformat:",
     "allPlatforms": "Të gjitha platformat",

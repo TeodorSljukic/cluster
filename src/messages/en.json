@@ -67,6 +67,8 @@
     "password": "Password",
     "organization": "Organization Name",
     "country": "Country",
+    "city": "City",
+    "cityPlaceholder": "Type city...",
     "sector": "Sector",
     "platforms": "Select platforms:",
     "allPlatforms": "All platforms",
