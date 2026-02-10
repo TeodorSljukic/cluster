@@ -378,18 +378,23 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="dashboard-stats-grid">
-        <div className="stat-card stat-card-primary">
-          <div className="stat-card-icon">
-            <Users size={28} />
+        <Link 
+          href={localeLink("/search", locale)} 
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <div className="stat-card stat-card-primary" style={{ cursor: "pointer" }}>
+            <div className="stat-card-icon">
+              <Users size={28} />
+            </div>
+            <div className="stat-card-content">
+              <h3>{t.dashboard.totalUsers}</h3>
+              <p className="stat-card-value">{stats?.stats?.totalUsers ?? 0}</p>
+              <span className="stat-card-label">
+                {stats?.stats?.onlineUsers ?? 0} {t.dashboard.online}
+              </span>
+            </div>
           </div>
-          <div className="stat-card-content">
-            <h3>{t.dashboard.totalUsers}</h3>
-            <p className="stat-card-value">{stats?.stats?.totalUsers ?? 0}</p>
-            <span className="stat-card-label">
-              {stats?.stats?.onlineUsers ?? 0} {t.dashboard.online}
-            </span>
-          </div>
-        </div>
+        </Link>
 
         <div className="stat-card stat-card-success">
           <div className="stat-card-icon">

@@ -67,6 +67,11 @@
   .footer-left {
     max-width: 100%;
   }
+  .footer-center {
+    max-width: 100% !important;
+    margin: 20px 0 !important;
+    text-align: center !important;
+  }
   .footer-right ul {
     flex-direction: column;
     gap: 10px;

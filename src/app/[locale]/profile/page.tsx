@@ -2810,19 +2810,43 @@ function ExperienceModal({
   onClose: () => void;
   onSave: (exp: any) => void;
 }) {
+  // Helper function to convert month format (YYYY-MM) to date format (YYYY-MM-DD)
+  const monthToDate = (monthStr: string) => {
+    if (!monthStr) return "";
+    if (monthStr.includes("-") && monthStr.split("-").length === 2) {
+      return `${monthStr}-01`; // Add day 01 to make it a valid date
+    }
+    return monthStr;
+  };
+
+  // Helper function to convert date format (YYYY-MM-DD) to month format (YYYY-MM) for storage
+  const dateToMonth = (dateStr: string) => {
+    if (!dateStr) return "";
+    if (dateStr.includes("-") && dateStr.split("-").length === 3) {
+      return dateStr.substring(0, 7); // Extract YYYY-MM from YYYY-MM-DD
+    }
+    return dateStr;
+  };
+
   const [formData, setFormData] = useState({
     title: experience?.title || "",
     company: experience?.company || "",
     location: experience?.location || "",
-    startDate: experience?.startDate || "",
-    endDate: experience?.endDate || "",
+    startDate: monthToDate(experience?.startDate || ""),
+    endDate: monthToDate(experience?.endDate || ""),
     current: experience?.current || false,
     description: experience?.description || "",
   });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSave(formData);
+    // Convert dates back to month format for storage
+    const dataToSave = {
+      ...formData,
+      startDate: dateToMonth(formData.startDate),
+      endDate: dateToMonth(formData.endDate),
+    };
+    onSave(dataToSave);
   }
 
   return (
@@ -2928,7 +2952,7 @@ function ExperienceModal({
               {t.profile.startDate} *
             </label>
             <input
-              type="month"
+              type="date"
               value={formData.startDate}
               onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
               required
@@ -2946,7 +2970,7 @@ function ExperienceModal({
               {t.profile.endDate}
             </label>
             <input
-              type="month"
+              type="date"
               value={formData.endDate}
               onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
               disabled={formData.current}
@@ -3056,19 +3080,43 @@ function EducationModal({
   onClose: () => void;
   onSave: (edu: any) => void;
 }) {
+  // Helper function to convert month format (YYYY-MM) to date format (YYYY-MM-DD)
+  const monthToDate = (monthStr: string) => {
+    if (!monthStr) return "";
+    if (monthStr.includes("-") && monthStr.split("-").length === 2) {
+      return `${monthStr}-01`; // Add day 01 to make it a valid date
+    }
+    return monthStr;
+  };
+
+  // Helper function to convert date format (YYYY-MM-DD) to month format (YYYY-MM) for storage
+  const dateToMonth = (dateStr: string) => {
+    if (!dateStr) return "";
+    if (dateStr.includes("-") && dateStr.split("-").length === 3) {
+      return dateStr.substring(0, 7); // Extract YYYY-MM from YYYY-MM-DD
+    }
+    return dateStr;
+  };
+
   const [formData, setFormData] = useState({
     school: education?.school || "",
     degree: education?.degree || "",
     field: education?.field || "",
-    startDate: education?.startDate || "",
-    endDate: education?.endDate || "",
+    startDate: monthToDate(education?.startDate || ""),
+    endDate: monthToDate(education?.endDate || ""),
     current: education?.current || false,
     description: education?.description || "",
   });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSave(formData);
+    // Convert dates back to month format for storage
+    const dataToSave = {
+      ...formData,
+      startDate: dateToMonth(formData.startDate),
+      endDate: dateToMonth(formData.endDate),
+    };
+    onSave(dataToSave);
   }
 
   return (
@@ -3146,7 +3194,7 @@ function EducationModal({
                 {t.profile.startDate} *
               </label>
               <input
-                type="month"
+                type="date"
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                 required
@@ -3164,7 +3212,7 @@ function EducationModal({
                 {t.profile.endDate}
               </label>
               <input
-                type="month"
+                type="date"
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                 disabled={formData.current}

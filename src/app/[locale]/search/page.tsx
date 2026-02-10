@@ -16,6 +16,8 @@ interface User {
   headline?: string;
   organization?: string;
   location?: string;
+  country?: string;
+  city?: string;
 }
 
 function SearchPageContent({
@@ -26,6 +28,7 @@ function SearchPageContent({
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // Store all users
   const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [countryFilter, setCountryFilter] = useState<string>("");
@@ -57,31 +60,32 @@ function SearchPageContent({
   }, [searchParams]);
 
   useEffect(() => {
-    // Debounce search (trigger when query or filters change)
+    // Load all users on mount
+    setLoading(true);
+    loadAllUsers();
+  }, []);
+
+  useEffect(() => {
+    // Filter users based on query and filters - only if allUsers is loaded
+    if (allUsers.length === 0) {
+      // If users not loaded yet, don't filter - but don't clear users either
+      return;
+    }
+
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    const shouldSearch = query.trim().length >= 2 || countryFilter || cityFilter;
-    if (shouldSearch) {
-      setLoading(true);
-      searchTimeoutRef.current = setTimeout(() => {
-        searchUsers(query);
-      }, 300);
-    } else {
-      // Load recent registered users when no query/filters
-      setLoading(true);
-      searchTimeoutRef.current = setTimeout(() => {
-        loadRegisteredUsers();
-      }, 200);
-    }
+    searchTimeoutRef.current = setTimeout(() => {
+      filterUsers();
+    }, 300);
 
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [query, countryFilter, cityFilter]);
+  }, [query, countryFilter, cityFilter, allUsers]);
 
   useEffect(() => {
     // Load countries once
@@ -124,45 +128,169 @@ function SearchPageContent({
     loadConnectionStatuses();
   }, [users]);
 
-  async function searchUsers(searchQuery: string) {
+  async function loadAllUsers() {
     try {
-      const params = new URLSearchParams();
-      if (searchQuery) params.append("q", searchQuery);
-      if (countryFilter) params.append("country", countryFilter);
-      if (cityFilter) params.append("city", cityFilter);
-      const res = await fetch(`/api/users/search?${params.toString()}`);
-      if (res.status === 401) {
-        router.push(localeLink("/login", locale));
-        return;
+      // Load all users with a high limit
+      let allUsersList: User[] = [];
+      let page = 1;
+      const limit = 100;
+      let hasMore = true;
+
+      while (hasMore) {
+        const params = new URLSearchParams();
+        params.append("page", String(page));
+        params.append("limit", String(limit));
+        const res = await fetch(`/api/users/list?${params.toString()}`);
+        if (res.status === 401) {
+          router.push(localeLink("/login", locale));
+          return;
+        }
+        const data = await res.json();
+        if (data.error) {
+          console.error("API error:", data.error);
+          hasMore = false;
+          break;
+        }
+        if (data.users && data.users.length > 0) {
+          allUsersList = [...allUsersList, ...data.users];
+          if (data.users.length < limit) {
+            hasMore = false;
+          } else {
+            page++;
+          }
+        } else {
+          hasMore = false;
+        }
       }
-      const data = await res.json();
-      setUsers(data.users || []);
+
+      setAllUsers(allUsersList);
+      // Apply filters immediately after loading
+      if (allUsersList.length > 0) {
+        // Use the filterUsers logic directly here
+        let filtered = [...allUsersList];
+        
+        // Filter by query
+        if (query.trim().length > 0) {
+          const queryLower = query.toLowerCase().trim();
+          filtered = filtered.filter((user) => {
+            const name = (user.displayName || user.username || "").toLowerCase();
+            const email = (user.email || "").toLowerCase();
+            const headline = (user.headline || "").toLowerCase();
+            const organization = (user.organization || "").toLowerCase();
+            return (
+              name.includes(queryLower) ||
+              email.includes(queryLower) ||
+              headline.includes(queryLower) ||
+              organization.includes(queryLower)
+            );
+          });
+        }
+        
+        // Filter by country
+        if (countryFilter) {
+          filtered = filtered.filter((user) => {
+            if (user.country) {
+              return user.country === countryFilter;
+            }
+            if (user.location) {
+              const parts = user.location.split(",").map((p: string) => p.trim());
+              const locationCountry = parts[parts.length - 1];
+              return locationCountry === countryFilter || user.location.toLowerCase().includes(countryFilter.toLowerCase());
+            }
+            return false;
+          });
+        }
+        
+        // Filter by city
+        if (cityFilter) {
+          filtered = filtered.filter((user) => {
+            if (user.city) {
+              return user.city === cityFilter;
+            }
+            if (user.location) {
+              const parts = user.location.split(",").map((p: string) => p.trim());
+              const locationCity = parts[0];
+              return locationCity === cityFilter || user.location.toLowerCase().includes(cityFilter.toLowerCase());
+            }
+            return false;
+          });
+        }
+        
+        setUsers(filtered);
+      } else {
+        setUsers([]);
+      }
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error("Error loading all users:", error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
   }
 
-  async function loadRegisteredUsers(page = 1, limit = 20) {
-    try {
-      const params = new URLSearchParams();
-      params.append("page", String(page));
-      params.append("limit", String(limit));
-      if (countryFilter) params.append("country", countryFilter);
-      if (cityFilter) params.append("city", cityFilter);
-      const res = await fetch(`/api/users/list?${params.toString()}`);
-      if (res.status === 401) {
-        router.push(localeLink("/login", locale));
-        return;
-      }
-      const data = await res.json();
-      setUsers(data.users || []);
-    } catch (error) {
-      console.error("Error loading registered users:", error);
-    } finally {
-      setLoading(false);
+  function filterUsers() {
+    if (allUsers.length === 0) {
+      // If no users loaded yet, show empty array
+      setUsers([]);
+      return;
     }
+
+    let filtered = [...allUsers];
+
+    // Filter by query (search in name, email, headline, organization) - works with any length
+    if (query.trim().length > 0) {
+      const queryLower = query.toLowerCase().trim();
+      filtered = filtered.filter((user) => {
+        const name = (user.displayName || user.username || "").toLowerCase();
+        const email = (user.email || "").toLowerCase();
+        const headline = (user.headline || "").toLowerCase();
+        const organization = (user.organization || "").toLowerCase();
+        return (
+          name.includes(queryLower) ||
+          email.includes(queryLower) ||
+          headline.includes(queryLower) ||
+          organization.includes(queryLower)
+        );
+      });
+    }
+
+    // Filter by country - but don't exclude users without country if no filter is set
+    if (countryFilter) {
+      filtered = filtered.filter((user) => {
+        // Check country field directly
+        if (user.country) {
+          return user.country === countryFilter;
+        }
+        // Parse from location string (format: "city, region, country" or "city, country")
+        if (user.location) {
+          const parts = user.location.split(",").map((p: string) => p.trim());
+          const locationCountry = parts[parts.length - 1]; // Last part is usually country
+          return locationCountry === countryFilter || user.location.toLowerCase().includes(countryFilter.toLowerCase());
+        }
+        // If user has no country info and filter is set, exclude them
+        return false;
+      });
+    }
+
+    // Filter by city - but don't exclude users without city if no filter is set
+    if (cityFilter) {
+      filtered = filtered.filter((user) => {
+        // Check city field directly
+        if (user.city) {
+          return user.city === cityFilter;
+        }
+        // Parse from location string (format: "city, region, country" or "city, country")
+        if (user.location) {
+          const parts = user.location.split(",").map((p: string) => p.trim());
+          const locationCity = parts[0]; // First part is usually city
+          return locationCity === cityFilter || user.location.toLowerCase().includes(cityFilter.toLowerCase());
+        }
+        // If user has no city info and filter is set, exclude them
+        return false;
+      });
+    }
+
+    setUsers(filtered);
   }
 
   async function loadConnectionStatuses() {
@@ -380,7 +508,7 @@ function SearchPageContent({
           </div>
         )}
 
-        {!loading && query.trim().length >= 2 && (
+        {!loading && (
           <div
             style={{
               background: "white",
@@ -390,7 +518,7 @@ function SearchPageContent({
             }}
           >
             <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-              {t.search.searchResults} {users.length > 0 && `(${users.length})`}
+              {query.trim().length > 0 ? t.search.searchResults : (t.search.allUsers || "Svi korisnici")} {users.length > 0 && `(${users.length})`}
             </h2>
             {users.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -477,21 +605,6 @@ function SearchPageContent({
           </div>
         )}
 
-        {!loading && query.trim().length < 2 && (
-          <div
-            style={{
-              background: "white",
-              borderRadius: "8px",
-              padding: "24px",
-              boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
-              textAlign: "center",
-            }}
-          >
-            <p style={{ fontSize: "14px", color: "#666" }}>
-              {t.search.enterAtLeast2}
-            </p>
-          </div>
-        )}
       </div>
     </main>
   );

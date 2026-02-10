@@ -8,7 +8,6 @@ import { localeLink, type Locale } from "@/lib/localeLink";
 import { getTranslations } from "@/lib/getTranslations";
 
 export function Footer() {
-  const year = new Date().getFullYear();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -102,6 +101,20 @@ export function Footer() {
             </Link>
           </div>
 
+          <div className="footer-center" style={{
+            flex: "1",
+            maxWidth: "600px",
+            margin: "0 40px",
+            fontSize: "12px",
+            lineHeight: "1.6",
+            color: "#555",
+            textAlign: "left"
+          }}>
+            <p style={{ margin: 0 }}>
+              {t.contact.euDisclaimer}
+            </p>
+          </div>
+
           <div className="footer-right">
             <nav className="footer-nav">
               <ul>
@@ -122,45 +135,9 @@ export function Footer() {
         <div className="footer-bottom" style={{
           background: "linear-gradient(to right, #B53251, #E23F65)",
           textAlign: "center",
-          padding: "40px 20px",
+          padding: "20px",
           color: "#fff"
         }}>
-          <div style={{ 
-            maxWidth: "1000px", 
-            margin: "0 auto",
-            marginBottom: "30px"
-          }}>
-            <h3 style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#fff",
-              marginBottom: "20px",
-              textAlign: "center"
-            }}>
-              SKILLS Project
-            </h3>
-            <img 
-              src="/wp-content/uploads/2025/09/skills-logo.png" 
-              alt="SKILLS Project" 
-              style={{ 
-                height: "60px", 
-                width: "auto", 
-                marginBottom: "20px",
-                display: "block",
-                margin: "0 auto 20px"
-              }}
-            />
-            <p style={{ 
-              fontSize: "12px", 
-              lineHeight: "1.6", 
-              color: "#fff",
-              maxWidth: "900px",
-              margin: "0 auto",
-              textAlign: "center"
-            }}>
-              {t.contact.euDisclaimer}
-            </p>
-          </div>
           <p style={{
             fontSize: "16px",
             fontWeight: "600",
@@ -168,7 +145,7 @@ export function Footer() {
             margin: "0",
             textAlign: "center"
           }}>
-            © {year} Adriatic Blue Growth Cluster
+            © 2026 Adriatic Blue Growth Cluster
           </p>
         </div>
       </footer>

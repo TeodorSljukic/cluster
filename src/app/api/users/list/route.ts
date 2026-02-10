@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
@@ -21,15 +27,8 @@ export async function GET(request: NextRequest) {
       .collection("users")
       .find(filter)
       .project({
-        password: 0,
-        // only return public fields
-        username: 1,
-        displayName: 1,
-        profilePicture: 1,
-        organization: 1,
-        location: 1,
-        country: 1,
-        city: 1,
+        password: 0, // Exclude password only
+        // All other fields will be included by default
       })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -39,23 +38,29 @@ export async function GET(request: NextRequest) {
     const total = await db.collection("users").countDocuments(filter);
 
     return NextResponse.json({
-      users: users.map((u: any) => ({
-        _id: u._id.toString(),
-        username: u.username,
-        displayName: u.displayName,
-        profilePicture: u.profilePicture,
-        organization: u.organization,
-        location: u.location,
-        country: u.country,
-        city: u.city,
-      })),
+      users: users.map((u: any) => {
+        // Return all fields except password
+        const { password, ...userWithoutPassword } = u;
+        return {
+          ...userWithoutPassword,
+          _id: u._id.toString(),
+        };
+      }),
       page,
       limit,
       total,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error fetching users list:", err);
-    return NextResponse.json({ users: [], page: 1, limit: 0, total: 0 }, { status: 500 });
+    console.error("Error details:", err.message, err.stack);
+    // Return 200 with empty array instead of 500, so frontend can handle it gracefully
+    return NextResponse.json({ 
+      users: [], 
+      page: 1, 
+      limit: 0, 
+      total: 0,
+      error: err.message || "Failed to fetch users"
+    }, { status: 200 });
   }
 }
 
