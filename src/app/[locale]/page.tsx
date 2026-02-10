@@ -96,30 +96,23 @@ export default async function Home({
         </>
       ) : (
         <>
-          {/* Welcome Section - New section before RegisterForm */}
-          <section className="welcome-section" style={{
-            padding: "60px 20px",
-            background: "linear-gradient(135deg, rgba(34, 139, 34, 0.05) 0%, rgba(0, 123, 255, 0.05) 100%)",
-            textAlign: "center"
-          }}>
-            <div className="container" style={{ maxWidth: "800px", margin: "0 auto" }}>
-              <h1 style={{
-                fontSize: "clamp(28px, 5vw, 42px)",
-                fontWeight: "700",
-                color: "#E23F65",
-                marginBottom: "20px",
-                lineHeight: "1.3"
-              }} data-aos="fade-up">
-                {t.welcome.title}
-              </h1>
-              <p style={{
-                fontSize: "clamp(16px, 2.5vw, 20px)",
-                color: "#555",
-                lineHeight: "1.6",
-                marginBottom: "0"
-              }} data-aos="fade-up" data-aos-delay="100">
-                {t.welcome.subtitle}
-              </p>
+          <section className="hero">
+            <div className="container hero-inner">
+              <div className="hero-image" data-aos="fade-right">
+                <img
+                  src="/wp-content/uploads/2025/09/Hero-image-Mask-group.webp"
+                  alt="Hero illustration"
+                />
+              </div>
+
+              <div className="hero-content" data-aos="fade-left">
+                <h1 className="hero-title" data-aos="fade-up" style={{ fontSize: "72px", lineHeight: "80px" }}>
+                  {t.welcome.title}
+                </h1>
+                <p className="hero-subtitle" data-aos="fade-up" data-aos-delay="200" style={{ fontSize: "28px", lineHeight: "36px" }}>
+                  {t.welcome.subtitle}
+                </p>
+              </div>
             </div>
           </section>
 
