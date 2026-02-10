@@ -107,6 +107,7 @@ interface RegisteredPlatforms {
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [usersByCity, setUsersByCity] = useState<LocationData[]>([]);
   const [usersByRegion, setUsersByRegion] = useState<LocationData[]>([]);
@@ -134,7 +135,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [pathname]); // Re-check when route changes (e.g., after login)
 
   async function checkAuth() {
     try {
@@ -142,6 +143,7 @@ export default function DashboardPage() {
       const data = await res.json();
       if (data.user) {
         setAuthenticated(true);
+        setUserRole(data.user.role || "");
         setRegisteredPlatforms(data.user.registeredPlatforms || {
           lms: false,
           ecommerce: false,
@@ -691,12 +693,38 @@ export default function DashboardPage() {
                 {stats.recentPosts.map((post) => (
                   <li key={post._id} className="activity-item">
                     <div className="activity-item-content">
-                      <Link
-                        href={localeLink(`/posts/${post.slug}`, locale)}
-                        className="activity-item-title"
-                      >
-                        {post.title}
-                      </Link>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                        <Link
+                          href={localeLink(`/posts/${post.slug}`, locale)}
+                          className="activity-item-title"
+                        >
+                          {post.title}
+                        </Link>
+                        {userRole === "admin" && (
+                          <Link
+                            href={`/admin/posts?type=${post.type}&edit=${post._id}`}
+                            style={{
+                              fontSize: "12px",
+                              color: "#2271b1",
+                              textDecoration: "none",
+                              padding: "2px 6px",
+                              border: "1px solid #2271b1",
+                              borderRadius: "3px",
+                              transition: "all 0.2s",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#2271b1";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                              e.currentTarget.style.color = "#2271b1";
+                            }}
+                          >
+                            Edit
+                          </Link>
+                        )}
+                      </div>
                       <div className="activity-item-meta">
                         <span className="activity-item-type">{post.type}</span>
                         <span

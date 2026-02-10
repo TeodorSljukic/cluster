@@ -96,6 +96,33 @@ export default async function Home({
         </>
       ) : (
         <>
+          {/* Welcome Section - New section before RegisterForm */}
+          <section className="welcome-section" style={{
+            padding: "60px 20px",
+            background: "linear-gradient(135deg, rgba(34, 139, 34, 0.05) 0%, rgba(0, 123, 255, 0.05) 100%)",
+            textAlign: "center"
+          }}>
+            <div className="container" style={{ maxWidth: "800px", margin: "0 auto" }}>
+              <h1 style={{
+                fontSize: "clamp(28px, 5vw, 42px)",
+                fontWeight: "700",
+                color: "#E23F65",
+                marginBottom: "20px",
+                lineHeight: "1.3"
+              }} data-aos="fade-up">
+                {t.welcome.title}
+              </h1>
+              <p style={{
+                fontSize: "clamp(16px, 2.5vw, 20px)",
+                color: "#555",
+                lineHeight: "1.6",
+                marginBottom: "0"
+              }} data-aos="fade-up" data-aos-delay="100">
+                {t.welcome.subtitle}
+              </p>
+            </div>
+          </section>
+
           <RegisterForm locale={locale} />
           <PlatformLinksSection locale={locale} />
           <section className="about" style={{ 
@@ -108,11 +135,12 @@ export default async function Home({
             }}>
               <div style={{ 
                 display: "flex", 
+                flexDirection: "column",
                 alignItems: "center", 
-                gap: "80px", 
+                gap: "40px", 
                 justifyContent: "center"
-              }}>
-                <div style={{ flex: "1", maxWidth: "550px" }} data-aos="fade-right">
+              }} className="about-responsive">
+                <div style={{ flex: "1", maxWidth: "550px", width: "100%" }} data-aos="fade-right">
                   <h2 style={{ 
                     fontSize: "36px", 
                     fontWeight: "600", 
@@ -133,7 +161,7 @@ export default async function Home({
                   </div>
                 </div>
 
-                <div style={{ flex: "1", display: "flex", justifyContent: "center" }} data-aos="fade-left">
+                <div style={{ flex: "1", display: "flex", justifyContent: "center", width: "100%" }} data-aos="fade-left">
                   <img
                     src="/wp-content/uploads/2025/09/Frame-10000022261.webp"
                     alt="ABGC logo"

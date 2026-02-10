@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, use } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { UserStatus } from "@/components/UserStatus";
@@ -630,15 +630,18 @@ function UserProfilePageInner({
   );
 }
 
-export default async function UserProfilePage({
+export default function UserProfilePage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
+  // Resolve params using use() hook for Client Components
+  const resolvedParams = use(params);
+  
   // Next.js requires useSearchParams() to be used under a Suspense boundary
   return (
     <Suspense fallback={null}>
-      <UserProfilePageInner params={params} />
+      <UserProfilePageInner params={Promise.resolve(resolvedParams)} />
     </Suspense>
   );
 }

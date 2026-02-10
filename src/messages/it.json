@@ -19,6 +19,10 @@
     "title": "Benvenuti in ABGC",
     "subtitle": "Potenziare l'Adriatico Meridionale"
   },
+  "welcome": {
+    "title": "Benvenuti nella piattaforma digitale ABGC",
+    "subtitle": "La vostra porta d'accesso all'economia blu e alla collaborazione"
+  },
   "about": {
     "title": "Su ABGC",
     "text1": "L'Adriatic Blue Growth Cluster (ABGC) migliora la capacità e la competitività delle aziende e dei professionisti che operano nei settori dell'economia blu attraverso l'apprendimento reciproco e la collaborazione.",
@@ -230,7 +234,19 @@
     "companyInfoText": "Registrato come organizzazione non governativa (ONG) in Montenegro in conformità con la Legge sulle ONG (\"Gazzetta Ufficiale del Montenegro\", nn. 39/11 e 37/17)",
     "address": "Indirizzo",
     "messageUs": "Scrivici e lavoriamo insieme",
-    "formComingSoon": "(Il modulo di contatto sarà collegato in seguito.)"
+    "formComingSoon": "(Il modulo di contatto sarà collegato in seguito.)",
+    "name": "Nome",
+    "namePlaceholder": "Il tuo nome",
+    "email": "Email",
+    "emailPlaceholder": "tua@email.com",
+    "message": "Messaggio",
+    "messagePlaceholder": "Il tuo messaggio...",
+    "send": "Invia",
+    "sending": "Invio in corso...",
+    "success": "Messaggio inviato con successo!",
+    "error": "Errore nell'invio del messaggio. Riprova.",
+    "privacyPolicy": "Politica sulla Privacy",
+    "euDisclaimer": "Questo sito web è stato creato con il sostegno finanziario dell'Unione Europea nell'ambito del programma Interreg IPA Adriatico Meridionale, attraverso il progetto SKILLS - Competenze di Alto Livello e Rispondenti al Mercato per un \"Adriatico Meridionale Intelligente e Qualificato\" Blu e Digitalizzato (accordo di sovvenzione SA-0200142-SA SKILLS). Il contenuto di questo sito web è di esclusiva responsabilità dell'Università del Montenegro - Istituto di Biologia Marina e in nessun modo può essere considerato un riflesso delle opinioni dell'Unione Europea."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -270,7 +286,18 @@
     "registerHere": "Registrati qui",
     "error": "Errore",
     "loginFailed": "Accesso fallito",
-    "errorOccurred": "Si è verificato un errore. Riprova."
+    "errorOccurred": "Si è verificato un errore. Riprova.",
+    "forgotPassword": "Password dimenticata?",
+    "forgotPasswordText": "Non preoccuparti — clicca su Password dimenticata? e segui le istruzioni per reimpostarla.",
+    "forgotPasswordTitle": "Password Dimenticata?",
+    "forgotPasswordDescription": "Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.",
+    "forgotPasswordSuccess": "Un'email con le istruzioni per reimpostare la password è stata inviata al tuo indirizzo email.",
+    "forgotPasswordError": "Invio email non riuscito. Controlla il tuo indirizzo email e riprova.",
+    "email": "Indirizzo Email",
+    "emailPlaceholder": "inserisci@email.com",
+    "sendResetLink": "Invia Link di Reset",
+    "sending": "Invio in corso...",
+    "backToLogin": "Torna al Login"
   },
   "search": {
     "title": "Cerca Utenti",

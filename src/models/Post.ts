@@ -15,6 +15,11 @@ export interface Post {
   eventLocation?: string;
   // Language/locale
   locale?: string;
-  // Additional metadata
-  metadata?: Record<string, any>;
+  // Additional metadata (includes translations)
+  metadata?: {
+    titleTranslations?: Record<string, string>;
+    contentTranslations?: Record<string, string>;
+    excerptTranslations?: Record<string, string>;
+    [key: string]: any;
+  };
 }

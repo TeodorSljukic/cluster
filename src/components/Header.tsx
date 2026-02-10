@@ -529,7 +529,7 @@ export function Header() {
             user ? (
               <Link href={`/${currentLocale}/profile`} className="btn-register">
                 <User size={20} className="register-icon" />
-                <span>{t.common.profile}</span>
+                <span>{user.displayName || user.username || t.common.profile}</span>
               </Link>
             ) : (
               <Link href={`/${currentLocale}/login`} className="btn-register">
@@ -683,7 +683,7 @@ export function Header() {
               user ? (
                 <Link href={`/${currentLocale}/profile`} className="btn-register">
                   <User size={20} className="register-icon" />
-                  <span>{t.common.profile}</span>
+                  <span>{user.displayName || user.username || t.common.profile}</span>
                 </Link>
               ) : (
                 <Link href={`/${currentLocale}/login`} className="btn-register">

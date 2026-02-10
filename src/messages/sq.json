@@ -19,6 +19,10 @@
     "title": "Mirë se vini në ABGC",
     "subtitle": "Fuqizimi i Adriatikut Jugor"
   },
+  "welcome": {
+    "title": "Mirë se vini në Platformën Digjitale ABGC",
+    "subtitle": "Porta juaj për ekonomi blu dhe bashkëpunim"
+  },
   "about": {
     "title": "Rreth ABGC",
     "text1": "Adriatic Blue Growth Cluster (ABGC) rrit kapacitetin dhe konkurrencën e kompanive dhe profesionistëve që operojnë në sektorët e ekonomisë blu përmes të mësuarit të ndërsjellë dhe bashkëpunimit.",
@@ -230,7 +234,19 @@
     "companyInfoText": "E regjistruar si organizatë joqeveritare (NJO) në Mal të Zi në përputhje me Ligjin për NJO-të (\"Gazeta Zyrtare e Malit të Zi\", Nr. 39/11 dhe 37/17)",
     "address": "Adresa",
     "messageUs": "Na dërgoni mesazh dhe le të punojmë së bashku",
-    "formComingSoon": "(Formulari i kontaktit do të lidhet më vonë.)"
+    "formComingSoon": "(Formulari i kontaktit do të lidhet më vonë.)",
+    "name": "Emri",
+    "namePlaceholder": "Emri juaj",
+    "email": "Email",
+    "emailPlaceholder": "juaji@email.com",
+    "message": "Mesazhi",
+    "messagePlaceholder": "Mesazhi juaj...",
+    "send": "Dërgo",
+    "sending": "Duke dërguar...",
+    "success": "Mesazhi u dërgua me sukses!",
+    "error": "Gabim gjatë dërgimit të mesazhit. Ju lutem provoni përsëri.",
+    "privacyPolicy": "Politika e Privatësisë",
+    "euDisclaimer": "Kjo faqe interneti është krijuar me mbështetjen financiare të Bashkimit Evropian në kuadër të programit Interreg IPA Adriatik Jugor, përmes projektit SKILLS - Kompetenca të Nivelit të Lartë dhe të Përgjigjshme Tregut për një \"Adriatik Jugor i Mençur dhe i Kualifikuar\" Blu dhe i Digitalizuar (marrëveshja e subvencionit SA-0200142-SA SKILLS). Përmbajtja e kësaj faqeje interneti është përgjegjësia e vetme e Universitetit të Malit të Zi - Institutit të Biologjisë së Detit dhe në asnjë mënyrë nuk mund të konsiderohet se reflekton pikëpamjet e Bashkimit Evropian."
   },
   "dashboard": {
     "title": "Paneli",
@@ -270,7 +286,18 @@
     "registerHere": "Regjistrohuni këtu",
     "error": "Gabim",
     "loginFailed": "Hyrja dështoi",
-    "errorOccurred": "Ndodhi një gabim. Ju lutem provoni përsëri."
+    "errorOccurred": "Ndodhi një gabim. Ju lutem provoni përsëri.",
+    "forgotPassword": "Keni harruar fjalëkalimin?",
+    "forgotPasswordText": "Mos u shqetësoni — klikoni tek Keni harruar fjalëkalimin? dhe ndiqni udhëzimet për ta rivendosur.",
+    "forgotPasswordTitle": "Keni Harruar Fjalëkalimin?",
+    "forgotPasswordDescription": "Shkruani adresën tuaj të email-it dhe ne do t'ju dërgojmë një lidhje për të rivendosur fjalëkalimin.",
+    "forgotPasswordSuccess": "Një email me udhëzime për të rivendosur fjalëkalimin është dërguar në adresën tuaj të email-it.",
+    "forgotPasswordError": "Dërgimi i email-it dështoi. Ju lutem kontrolloni adresën tuaj të email-it dhe provoni përsëri.",
+    "email": "Adresa e Email-it",
+    "emailPlaceholder": "shkruani@email.com",
+    "sendResetLink": "Dërgo Lidhjen e Rivendosjes",
+    "sending": "Duke dërguar...",
+    "backToLogin": "Kthehu te Hyrja"
   },
   "search": {
     "title": "Kërko Përdorues",

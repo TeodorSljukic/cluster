@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { localeLink, type Locale } from "@/lib/localeLink";
 import { getTranslations } from "@/lib/getTranslations";
+import { getTranslatedText, getTranslatedField } from "@/lib/getTranslatedText";
 
 interface User {
   _id?: string;
@@ -57,7 +58,6 @@ export default function ProfilePage({
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [changingPassword, setChangingPassword] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [profileVisitors, setProfileVisitors] = useState<any[]>([]);
   const [loadingVisitors, setLoadingVisitors] = useState(false);
   const [showConnectionsModal, setShowConnectionsModal] = useState(false);
@@ -68,71 +68,21 @@ export default function ProfilePage({
   const [removingConnection, setRemovingConnection] = useState<string | null>(null);
   const router = useRouter();
 
-  // Load dark mode preference from localStorage
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem("darkMode") === "true";
-    setDarkMode(savedDarkMode);
-    applyDarkMode(savedDarkMode);
-  }, []);
 
-  function applyDarkMode(enabled: boolean) {
-    if (enabled) {
-      document.documentElement.classList.add("dark");
-      document.body.style.background = "#1a1a1a";
-      document.body.style.color = "#e0e0e0";
-      // Apply to header
-      const header = document.querySelector(".site-header") as HTMLElement;
-      if (header) {
-        header.style.background = "#2a2a2a";
-        header.style.borderBottomColor = "#3a3a3a";
-      }
-      // Apply to footer
-      const footer = document.querySelector(".site-footer") as HTMLElement;
-      if (footer) {
-        footer.style.background = "#2a2a2a";
-        footer.style.color = "#e0e0e0";
-      }
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.body.style.background = "";
-      document.body.style.color = "";
-      // Reset header
-      const header = document.querySelector(".site-header") as HTMLElement;
-      if (header) {
-        header.style.background = "";
-        header.style.borderBottomColor = "";
-      }
-      // Reset footer
-      const footer = document.querySelector(".site-footer") as HTMLElement;
-      if (footer) {
-        footer.style.background = "";
-        footer.style.color = "";
-      }
-    }
-  }
-
-  function toggleDarkMode() {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode.toString());
-    applyDarkMode(newDarkMode);
-    // Force re-render by updating state
-    setDarkMode(newDarkMode);
-  }
 
   // Helper function to get card background style
   const getCardStyle = () => ({
-    background: darkMode ? "#2a2a2a" : "white",
-    color: darkMode ? "#e0e0e0" : "inherit",
-    boxShadow: darkMode ? "0 0 0 1px rgba(255,255,255,0.1)" : "0 0 0 1px rgba(0,0,0,0.08)",
+    background: "white",
+    color: "inherit",
+    boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
     transition: "background 0.3s ease, color 0.3s ease",
   });
 
   // Helper function to get input style
   const getInputStyle = () => ({
-    background: darkMode ? "#1a1a1a" : "white",
-    color: darkMode ? "#e0e0e0" : "inherit",
-    border: darkMode ? "1px solid #3a3a3a" : "1px solid #ddd",
+    background: "white",
+    color: "inherit",
+    border: "1px solid #ddd",
   });
 
   // Helper function for button animations
@@ -227,10 +177,16 @@ export default function ProfilePage({
   async function handleSave() {
     setSaving(true);
     try {
+      // Add locale to formData for auto-translation
+      const dataToSend = {
+        ...formData,
+        locale: locale, // Send current locale so server knows source language
+      };
+      
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (res.ok) {
@@ -518,7 +474,7 @@ export default function ProfilePage({
           <div
             key={String(formData.coverImage || user.coverImage || 'no-cover')}
             style={{
-              height: "200px",
+              height: "300px",
               background: (() => {
                 const coverImg = formData.coverImage || user.coverImage;
                 if (!coverImg) return "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
@@ -732,7 +688,7 @@ export default function ProfilePage({
                   />
                 ) : (
                   <p style={{ fontSize: "16px", color: "#666", margin: "4px 0" }}>
-                    {user.headline || user.role_custom || user.organization || "Member"}
+                    {getTranslatedText(user.headline, (user as any).headlineTranslations, locale) || user.role_custom || user.organization || "Member"}
                   </p>
                 )}
 
@@ -923,7 +879,7 @@ export default function ProfilePage({
                 />
               ) : (
                 <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#666" }}>
-                  {user.about || t.profile.noAbout}
+                  {getTranslatedText(user.about, (user as any).aboutTranslations, locale) || t.profile.noAbout}
                 </p>
               )}
             </div>
@@ -963,7 +919,20 @@ export default function ProfilePage({
               </div>
               {user.experience && user.experience.length > 0 ? (
                 <div>
-                  {user.experience.map((exp: any, idx: number) => (
+                  {[...user.experience]
+                    .sort((a: any, b: any) => {
+                      // Sort chronologically: most recent first
+                      // If current, put it first
+                      if (a.current && !b.current) return -1;
+                      if (!a.current && b.current) return 1;
+                      
+                      // Compare end dates (or start dates if both current)
+                      const dateA = a.current ? new Date(a.startDate) : new Date(a.endDate || a.startDate);
+                      const dateB = b.current ? new Date(b.startDate) : new Date(b.endDate || b.startDate);
+                      
+                      return dateB.getTime() - dateA.getTime(); // Most recent first
+                    })
+                    .map((exp: any, idx: number) => (
                     <div 
                       key={idx} 
                       style={{ 
@@ -976,7 +945,7 @@ export default function ProfilePage({
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div style={{ flex: 1 }}>
                           <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>
-                            {exp.title}
+                            {getTranslatedField(exp, "title", "titleTranslations", locale)}
                           </h3>
                           <p style={{ fontSize: "14px", color: "#666", marginBottom: "4px" }}>
                             {exp.company}
@@ -986,7 +955,7 @@ export default function ProfilePage({
                           </p>
                           {exp.description && (
                             <p style={{ fontSize: "14px", color: "#666", marginTop: "8px" }}>
-                              {exp.description}
+                              {getTranslatedField(exp, "description", "descriptionTranslations", locale)}
                             </p>
                           )}
                         </div>
@@ -1027,9 +996,32 @@ export default function ProfilePage({
                               {t.profile.edit}
                             </button>
                             <button
-                              onClick={() => {
+                              onClick={async () => {
                                 const newExp = (formData.experience || []).filter((_: any, i: number) => i !== idx);
-                                setFormData({ ...formData, experience: newExp });
+                                const updatedFormData = { ...formData, experience: newExp };
+                                setFormData(updatedFormData);
+                                
+                                // Save immediately
+                                try {
+                                  const dataToSend = {
+                                    ...updatedFormData,
+                                    locale: locale,
+                                  };
+                                  
+                                  const res = await fetch("/api/profile", {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(dataToSend),
+                                  });
+
+                                  if (res.ok) {
+                                    const updated = await res.json();
+                                    setUser(updated);
+                                    setFormData(updated);
+                                  }
+                                } catch (error) {
+                                  console.error("Error deleting experience:", error);
+                                }
                               }}
                               style={{
                                 padding: "4px 12px",
@@ -1120,7 +1112,20 @@ export default function ProfilePage({
               </div>
               {user.education && user.education.length > 0 ? (
                 <div>
-                  {user.education.map((edu: any, idx: number) => (
+                  {[...user.education]
+                    .sort((a: any, b: any) => {
+                      // Sort chronologically: most recent first
+                      // If current, put it first
+                      if (a.current && !b.current) return -1;
+                      if (!a.current && b.current) return 1;
+                      
+                      // Compare end dates (or start dates if both current)
+                      const dateA = a.current ? new Date(a.startDate) : new Date(a.endDate || a.startDate);
+                      const dateB = b.current ? new Date(b.startDate) : new Date(b.endDate || b.startDate);
+                      
+                      return dateB.getTime() - dateA.getTime(); // Most recent first
+                    })
+                    .map((edu: any, idx: number) => (
                     <div 
                       key={idx} 
                       style={{ 
@@ -1133,11 +1138,11 @@ export default function ProfilePage({
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div style={{ flex: 1 }}>
                           <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>
-                            {edu.school}
+                            {getTranslatedField(edu, "school", "schoolTranslations", locale)}
                           </h3>
                           {edu.degree && (
                             <p style={{ fontSize: "14px", color: "#666", marginBottom: "4px" }}>
-                              {edu.degree} {edu.field && `in ${edu.field}`}
+                              {getTranslatedField(edu, "degree", "degreeTranslations", locale)} {edu.field && `in ${edu.field}`}
                             </p>
                           )}
                           <p style={{ fontSize: "12px", color: "#999" }}>
@@ -1181,9 +1186,32 @@ export default function ProfilePage({
                               {t.profile.edit}
                             </button>
                             <button
-                              onClick={() => {
+                              onClick={async () => {
                                 const newEdu = (formData.education || []).filter((_: any, i: number) => i !== idx);
-                                setFormData({ ...formData, education: newEdu });
+                                const updatedFormData = { ...formData, education: newEdu };
+                                setFormData(updatedFormData);
+                                
+                                // Save immediately
+                                try {
+                                  const dataToSend = {
+                                    ...updatedFormData,
+                                    locale: locale,
+                                  };
+                                  
+                                  const res = await fetch("/api/profile", {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(dataToSend),
+                                  });
+
+                                  if (res.ok) {
+                                    const updated = await res.json();
+                                    setUser(updated);
+                                    setFormData(updated);
+                                  }
+                                } catch (error) {
+                                  console.error("Error deleting education:", error);
+                                }
                               }}
                               style={{
                                 padding: "4px 12px",
@@ -1235,6 +1263,8 @@ export default function ProfilePage({
                 borderRadius: "8px",
                 padding: "24px",
                 marginBottom: "16px",
+                overflow: "hidden",
+                boxSizing: "border-box",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -1260,9 +1290,32 @@ export default function ProfilePage({
                       >
                         {skill}
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             const newSkills = (formData.skills || []).filter((_: string, i: number) => i !== idx);
-                            setFormData({ ...formData, skills: newSkills });
+                            const updatedFormData = { ...formData, skills: newSkills };
+                            setFormData(updatedFormData);
+                            
+                            // Save immediately
+                            try {
+                              const dataToSend = {
+                                ...updatedFormData,
+                                locale: locale,
+                              };
+                              
+                              const res = await fetch("/api/profile", {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(dataToSend),
+                              });
+
+                              if (res.ok) {
+                                const updated = await res.json();
+                                setUser(updated);
+                                setFormData(updated);
+                              }
+                            } catch (error) {
+                              console.error("Error saving skills:", error);
+                            }
                           }}
                           style={{
                             background: "transparent",
@@ -1302,24 +1355,51 @@ export default function ProfilePage({
                       </span>
                     ))}
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", width: "100%" }}>
                     <input
                       type="text"
                       placeholder={t.profile.addSkillPlaceholder}
-                      onKeyDown={(e) => {
+                      onKeyDown={async (e) => {
                         if (e.key === "Enter" && e.currentTarget.value.trim()) {
-                          const newSkills = [...(formData.skills || []), e.currentTarget.value.trim()];
-                          setFormData({ ...formData, skills: newSkills });
+                          const skillToAdd = e.currentTarget.value.trim();
+                          const newSkills = [...(formData.skills || []), skillToAdd];
+                          const updatedFormData = { ...formData, skills: newSkills };
+                          setFormData(updatedFormData);
                           e.currentTarget.value = "";
+                          
+                          // Save immediately
+                          try {
+                            const dataToSend = {
+                              ...updatedFormData,
+                              locale: locale,
+                            };
+                            
+                            const res = await fetch("/api/profile", {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(dataToSend),
+                            });
+
+                            if (res.ok) {
+                              const updated = await res.json();
+                              setUser(updated);
+                              setFormData(updated);
+                            }
+                          } catch (error) {
+                            console.error("Error saving skills:", error);
+                          }
                         }
                       }}
                       style={{
                         flex: 1,
+                        minWidth: 0,
                         padding: "8px 12px",
                         border: "1px solid #ddd",
                         borderRadius: "4px",
                         fontSize: "14px",
                         transition: "all 0.2s ease",
+                        height: "40px",
+                        boxSizing: "border-box",
                       }}
                       onFocus={(e) => {
                         e.currentTarget.style.borderColor = "#0a66c2";
@@ -1331,12 +1411,36 @@ export default function ProfilePage({
                       }}
                     />
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         const input = e.currentTarget.previousElementSibling as HTMLInputElement;
                         if (input && input.value.trim()) {
-                          const newSkills = [...(formData.skills || []), input.value.trim()];
-                          setFormData({ ...formData, skills: newSkills });
+                          const skillToAdd = input.value.trim();
+                          const newSkills = [...(formData.skills || []), skillToAdd];
+                          const updatedFormData = { ...formData, skills: newSkills };
+                          setFormData(updatedFormData);
                           input.value = "";
+                          
+                          // Save immediately
+                          try {
+                            const dataToSend = {
+                              ...updatedFormData,
+                              locale: locale,
+                            };
+                            
+                            const res = await fetch("/api/profile", {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(dataToSend),
+                            });
+
+                            if (res.ok) {
+                              const updated = await res.json();
+                              setUser(updated);
+                              setFormData(updated);
+                            }
+                          } catch (error) {
+                            console.error("Error saving skills:", error);
+                          }
                         }
                       }}
                       style={{
@@ -1349,6 +1453,9 @@ export default function ProfilePage({
                         fontSize: "14px",
                         fontWeight: "600",
                         transition: "all 0.2s ease",
+                        height: "40px",
+                        boxSizing: "border-box",
+                        whiteSpace: "nowrap",
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = "#0a66c2";
@@ -1532,8 +1639,8 @@ export default function ProfilePage({
                     style={{
                       padding: "6px 16px",
                       border: "1px solid #0a66c2",
-                      background: darkMode ? "#2a2a2a" : "white",
-                      color: darkMode ? "#4a9eff" : "#0a66c2",
+                      background: "white",
+                      color: "#0a66c2",
                       borderRadius: "16px",
                       fontSize: "14px",
                       fontWeight: "600",
@@ -1546,8 +1653,8 @@ export default function ProfilePage({
                       e.currentTarget.style.transform = "scale(1.05)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
-                      e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.color = "#0a66c2";
                       e.currentTarget.style.transform = "scale(1)";
                     }}
                   >
@@ -1563,7 +1670,7 @@ export default function ProfilePage({
                         alignItems: "center",
                         gap: "12px",
                         padding: "8px",
-                        border: darkMode ? "1px solid #3a3a3a" : "1px solid #e0e0e0",
+                        border: "1px solid #e0e0e0",
                         borderRadius: "8px",
                       }}
                     >
@@ -1579,7 +1686,7 @@ export default function ProfilePage({
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "16px",
-                          color: darkMode ? "#a0a0a0" : "#666",
+                          color: "#666",
                         }}
                       >
                         {!conn.user?.profilePicture &&
@@ -1591,14 +1698,14 @@ export default function ProfilePage({
                           style={{
                             fontSize: "14px",
                             fontWeight: "600",
-                            color: darkMode ? "#4a9eff" : "#0a66c2",
+                            color: "#0a66c2",
                             textDecoration: "none",
                           }}
                         >
                           {conn.user?.displayName || conn.user?.username}
                         </Link>
                         {conn.user?.headline && (
-                          <p style={{ fontSize: "12px", color: darkMode ? "#888" : "#666", margin: "2px 0 0" }}>
+                          <p style={{ fontSize: "12px", color: "#666", margin: "2px 0 0" }}>
                             {conn.user.headline}
                           </p>
                         )}
@@ -1608,8 +1715,8 @@ export default function ProfilePage({
                         style={{
                           padding: "6px 12px",
                           border: "1px solid #0a66c2",
-                          background: darkMode ? "#2a2a2a" : "white",
-                          color: darkMode ? "#4a9eff" : "#0a66c2",
+                          background: "white",
+                          color: "#0a66c2",
                           borderRadius: "16px",
                           fontSize: "12px",
                           fontWeight: "600",
@@ -1622,8 +1729,8 @@ export default function ProfilePage({
                           e.currentTarget.style.transform = "scale(1.05)";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
-                          e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
+                          e.currentTarget.style.background = "white";
+                          e.currentTarget.style.color = "#0a66c2";
                           e.currentTarget.style.transform = "scale(1)";
                         }}
                       >
@@ -1649,53 +1756,19 @@ export default function ProfilePage({
                 {t.profile.settings}
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {/* Dark Mode Toggle */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>{t.profile.darkMode}</h3>
-                    <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.darkModeDesc}</p>
-                  </div>
-                  <button
-                    onClick={toggleDarkMode}
-                    style={{
-                      width: "50px",
-                      height: "28px",
-                      borderRadius: "14px",
-                      background: darkMode ? "#0a66c2" : "#ccc",
-                      border: "none",
-                      cursor: "pointer",
-                      position: "relative",
-                      transition: "all 0.3s ease",
-                      padding: "2px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "24px",
-                        height: "24px",
-                        borderRadius: "50%",
-                        background: "white",
-                        transition: "all 0.3s ease",
-                        transform: darkMode ? "translateX(22px)" : "translateX(0)",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                      }}
-                    />
-                  </button>
-                </div>
-
                 {/* Password Reset */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>{t.profile.password}</h3>
-                    <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.passwordDesc}</p>
+                    <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.passwordDesc}</p>
                   </div>
                   <button
                     onClick={() => setShowPasswordModal(true)}
                     style={{
                       padding: "6px 16px",
                       border: "1px solid #0a66c2",
-                      background: darkMode ? "#2a2a2a" : "white",
-                      color: darkMode ? "#4a9eff" : "#0a66c2",
+                      background: "white",
+                      color: "#0a66c2",
                       borderRadius: "16px",
                       cursor: "pointer",
                       fontSize: "14px",
@@ -1708,8 +1781,8 @@ export default function ProfilePage({
                       e.currentTarget.style.transform = "scale(1.05)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
-                      e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
+                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.color = "#0a66c2";
                       e.currentTarget.style.transform = "scale(1)";
                     }}
                   >
@@ -1732,7 +1805,7 @@ export default function ProfilePage({
                 {t.profile.profileVisitors} ({profileVisitors.length})
               </h2>
               {loadingVisitors ? (
-                <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.loading}</p>
+                <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.loading}</p>
               ) : profileVisitors.length > 0 ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {profileVisitors.map((visit) => (
@@ -1743,7 +1816,7 @@ export default function ProfilePage({
                         alignItems: "center",
                         gap: "12px",
                         padding: "8px",
-                        border: darkMode ? "1px solid #3a3a3a" : "1px solid #e0e0e0",
+                        border: "1px solid #e0e0e0",
                         borderRadius: "8px",
                       }}
                     >
@@ -1759,7 +1832,7 @@ export default function ProfilePage({
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "16px",
-                          color: darkMode ? "#a0a0a0" : "#666",
+                          color: "#666",
                           flexShrink: 0,
                         }}
                       >
@@ -1772,13 +1845,13 @@ export default function ProfilePage({
                           style={{
                             fontSize: "14px",
                             fontWeight: "600",
-                            color: darkMode ? "#4a9eff" : "#0a66c2",
+                            color: "#0a66c2",
                             textDecoration: "none",
                           }}
                         >
                           {visit.visitor.displayName || visit.visitor.username}
                         </Link>
-                        <p style={{ fontSize: "12px", color: darkMode ? "#888" : "#999", margin: "2px 0 0" }}>
+                        <p style={{ fontSize: "12px", color: "#999", margin: "2px 0 0" }}>
                           {new Date(visit.visitedAt).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
@@ -1792,7 +1865,7 @@ export default function ProfilePage({
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>
+                <p style={{ fontSize: "14px", color: "#666" }}>
                   {t.profile.noVisitors}
                 </p>
               )}
@@ -1812,7 +1885,7 @@ export default function ProfilePage({
               {editing ? (
                 <div style={{ fontSize: "14px" }}>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
                       {t.profile.email}
                     </label>
                     <input
@@ -1828,10 +1901,10 @@ export default function ProfilePage({
                         opacity: 0.7,
                       }}
                     />
-                    <p style={{ fontSize: "12px", color: darkMode ? "#a0a0a0" : "#999", marginTop: "4px" }}>{t.profile.emailCannotChange}</p>
+                    <p style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>{t.profile.emailCannotChange}</p>
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
                       {t.profile.phone}
                     </label>
                     <input
@@ -1849,7 +1922,7 @@ export default function ProfilePage({
                     />
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
                       {t.profile.website}
                     </label>
                     <input
@@ -1867,7 +1940,7 @@ export default function ProfilePage({
                     />
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
                       {t.profile.linkedin}
                     </label>
                     <input
@@ -1885,7 +1958,7 @@ export default function ProfilePage({
                     />
                   </div>
                   <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: darkMode ? "#a0a0a0" : "#666" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
                       {t.profile.twitter}
                     </label>
                     <input
@@ -1904,32 +1977,32 @@ export default function ProfilePage({
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>
+                <div style={{ fontSize: "14px", color: "#666" }}>
                   {user.email && <p style={{ marginBottom: "8px" }}>📧 {user.email}</p>}
                   {user.phone && <p style={{ marginBottom: "8px" }}>📱 {user.phone}</p>}
                   {user.website && (
                     <p style={{ marginBottom: "8px" }}>
-                      🌐 <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ color: darkMode ? "#4a9eff" : "#0a66c2" }}>
+                      🌐 <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
                         {user.website}
                       </a>
                     </p>
                   )}
                   {user.linkedin && (
                     <p style={{ marginBottom: "8px" }}>
-                      💼 <a href={user.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: darkMode ? "#4a9eff" : "#0a66c2" }}>
+                      💼 <a href={user.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
                         {t.profile.linkedin}
                       </a>
                     </p>
                   )}
                   {user.twitter && (
                     <p style={{ marginBottom: "8px" }}>
-                      🐦 <a href={user.twitter} target="_blank" rel="noopener noreferrer" style={{ color: darkMode ? "#4a9eff" : "#0a66c2" }}>
+                      🐦 <a href={user.twitter} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
                         {t.profile.twitter}
                       </a>
                     </p>
                   )}
                   {!user.phone && !user.website && !user.linkedin && !user.twitter && (
-                    <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666" }}>{t.profile.noContactInfo}</p>
+                    <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noContactInfo}</p>
                   )}
                 </div>
               )}
@@ -1972,7 +2045,7 @@ export default function ProfilePage({
                 setShowExpModal(false);
                 setEditingExp(null);
               }}
-              onSave={(exp) => {
+              onSave={async (exp) => {
                 let newExp = [...(formData.experience || [])];
                 if (editingExp) {
                   const idx = (formData.experience || []).findIndex((e: any) => e === editingExp);
@@ -1982,7 +2055,31 @@ export default function ProfilePage({
                 } else {
                   newExp.push(exp);
                 }
-                setFormData({ ...formData, experience: newExp });
+                const updatedFormData = { ...formData, experience: newExp };
+                setFormData(updatedFormData);
+                
+                // Save immediately to update display
+                try {
+                  const dataToSend = {
+                    ...updatedFormData,
+                    locale: locale,
+                  };
+                  
+                  const res = await fetch("/api/profile", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dataToSend),
+                  });
+
+                  if (res.ok) {
+                    const updated = await res.json();
+                    setUser(updated);
+                    setFormData(updated);
+                  }
+                } catch (error) {
+                  console.error("Error saving experience:", error);
+                }
+                
                 setShowExpModal(false);
                 setEditingExp(null);
               }}
@@ -2025,7 +2122,7 @@ export default function ProfilePage({
                 setShowEduModal(false);
                 setEditingEdu(null);
               }}
-              onSave={(edu) => {
+              onSave={async (edu) => {
                 let newEdu = [...(formData.education || [])];
                 if (editingEdu) {
                   const idx = (formData.education || []).findIndex((e: any) => e === editingEdu);
@@ -2035,7 +2132,31 @@ export default function ProfilePage({
                 } else {
                   newEdu.push(edu);
                 }
-                setFormData({ ...formData, education: newEdu });
+                const updatedFormData = { ...formData, education: newEdu };
+                setFormData(updatedFormData);
+                
+                // Save immediately to update display
+                try {
+                  const dataToSend = {
+                    ...updatedFormData,
+                    locale: locale,
+                  };
+                  
+                  const res = await fetch("/api/profile", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dataToSend),
+                  });
+
+                  if (res.ok) {
+                    const updated = await res.json();
+                    setUser(updated);
+                    setFormData(updated);
+                  }
+                } catch (error) {
+                  console.error("Error saving education:", error);
+                }
+                
                 setShowEduModal(false);
                 setEditingEdu(null);
               }}
@@ -2262,7 +2383,7 @@ export default function ProfilePage({
               maxWidth: "600px",
               maxHeight: "80vh",
               overflowY: "auto",
-              boxShadow: darkMode ? "0 4px 20px rgba(0,0,0,0.5)" : "0 4px 20px rgba(0,0,0,0.3)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
@@ -2275,19 +2396,19 @@ export default function ProfilePage({
                   background: "transparent",
                   border: "none",
                   fontSize: "24px",
-                  color: darkMode ? "#a0a0a0" : "#666",
+                  color: "#666",
                   cursor: "pointer",
                   padding: "4px 8px",
                   borderRadius: "4px",
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
-                  e.currentTarget.style.color = darkMode ? "#e0e0e0" : "#333";
+                  e.currentTarget.style.background = "#f0f0f0";
+                  e.currentTarget.style.color = "#333";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = darkMode ? "#a0a0a0" : "#666";
+                  e.currentTarget.style.color = "#666";
                 }}
               >
                 ×
@@ -2316,7 +2437,7 @@ export default function ProfilePage({
               {/* Sort Dropdown */}
               <div style={{ position: "relative" }} data-sort-dropdown>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666", whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: "14px", color: "#666", whiteSpace: "nowrap" }}>
                     {t.profile.sortBy}
                   </span>
                   <div style={{ position: "relative" }}>
@@ -2353,7 +2474,7 @@ export default function ProfilePage({
                           ...getCardStyle(),
                           borderRadius: "6px",
                           padding: "4px",
-                          boxShadow: darkMode ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.15)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                           zIndex: 10001,
                         }}
                       >
@@ -2375,13 +2496,13 @@ export default function ProfilePage({
                               border: "none",
                               textAlign: "left",
                               fontSize: "14px",
-                              color: darkMode ? "#e0e0e0" : "#333",
+                              color: "#333",
                               cursor: "pointer",
                               borderRadius: "4px",
                               transition: "all 0.2s ease",
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
+                              e.currentTarget.style.background = "#f0f0f0";
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.background = "transparent";
@@ -2440,17 +2561,17 @@ export default function ProfilePage({
                       alignItems: "center",
                       gap: "12px",
                       padding: "12px",
-                      border: darkMode ? "1px solid #3a3a3a" : "1px solid #e0e0e0",
+                      border: "1px solid #e0e0e0",
                       borderRadius: "8px",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f5f5f5";
-                      e.currentTarget.style.borderColor = darkMode ? "#4a4a4a" : "#0a66c2";
+                      e.currentTarget.style.background = "#f5f5f5";
+                      e.currentTarget.style.borderColor = "#0a66c2";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.borderColor = darkMode ? "#3a3a3a" : "#e0e0e0";
+                      e.currentTarget.style.borderColor = "#e0e0e0";
                     }}
                   >
                     <Link
@@ -2475,7 +2596,7 @@ export default function ProfilePage({
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "18px",
-                          color: darkMode ? "#a0a0a0" : "#666",
+                          color: "#666",
                           flexShrink: 0,
                           cursor: "pointer",
                           transition: "transform 0.2s ease",
@@ -2495,14 +2616,14 @@ export default function ProfilePage({
                           style={{
                             fontSize: "16px",
                             fontWeight: "600",
-                            color: darkMode ? "#e0e0e0" : "#333",
+                            color: "#333",
                             marginBottom: "4px",
                           }}
                         >
                           {conn.user?.displayName || conn.user?.username}
                         </div>
                         {conn.user?.headline && (
-                          <p style={{ fontSize: "14px", color: darkMode ? "#888" : "#666", margin: 0 }}>
+                          <p style={{ fontSize: "14px", color: "#666", margin: 0 }}>
                             {conn.user.headline}
                           </p>
                         )}
@@ -2513,8 +2634,8 @@ export default function ProfilePage({
                       style={{
                         padding: "8px 16px",
                         border: "1px solid #0a66c2",
-                        background: darkMode ? "#2a2a2a" : "white",
-                        color: darkMode ? "#4a9eff" : "#0a66c2",
+                        background: "white",
+                        color: "#0a66c2",
                         borderRadius: "20px",
                         fontSize: "14px",
                         fontWeight: "600",
@@ -2528,8 +2649,8 @@ export default function ProfilePage({
                         e.currentTarget.style.transform = "scale(1.05)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = darkMode ? "#2a2a2a" : "white";
-                        e.currentTarget.style.color = darkMode ? "#4a9eff" : "#0a66c2";
+                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.color = "#0a66c2";
                         e.currentTarget.style.transform = "scale(1)";
                       }}
                     >
@@ -2571,7 +2692,7 @@ export default function ProfilePage({
                           background: "transparent",
                           border: "none",
                           fontSize: "20px",
-                          color: darkMode ? "#a0a0a0" : "#666",
+                          color: "#666",
                           cursor: "pointer",
                           padding: "4px 8px",
                           borderRadius: "4px",
@@ -2581,12 +2702,12 @@ export default function ProfilePage({
                           transition: "all 0.2s ease",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
-                          e.currentTarget.style.color = darkMode ? "#e0e0e0" : "#333";
+                          e.currentTarget.style.background = "#f0f0f0";
+                          e.currentTarget.style.color = "#333";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
-                          e.currentTarget.style.color = darkMode ? "#a0a0a0" : "#666";
+                          e.currentTarget.style.color = "#666";
                         }}
                       >
                         ⋯
@@ -2601,7 +2722,7 @@ export default function ProfilePage({
                             ...getCardStyle(),
                             borderRadius: "6px",
                             padding: "4px",
-                            boxShadow: darkMode ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.15)",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                             zIndex: 10002,
                             minWidth: "180px",
                             whiteSpace: "nowrap",
@@ -2649,7 +2770,7 @@ export default function ProfilePage({
                             }}
                             onMouseEnter={(e) => {
                               if (removingConnection !== conn._id) {
-                                e.currentTarget.style.background = darkMode ? "#3a3a3a" : "#f0f0f0";
+                                e.currentTarget.style.background = "#f0f0f0";
                               }
                             }}
                             onMouseLeave={(e) => {
@@ -2664,7 +2785,7 @@ export default function ProfilePage({
                   </div>
                   ))
                 ) : (
-                  <p style={{ fontSize: "14px", color: darkMode ? "#a0a0a0" : "#666", textAlign: "center", padding: "20px" }}>
+                  <p style={{ fontSize: "14px", color: "#666", textAlign: "center", padding: "20px" }}>
                     {connectionsSearchTerm.trim() ? t.profile.noConnectionsFound : t.profile.noConnections}
                   </p>
                 );

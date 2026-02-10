@@ -17,10 +17,13 @@ export interface User {
   profilePicture?: string;
   coverImage?: string;
   about?: string;
-  headline?: string; // e.g., "Software Engineer at Company"
+  aboutTranslations?: Record<string, string>; // Translations: { me: "...", en: "...", it: "...", sq: "..." }
+  headline?: string;
+  headlineTranslations?: Record<string, string>;
   experience?: Experience[];
   education?: Education[];
   skills?: string[];
+  skillsTranslations?: Record<string, string[]>; // Translations for skills array
   website?: string;
   phone?: string;
   linkedin?: string;
@@ -39,21 +42,26 @@ export interface User {
 export interface Experience {
   _id?: string;
   title: string;
+  titleTranslations?: Record<string, string>;
   company: string;
   location?: string;
   startDate: string;
   endDate?: string;
   current: boolean;
   description?: string;
+  descriptionTranslations?: Record<string, string>;
 }
 
 export interface Education {
   _id?: string;
   school: string;
+  schoolTranslations?: Record<string, string>;
   degree?: string;
+  degreeTranslations?: Record<string, string>;
   field?: string;
   startDate: string;
   endDate?: string;
   current: boolean;
   description?: string;
+  descriptionTranslations?: Record<string, string>;
 }

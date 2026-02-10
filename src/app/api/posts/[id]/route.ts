@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import { ObjectId } from "mongodb";
 import { Post } from "@/models/Post";
+import { autoTranslate } from "@/lib/translate";
+import { type Locale } from "@/lib/i18n";
 
 // GET - Fetch single post by ID
 export async function GET(
@@ -126,17 +128,87 @@ export async function PUT(
       updatedAt: new Date(),
     };
 
+    // Get existing metadata or create new
+    const existingMetadata = existing.metadata || {};
+    let titleTranslations = existingMetadata.titleTranslations || {
+      me: existing.title || "",
+      en: existing.title || "",
+      it: existing.title || "",
+      sq: existing.title || "",
+    };
+    let contentTranslations = existingMetadata.contentTranslations || {
+      me: existing.content || "",
+      en: existing.content || "",
+      it: existing.content || "",
+      sq: existing.content || "",
+    };
+    let excerptTranslations = existingMetadata.excerptTranslations || {
+      me: existing.excerpt || "",
+      en: existing.excerpt || "",
+      it: existing.excerpt || "",
+      sq: existing.excerpt || "",
+    };
+
+    // Auto-translate if title, content, or excerpt is being updated
+    const sourceLocale = (body.locale || existing.locale || "me") as Locale;
+    
     // Only update fields that are provided
-    if (body.title !== undefined) update.title = body.title;
+    if (body.title !== undefined) {
+      update.title = body.title;
+      // Auto-translate title
+      try {
+        titleTranslations = await autoTranslate(body.title, sourceLocale);
+      } catch (error) {
+        console.error("Error translating title:", error);
+        titleTranslations[sourceLocale] = body.title;
+      }
+    }
+    
     if (body.slug !== undefined) update.slug = body.slug;
-    if (body.content !== undefined) update.content = body.content || ""; // Allow empty content
-    if (body.excerpt !== undefined) update.excerpt = body.excerpt || "";
+    
+    if (body.content !== undefined) {
+      update.content = body.content || "";
+      // Auto-translate content
+      if (body.content) {
+        try {
+          const textContent = body.content.replace(/<[^>]*>/g, " ").trim();
+          if (textContent) {
+            contentTranslations = await autoTranslate(textContent, sourceLocale);
+          }
+        } catch (error) {
+          console.error("Error translating content:", error);
+          contentTranslations[sourceLocale] = body.content;
+        }
+      }
+    }
+    
+    if (body.excerpt !== undefined) {
+      update.excerpt = body.excerpt || "";
+      // Auto-translate excerpt
+      if (body.excerpt) {
+        try {
+          excerptTranslations = await autoTranslate(body.excerpt, sourceLocale);
+        } catch (error) {
+          console.error("Error translating excerpt:", error);
+          excerptTranslations[sourceLocale] = body.excerpt;
+        }
+      }
+    }
+    
     if (body.featuredImage !== undefined) update.featuredImage = body.featuredImage || "";
     if (body.status !== undefined) update.status = body.status;
     if (body.type !== undefined) update.type = body.type;
     if (body.locale !== undefined) update.locale = body.locale;
     if (eventDate !== undefined) update.eventDate = eventDate;
     if (body.eventLocation !== undefined) update.eventLocation = body.eventLocation || "";
+
+    // Update metadata with translations
+    update.metadata = {
+      ...existingMetadata,
+      titleTranslations,
+      contentTranslations,
+      excerptTranslations,
+    };
 
     // If status changed to published, set publishedAt
     if (body.status === "published" && existing.status !== "published") {

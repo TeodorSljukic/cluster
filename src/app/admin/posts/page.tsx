@@ -20,6 +20,7 @@ function PostsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type") || "news";
+  const editId = searchParams.get("edit");
 
   // Load CMS locale from localStorage
   useEffect(() => {
@@ -53,6 +54,21 @@ function PostsPageInner() {
   useEffect(() => {
     loadPosts();
   }, [type, selectedLocale]);
+
+  // Auto-open edit modal if editId is in URL
+  useEffect(() => {
+    if (editId && posts.length > 0) {
+      const postToEdit = posts.find((p) => p._id === editId);
+      if (postToEdit) {
+        setEditingPost(postToEdit);
+        setShowForm(true);
+        // Remove edit param from URL
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete("edit");
+        router.replace(newUrl.pathname + newUrl.search);
+      }
+    }
+  }, [editId, posts, router]);
 
   async function loadPosts() {
     setLoading(true);
@@ -514,7 +530,7 @@ function PostForm({
         formData.content = "";
       }
 
-      // Prepare data for API
+      // Prepare data for API (auto-translation happens on server side)
       const postData: any = {
         title: formData.title,
         slug: formData.slug,

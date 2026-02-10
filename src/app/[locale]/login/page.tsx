@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { getTranslations, type Locale } from "@/lib/getTranslations";
 
 export default function LoginPage() {
@@ -31,9 +32,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // Redirect all logged in users to homepage with locale
-        router.push(`/${locale}`);
-        router.refresh();
+        // Small delay to ensure cookie is set
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Redirect all users to homepage
+        window.location.href = `/${locale}`;
       } else {
         setError(data.error || t.login.loginFailed);
       }
@@ -73,6 +76,18 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+          <div style={{ marginBottom: "15px", textAlign: "right" }}>
+            <Link 
+              href={`/${locale}/forgot-password`}
+              style={{ 
+                color: "#0073e6", 
+                textDecoration: "none",
+                fontSize: "14px"
+              }}
+            >
+              {t.login.forgotPassword}
+            </Link>
           </div>
           <button type="submit" className="btn-login" disabled={loading}>
             {loading ? t.login.submitting : t.login.submit}

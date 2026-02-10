@@ -265,3 +265,19 @@ body:not(:has(main[data-chat-page="true"])) {
 .dark h6 {
   color: #e0e0e0;
 }
+
+/* About section responsive */
+.about-responsive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .about-responsive {
+    flex-direction: row;
+    gap: 80px;
+  }
+}

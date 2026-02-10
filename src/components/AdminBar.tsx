@@ -20,8 +20,9 @@ export function AdminBar() {
   const pathname = usePathname();
 
   useEffect(() => {
+    setLoading(true); // Reset loading state when route changes
     checkAuth();
-  }, []);
+  }, [pathname]); // Re-check when route changes (e.g., after login)
 
   async function checkAuth() {
     try {
@@ -29,9 +30,12 @@ export function AdminBar() {
       const data = await res.json();
       if (data.user && data.user.role === "admin") {
         setUser(data.user);
+      } else {
+        setUser(null); // Clear user if not admin
       }
     } catch (error) {
       console.error("Error checking auth:", error);
+      setUser(null);
     } finally {
       setLoading(false);
     }

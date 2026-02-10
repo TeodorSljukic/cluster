@@ -19,6 +19,10 @@
     "title": "Dobrodošli u ABGC",
     "subtitle": "Osnaživanje Južnog Jadrana"
   },
+  "welcome": {
+    "title": "Dobro došli na digitalnu platformu ABGC",
+    "subtitle": "Vaša vrata ka plavoj ekonomiji i saradnji"
+  },
   "about": {
     "title": "O ABGC",
     "text1": "Adriatic Blue Growth Cluster (ABGC) povećava kapacitet i konkurentnost kompanija i profesionalaca koji rade u sektorima plave ekonomije kroz međusobno učenje i saradnju.",
@@ -230,7 +234,19 @@
     "companyInfoText": "Registrovano kao nevladina organizacija (NVO) u Crnoj Gori u skladu sa Zakonom o NVO-ima (\"Službeni list Crne Gore\", br. 39/11 i 37/17)",
     "address": "Adresa",
     "messageUs": "Pošaljite nam poruku i hajde da radimo zajedno",
-    "formComingSoon": "(Kontakt forma će biti povezana kasnije.)"
+    "formComingSoon": "(Kontakt forma će biti povezana kasnije.)",
+    "name": "Ime",
+    "namePlaceholder": "Vaše ime",
+    "email": "Email",
+    "emailPlaceholder": "vaš@email.com",
+    "message": "Poruka",
+    "messagePlaceholder": "Vaša poruka...",
+    "send": "Pošalji",
+    "sending": "Šalje se...",
+    "success": "Poruka je uspješno poslata!",
+    "error": "Greška pri slanju poruke. Molimo pokušajte ponovo.",
+    "privacyPolicy": "Politika privatnosti",
+    "euDisclaimer": "Ova web stranica izrađena je uz finansijsku podršku Europske unije u okviru Interreg IPA South Adriatic programa, kroz projekat SKILLS - High-Level and Market-Respondent Competences for a Blue and Digitalized \"Smart and Skilled South Adriatic\" (ugovor o subvenciji SA-0200142-SA SKILLS). Sadržaj ove web stranice isključiva je odgovornost Univerziteta Crne Gore - Instituta za biologiju mora i ni na koji način se ne može smatrati da odražava stavove Europske unije."
   },
   "dashboard": {
     "title": "Kontrolna tabla",
@@ -270,7 +286,18 @@
     "registerHere": "Registruj se ovdje",
     "error": "Greška",
     "loginFailed": "Prijava neuspješna",
-    "errorOccurred": "Došlo je do greške. Molimo pokušajte ponovo."
+    "errorOccurred": "Došlo je do greške. Molimo pokušajte ponovo.",
+    "forgotPassword": "Zaboravili ste lozinku?",
+    "forgotPasswordText": "Ne brinite — kliknite na opciju Zaboravili ste lozinku? i slijedite uputstva za njeno ponovno postavljanje.",
+    "forgotPasswordTitle": "Zaboravili ste lozinku?",
+    "forgotPasswordDescription": "Unesite vašu email adresu i poslaćemo vam link za resetovanje lozinke.",
+    "forgotPasswordSuccess": "Email sa uputstvima za resetovanje lozinke je poslat na vašu email adresu.",
+    "forgotPasswordError": "Neuspješno slanje email-a. Molimo provjerite email adresu i pokušajte ponovo.",
+    "email": "Email adresa",
+    "emailPlaceholder": "unesite@email.com",
+    "sendResetLink": "Pošalji link za resetovanje",
+    "sending": "Šalje se...",
+    "backToLogin": "Nazad na prijavu"
   },
   "search": {
     "title": "Pretraga korisnika",

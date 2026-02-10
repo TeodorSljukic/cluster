@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import { Post } from "@/models/Post";
+import { autoTranslate } from "@/lib/translate";
+import { type Locale } from "@/lib/i18n";
 
 // GET - Fetch all posts (with optional filtering by type)
 export async function GET(request: NextRequest) {
@@ -104,6 +106,53 @@ export async function POST(request: NextRequest) {
         : body.eventDate;
     }
 
+    // Auto-translate title, content, and excerpt to all languages
+    const sourceLocale = locale as Locale;
+    let titleTranslations: Record<Locale, string> = {
+      me: body.title,
+      en: body.title,
+      it: body.title,
+      sq: body.title,
+    };
+    let contentTranslations: Record<Locale, string> = {
+      me: body.content,
+      en: body.content,
+      it: body.content,
+      sq: body.content,
+    };
+    let excerptTranslations: Record<Locale, string> = {
+      me: body.excerpt || "",
+      en: body.excerpt || "",
+      it: body.excerpt || "",
+      sq: body.excerpt || "",
+    };
+
+    try {
+      // Translate title
+      if (body.title) {
+        titleTranslations = await autoTranslate(body.title, sourceLocale);
+      }
+      
+      // Translate content (HTML)
+      if (body.content) {
+        // Extract text from HTML for translation
+        const textContent = body.content.replace(/<[^>]*>/g, " ").trim();
+        if (textContent) {
+          const contentTextTranslations = await autoTranslate(textContent, sourceLocale);
+          // For now, we'll store the translated text (in production, you'd want to preserve HTML structure)
+          contentTranslations = contentTextTranslations;
+        }
+      }
+      
+      // Translate excerpt
+      if (body.excerpt) {
+        excerptTranslations = await autoTranslate(body.excerpt, sourceLocale);
+      }
+    } catch (error) {
+      console.error("Auto-translation error:", error);
+      // Continue with original text if translation fails
+    }
+
     const post: Omit<Post, "_id"> = {
       title: body.title,
       slug: body.slug,
@@ -118,6 +167,12 @@ export async function POST(request: NextRequest) {
       publishedAt: body.status === "published" ? now : undefined,
       eventDate: eventDate,
       eventLocation: body.eventLocation || "",
+      // Store translations in metadata
+      metadata: {
+        titleTranslations,
+        contentTranslations,
+        excerptTranslations,
+      },
     };
 
     const result = await collection.insertOne(post);

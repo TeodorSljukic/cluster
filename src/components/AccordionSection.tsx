@@ -68,8 +68,9 @@ export function AccordionSection({ locale }: AccordionSectionProps) {
             id="tab1"
           >
             <img
-              src="/wp-content/uploads/2025/09/7c883c906d9a31e342ce8adddc95dd818df786d3.webp"
-              alt="Accordion image"
+              src="/wp-content/uploads/2025/09/waypoints.webp"
+              alt="Cluster Organisations illustration"
+              style={{ maxWidth: "100%", height: "auto" }}
             />
             <h2>{t.accordion.cluster}</h2>
             <p>{t.accordion.clusterText1}</p>
@@ -87,8 +88,9 @@ export function AccordionSection({ locale }: AccordionSectionProps) {
             id="tab2"
           >
             <img
-              src="/wp-content/uploads/2025/09/7c883c906d9a31e342ce8adddc95dd818df786d3.webp"
-              alt="Accordion image"
+              src="/wp-content/uploads/2025/09/handshake.webp"
+              alt="Policy Support illustration"
+              style={{ maxWidth: "100%", height: "auto" }}
             />
             <h2>{t.accordion.policy}</h2>
             <p>{t.accordion.policyText1}</p>
@@ -100,8 +102,9 @@ export function AccordionSection({ locale }: AccordionSectionProps) {
             id="tab3"
           >
             <img
-              src="/wp-content/uploads/2025/09/7c883c906d9a31e342ce8adddc95dd818df786d3.webp"
-              alt="Accordion image"
+              src="/wp-content/uploads/2025/09/siren.webp"
+              alt="Partnership Opportunities illustration"
+              style={{ maxWidth: "100%", height: "auto" }}
             />
             <h2>{t.accordion.partnership}</h2>
             <p>{t.accordion.partnershipText1}</p>
