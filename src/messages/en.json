@@ -314,7 +314,8 @@
     "failedToSend": "Failed to send connection request",
     "errorSending": "Error sending connection request",
     "allCountries": "-- Country --",
-    "allCities": "-- City --"
+    "allCities": "-- City --",
+    "allUsers": "All users"
   },
   "newsPage": {
     "title": "News & Events",

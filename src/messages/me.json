@@ -314,7 +314,8 @@
     "failedToSend": "Neuspješno slanje zahtjeva za povezivanje",
     "errorSending": "Greška pri slanju zahtjeva za povezivanje",
     "allCountries": "-- Država --",
-    "allCities": "-- Grad --"
+    "allCities": "-- Grad --",
+    "allUsers": "Svi korisnici"
   },
   "newsPage": {
     "title": "Vijesti i Događaji",

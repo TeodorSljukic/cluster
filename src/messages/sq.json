@@ -314,7 +314,8 @@
     "failedToSend": "Dështoi dërgimi i kërkesës për lidhje",
     "errorSending": "Gabim gjatë dërgimit të kërkesës për lidhje",
     "allCountries": "-- Shteti --",
-    "allCities": "-- Qyteti --"
+    "allCities": "-- Qyteti --",
+    "allUsers": "Të gjithë përdoruesit"
   },
   "newsPage": {
     "title": "Lajme dhe Ngjarje",

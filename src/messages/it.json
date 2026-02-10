@@ -314,7 +314,8 @@
     "failedToSend": "Invio richiesta di connessione fallito",
     "errorSending": "Errore nell'invio della richiesta di connessione",
     "allCountries": "-- Paese --",
-    "allCities": "-- Città --"
+    "allCities": "-- Città --",
+    "allUsers": "Tutti gli utenti"
   },
   "newsPage": {
     "title": "Notizie e Eventi",

@@ -518,7 +518,7 @@ function SearchPageContent({
             }}
           >
             <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-              {query.trim().length > 0 ? t.search.searchResults : (t.search.allUsers || "Svi korisnici")} {users.length > 0 && `(${users.length})`}
+              {query.trim().length > 0 ? t.search.searchResults : t.search.allUsers} {users.length > 0 && `(${users.length})`}
             </h2>
             {users.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
