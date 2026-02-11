@@ -2,22 +2,30 @@ import { Post } from "@/models/Post";
 import Link from "next/link";
 import { getTranslations, type Locale } from "@/lib/getTranslations";
 import { localeLink } from "@/lib/localeLink";
+import { getCollection } from "@/lib/db";
 
 async function getLatestNews() {
   try {
-    // For server-side fetch, use absolute URL with environment variable or fallback
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
-      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-      || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/posts?type=news&status=published&limit=10`, {
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      console.error("Failed to fetch news:", res.status);
-      return [];
-    }
-    const data = await res.json();
-    return data.posts || [];
+    // Directly query database instead of HTTP request for better performance and reliability
+    const collection = await getCollection("posts");
+    
+    const posts = await collection
+      .find({
+        type: "news",
+        status: "published",
+      })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .toArray();
+
+    return posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      createdAt: post.createdAt?.toISOString(),
+      updatedAt: post.updatedAt?.toISOString(),
+      publishedAt: post.publishedAt?.toISOString(),
+      eventDate: post.eventDate?.toISOString(),
+    })) as Post[];
   } catch (error) {
     console.error("Error fetching news:", error);
     return [];
