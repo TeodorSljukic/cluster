@@ -35,8 +35,8 @@
   gap: 40px;
   justify-content: space-between;
 }
-.hero-content { order: 1; max-width: 600px; }
-.hero-image { order: 2; }
+.hero-image { order: 1; }
+.hero-content { order: 2; max-width: 600px; }
 .hero-image img { max-width: 500px; height: auto; display: block; }
 @media (min-width: 1400px) {
   .hero-image img { max-width: 650px; }
