@@ -22,10 +22,6 @@ export async function POST(request: NextRequest) {
         const title = (post.title || "").toLowerCase();
         if (title.includes("event") || title.includes("dogadjaj")) {
           updates.type = "event";
-        } else if (title.includes("resource") || title.includes("resurs")) {
-          updates.type = "resource";
-        } else if (title.includes("skill") || title.includes("vestina")) {
-          updates.type = "skill";
         } else {
           updates.type = "news"; // Default
         }

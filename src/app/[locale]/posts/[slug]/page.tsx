@@ -40,8 +40,6 @@ function getBackLink(type: string, locale: Locale): { href: string; label: strin
       return { href: localeLink("/news", locale), label: "Back to News" };
     case "event":
       return { href: localeLink("/", locale), label: "Back to Home" };
-    case "resource":
-      return { href: localeLink("/resources", locale), label: "Back to Resources" };
     default:
       return { href: localeLink("/", locale), label: "Back to Home" };
   }

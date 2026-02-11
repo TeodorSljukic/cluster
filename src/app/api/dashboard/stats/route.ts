@@ -88,7 +88,7 @@ export async function GET() {
       postsByType: {
         news: postsByTypeMap["news"] || 0,
         events: postsByTypeMap["event"] || 0,
-        resources: postsByTypeMap["resource"] || 0,
+        resources: 0,
       },
       recentPosts: recentPosts.map((post) => ({
         _id: post._id.toString(),

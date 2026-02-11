@@ -25,7 +25,7 @@ interface Post {
   title: string;
   excerpt?: string;
   slug: string;
-  type: "news" | "event" | "resource";
+  type: "news" | "event";
   featuredImage?: string;
   locale?: string;
   createdAt?: string;
@@ -773,7 +773,7 @@ function SearchPageContent({
                         return (
                           <Link
                             key={post._id}
-                            href={localeLink(`/${postType === "news" ? "news" : postType === "event" ? "events" : "resources"}/${postSlug}`, locale)}
+                            href={localeLink(`/${postType === "news" ? "news" : "events"}/${postSlug}`, locale)}
                             style={{
                               display: "flex",
                               gap: "16px",
@@ -1032,7 +1032,7 @@ function SearchPageContent({
                         return (
                           <Link
                             key={post._id}
-                            href={localeLink(`/${postType === "news" ? "news" : postType === "event" ? "events" : "resources"}/${postSlug}`, locale)}
+                            href={localeLink(`/${postType === "news" ? "news" : "events"}/${postSlug}`, locale)}
                             style={{
                               display: "flex",
                               gap: "16px",

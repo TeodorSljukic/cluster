@@ -8,7 +8,7 @@ import { type Locale } from "@/lib/i18n";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type"); // news, event, resource
+    const type = searchParams.get("type"); // news, event
     const status = searchParams.get("status"); // null means show all
     const locale = searchParams.get("locale"); // me, en, it, sq
     const limit = parseInt(searchParams.get("limit") || "100"); // Increased limit for admin

@@ -112,7 +112,6 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
       children: [
         { title: t.cms.news, href: "/admin/posts?type=news" },
         { title: t.cms.events, href: "/admin/posts?type=event" },
-        { title: t.cms.resources, href: "/admin/posts?type=resource" },
       ],
     },
     {

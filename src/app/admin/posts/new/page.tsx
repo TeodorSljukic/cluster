@@ -11,7 +11,7 @@ import { Post } from "@/models/Post";
 function NewPostPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const type = (searchParams.get("type") || "news") as "news" | "event" | "resource";
+  const type = (searchParams.get("type") || "news") as "news" | "event";
 
   const [formData, setFormData] = useState<Partial<Post>>({
     title: "",
