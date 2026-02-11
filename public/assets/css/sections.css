@@ -33,52 +33,56 @@
   display: flex;
   align-items: center;
   gap: 40px;
+  justify-content: space-between;
 }
 .hero-content { order: 1; max-width: 600px; }
 .hero-image { order: 2; }
-.hero-image img { max-width: 700px; height: auto; display: block; }
+.hero-image img { max-width: 500px; height: auto; display: block; }
+@media (min-width: 1400px) {
+  .hero-image img { max-width: 650px; }
+}
 .hero-title {
-  font-size: 50px;
+  font-size: 90px;
   font-weight: 500;
   color: #E23F65;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   line-height: 1.2;
 }
 .hero-subtitle {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 500;
   line-height: 1.4;
   color: #52484C;
 }
 @media (max-width: 1200px) {
   .hero { padding: 50px 20px; min-height: 60vh; }
-  .hero-title { font-size: 56px; line-height: 1.2; }
-  .hero-subtitle { font-size: 24px; line-height: 1.4; }
-  .hero-image img { max-width: 400px; }
+  .hero-title { font-size: 80px; line-height: 1.2; }
+  .hero-subtitle { font-size: 20px; line-height: 1.4; }
+  .hero-image img { max-width: 350px; max-height: 350px; }
 }
 @media (max-width: 992px) {
   .hero { padding: 40px 20px; min-height: auto; }
   .hero-inner { flex-direction: column; text-align: center; gap: 30px; }
   .hero-content { max-width: 100%; order: 1; }
   .hero-image { order: 2; }
-  .hero-title { font-size: 42px; line-height: 1.2; }
+  .hero-title { font-size: 60px; line-height: 1.2; }
   .hero-subtitle { font-size: 20px; line-height: 1.4; }
-  .hero-image img { max-width: 350px; }
+  .hero-image img { max-width: 300px; max-height: 300px; }
 }
 @media (max-width: 768px) {
   .hero { padding: 30px 15px; }
-  .hero-title { font-size: 36px; }
+  .hero-title { font-size: 50px; }
   .hero-subtitle { font-size: 18px; }
-  .hero-image img { max-width: 280px; }
+  .hero-image img { max-width: 250px; max-height: 250px; }
 }
 @media (max-width: 576px) {
   .hero { padding: 30px 15px; }
   .hero-inner { flex-direction: column; gap: 20px; }
   .hero-content { order: 1; }
   .hero-image { order: 2; }
-  .hero-title { font-size: 32px; line-height: 1.2; }
+  .hero-title { font-size: 50px; line-height: 1.2; }
   .hero-subtitle { font-size: 16px; line-height: 1.4; }
-  .hero-image img { max-width: 250px; }
+  .hero-image img { max-width: 220px; max-height: 220px; }
 }
 
 /* ===============================

@@ -305,7 +305,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           {/* Left Side - Form */}
           <div style={{ flex: "1", maxWidth: "500px" }}>
             <h1 style={{ 
-              fontSize: "32px", 
+              fontSize: "50px", 
               fontWeight: "600", 
               color: "#52484C",
               marginBottom: "30px",
@@ -595,11 +595,13 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 }}>
                   {t.join.platforms || "Odaberite platforme:"}
                 </label>
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "repeat(2, 1fr)", 
-                  gap: "12px" 
-                }}>
+                <div 
+                  className="platform-selection-grid"
+                  style={{ 
+                    display: "grid", 
+                    gridTemplateColumns: "repeat(2, 1fr)", 
+                    gap: "12px" 
+                  }}>
                   {platformOptions.map((platform) => {
                     const isChecked = isPlatformChecked(platform.id);
                     return (
@@ -905,16 +907,61 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         @media (max-width: 992px) {
-          section > div > div[style*="flex"] {
+          section[data-register-form] > div > div[style*="flex"] {
             flex-direction: column !important;
+            gap: 40px !important;
           }
-          section > div > div > div[style*="flex"] {
+          section[data-register-form] > div > div > div[style*="flex"] {
             max-width: 100% !important;
           }
-          form > div[style*="grid"] {
+          section[data-register-form] form > div[style*="grid"] {
             grid-template-columns: 1fr !important;
+          }
+          .platform-selection-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 768px) {
+          section[data-register-form] {
+            padding: 40px 15px 60px !important;
+          }
+          section[data-register-form] h1 {
+            font-size: 26px !important;
+            margin-bottom: 20px !important;
+          }
+          section[data-register-form] form > div[style*="grid"] {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .platform-selection-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+        }
+        @media (max-width: 576px) {
+          section[data-register-form] {
+            padding: 30px 10px 50px !important;
+          }
+          section[data-register-form] h1 {
+            font-size: 22px !important;
+          }
+          section[data-register-form] form > div[style*="grid"] {
+            grid-template-columns: 1fr !important;
+          }
+          .platform-selection-grid {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+          }
+          .platform-selection-grid label {
+            padding: 12px !important;
+            font-size: 13px !important;
+          }
+          .platform-selection-grid img,
+          .platform-selection-grid div[style*="width: 40px"] {
+            width: 32px !important;
+            height: 32px !important;
           }
         }
       `}</style>
