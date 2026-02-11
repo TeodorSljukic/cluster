@@ -122,10 +122,7 @@ export function Footer() {
                   <Link href={localeLink("/contact", locale)}>{t.common.contact}</Link>
                 </li>
                 <li>
-                  <a href="#" onClick={(e) => {
-                    e.preventDefault();
-                    alert(t.contact.privacyPolicy + " - " + t.contact.formComingSoon);
-                  }}>{t.contact.privacyPolicy}</a>
+                  <Link href={localeLink("/terms", locale)}>{t.contact.privacyPolicy}</Link>
                 </li>
               </ul>
             </nav>

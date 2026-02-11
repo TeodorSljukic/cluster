@@ -470,5 +470,67 @@
     "blogsWithCount": "Blogs",
     "noBlogsFound": "No blogs found. Try a different search term.",
     "noResultsFoundMessage": "No results found. Try a different search term."
+  },
+  "terms": {
+    "title": "Terms of Use and Privacy Policy",
+    "subtitle": "Welcome to https://southadriaticskills.org/me (hereinafter: \"Site\"). By using this Site, you accept these Terms of Use and Privacy Policy. If you do not agree with any part of these terms, please do not use the Site.",
+    "section1": {
+      "title": "1. General Provisions",
+      "text1": "These Terms of Use define the rules for using the content and services available through the Site. The content on the Site is subject to copyright and other intellectual property rights.",
+      "text2": "The Site's content may be used for personal, non-commercial purposes, with explicit citation of the source. Any reproduction, distribution, or use for commercial purposes without permission is prohibited.",
+      "text3": ""
+    },
+    "section2": {
+      "title": "2. Collection of Personal Data",
+      "text": "When you use the Site, we may collect certain information about you, including:",
+      "item1": "first and last name",
+      "item2": "e-mail address",
+      "item3": "user data that you voluntarily enter through forms",
+      "item4": "information about your device and how you use the Site"
+    },
+    "section3": {
+      "title": "3. Purpose of Data Collection",
+      "text": "Data is collected for the following purposes:",
+      "item1": "enabling communication (e.g., responding to inquiries)",
+      "item2": "sending informational newsletters if you have subscribed",
+      "item3": "improving functionality and user experience on the Site",
+      "item4": "analysis of visits and statistics (via cookies)"
+    },
+    "section4": {
+      "title": "4. Cookies",
+      "text": "The Site uses cookies and similar technologies for:",
+      "item1": "improving Site performance",
+      "item2": "customizing content",
+      "item3": "collecting anonymous data about visitors",
+      "text2": "You can control cookie settings through your browser settings or through the option displayed on your first visit to the Site."
+    },
+    "section5": {
+      "title": "5. Use of Data",
+      "text": "Data may be used for:",
+      "item1": "responding to your requests",
+      "item2": "sending notifications related to the Site",
+      "item3": "statistical analysis and content improvement",
+      "text2": "Data is not sold, rented, or shared with third parties without your consent, except when necessary to fulfill legal obligations."
+    },
+    "section6": {
+      "title": "6. Data Security",
+      "text1": "We take reasonable technical and organizational measures to protect your data from unauthorized access, disclosure, or misuse.",
+      "text2": "However, no security system is absolutely secure and we cannot guarantee complete data security."
+    },
+    "section7": {
+      "title": "7. Links to Other Sites",
+      "text": "The Site may contain links to other sites that are not under our control. We are not responsible for the content or privacy policies of those sites."
+    },
+    "section8": {
+      "title": "8. Changes to Terms and Privacy Policy",
+      "text1": "We reserve the right to modify these Terms and Privacy Policy at any time. All changes will be published on the Site with an updated date.",
+      "text2": "We recommend that you periodically review these terms to stay informed about any changes."
+    },
+    "section9": {
+      "title": "9. Contact",
+      "text": "If you have questions regarding these Terms and Privacy Policy, you can contact us at:",
+      "emailLabel": "E-mail",
+      "websiteLabel": "Site"
+    }
   }
 }

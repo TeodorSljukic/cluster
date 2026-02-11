@@ -470,5 +470,67 @@
     "blogsWithCount": "Blogovi",
     "noBlogsFound": "Nema pronađenih blogova. Pokušajte sa drugim pojmom.",
     "noResultsFoundMessage": "Nema pronađenih rezultata. Pokušajte sa drugim pojmom."
+  },
+  "terms": {
+    "title": "Uslovi korišćenja i Pravila privatnosti",
+    "subtitle": "Dobrodošli na https://southadriaticskills.org/me (u daljem tekstu: „Sajt"). Korišćenjem ovog Sajta prihvatate ove Uslove korišćenja i Pravila privatnosti. Ako se ne slažete sa bilo kojim dijelom ovih uslova, molimo vas da ne koristite Sajt.",
+    "section1": {
+      "title": "1. Opšte odredbe",
+      "text1": "Ovi Uslovi korišćenja definišu pravila korišćenja sadržaja i usluga dostupnih putem Sajta. Sadržaj na Sajtu je predmet autorskih prava i drugih prava intelektualne svojine.",
+      "text2": "Sadržaj Sajta može se koristiti za lične, nekomercijalne potrebe, uz izričito navođenje izvora. Bilo kakvo umnožavanje, distribucija ili korišćenje u komercijalne svrhe bez dozvole je zabranjeno.",
+      "text3": ""
+    },
+    "section2": {
+      "title": "2. Prikupljanje ličnih podataka",
+      "text": "Kada koristite Sajt, možemo prikupljati određene informacije o vama, uključujući:",
+      "item1": "ime i prezime",
+      "item2": "e-mail adresu",
+      "item3": "korisničke podatke koje dobrovoljno unesete kroz obrasce",
+      "item4": "informacije o uređaju i načinu korišćenja Sajta"
+    },
+    "section3": {
+      "title": "3. Svrha prikupljanja podataka",
+      "text": "Podaci se prikupljaju u sljedeće svrhe:",
+      "item1": "omogućavanje komunikacije (npr. odgovaranje na upite)",
+      "item2": "slanje informativnih biltena ako ste se pretplatili",
+      "item3": "poboljšanje funkcionalnosti i korisničkog iskustva na Sajtu",
+      "item4": "analiza posjećivanja i statistika (putem kolačića)"
+    },
+    "section4": {
+      "title": "4. Kolačići (Cookies)",
+      "text": "Sajt koristi kolačiće i slične tehnologije za:",
+      "item1": "poboljšanje performansi Sajta",
+      "item2": "prilagođavanje sadržaja",
+      "item3": "prikupljanje anonimnih podataka o posjetiocima",
+      "text2": "Možete kontrolisati postavke kolačića putem podešavanja vašeg pregledača ili putem opcije prikazane prilikom prve posjete Sajtu."
+    },
+    "section5": {
+      "title": "5. Korišćenje podataka",
+      "text": "Podaci se mogu koristiti za:",
+      "item1": "odgovaranje na vaše zahtjeve",
+      "item2": "slanje obavještenja vezanih za Sajt",
+      "item3": "statističku analizu i unapređenje sadržaja",
+      "text2": "Podaci se ne prodaju, ne iznajmljuju i ne dijele sa trećim licima bez vašeg pristanka, osim kada je to neophodno radi izvršenja zakonskih obaveza."
+    },
+    "section6": {
+      "title": "6. Sigurnost podataka",
+      "text1": "Preduzimamo razumne tehničke i organizacione mjere kako bismo zaštitili vaše podatke od neovlašćenog pristupa, otkrivanja ili zloupotrebe.",
+      "text2": "Međutim, nijedan sistem zaštite nije apsolutno siguran i ne možemo garantovati potpunu sigurnost podataka."
+    },
+    "section7": {
+      "title": "7. Linkovi ka drugim sajtovima",
+      "text": "Na Sajt mogu biti postavljeni linkovi ka drugim sajtovima koji nisu pod našom kontrolom. Nismo odgovorni za sadržaj ni pravila privatnosti tih sajtova."
+    },
+    "section8": {
+      "title": "8. Promjene Uslova i Pravila privatnosti",
+      "text1": "Zadržavamo pravo da u bilo kojem trenutku izmijenimo ove Uslove i Pravila privatnosti. Sve izmjene biće objavljene na Sajtu sa ažuriranim datumom.",
+      "text2": "Preporučujemo vam da povremeno provjeravate ove uslove kako biste bili informisani o eventualnim promjenama."
+    },
+    "section9": {
+      "title": "9. Kontakt",
+      "text": "Ako imate pitanja u vezi sa ovim Uslovima i Pravilima privatnosti, možete nas kontaktirati na:",
+      "emailLabel": "E-mail",
+      "websiteLabel": "Sajt"
+    }
   }
 }

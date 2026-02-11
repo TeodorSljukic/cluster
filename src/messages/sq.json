@@ -470,5 +470,67 @@
     "blogsWithCount": "Blogjet",
     "noBlogsFound": "Nuk u gjetën blogje. Provoni me një term tjetër kërkimi.",
     "noResultsFoundMessage": "Nuk u gjetën rezultate. Provoni me një term tjetër kërkimi."
+  },
+  "terms": {
+    "title": "Kushtet e Përdorimit dhe Politika e Privatësisë",
+    "subtitle": "Mirë se vini në https://southadriaticskills.org/me (në tekstin e mëtejshëm: \"Faqja\"). Duke përdorur këtë Faqe, ju pranoni këto Kushte të Përdorimit dhe Politikën e Privatësisë. Nëse nuk jeni dakord me ndonjë pjesë të këtyre kushteve, ju lutemi mos e përdorni Faqen.",
+    "section1": {
+      "title": "1. Dispozitat e Përgjithshme",
+      "text1": "Këto Kushte të Përdorimit përcaktojnë rregullat për përdorimin e përmbajtjes dhe shërbimeve të disponueshme përmes Faqes. Përmbajtja në Faqe është subjekt i të drejtave të autorit dhe të drejtave të tjera të pronësisë intelektuale.",
+      "text2": "Përmbajtja e Faqes mund të përdoret për qëllime personale, jokomerciale, me citim eksplicit të burimit. Çdo riprodhim, shpërndarje ose përdorim për qëllime komerciale pa leje është i ndaluar.",
+      "text3": ""
+    },
+    "section2": {
+      "title": "2. Mbledhja e të Dhënave Personale",
+      "text": "Kur përdorni Faqen, ne mund të mbledhim informacione të caktuara për ju, duke përfshirë:",
+      "item1": "emër dhe mbiemër",
+      "item2": "adresë e-mail",
+      "item3": "të dhëna përdoruesi që futni vullnetarisht përmes formularëve",
+      "item4": "informacione për pajisjen dhe mënyrën se si e përdorni Faqen"
+    },
+    "section3": {
+      "title": "3. Qëllimi i Mbledhjes së të Dhënave",
+      "text": "Të dhënat mblidhen për qëllimet e mëposhtme:",
+      "item1": "mundësimi i komunikimit (p.sh., përgjigjja ndaj pyetjeve)",
+      "item2": "dërgimi i buletineve informative nëse jeni abonuar",
+      "item3": "përmirësimi i funksionalitetit dhe përvojës së përdoruesit në Faqe",
+      "item4": "analiza e vizitave dhe statistikave (përmes cookies)"
+    },
+    "section4": {
+      "title": "4. Cookies",
+      "text": "Faqja përdor cookies dhe teknologji të ngjashme për:",
+      "item1": "përmirësimi i performancës së Faqes",
+      "item2": "përshtatja e përmbajtjes",
+      "item3": "mbledhja e të dhënave anonime për vizitorët",
+      "text2": "Ju mund të kontrolloni cilësimet e cookies përmes cilësimeve të shfletuesit tuaj ose përmes opsionit të shfaqur në vizitën tuaj të parë në Faqe."
+    },
+    "section5": {
+      "title": "5. Përdorimi i të Dhënave",
+      "text": "Të dhënat mund të përdoren për:",
+      "item1": "përgjigjja ndaj kërkesave tuaja",
+      "item2": "dërgimi i njoftimeve të lidhura me Faqen",
+      "item3": "analiza statistikore dhe përmirësimi i përmbajtjes",
+      "text2": "Të dhënat nuk shiten, nuk jepen me qira dhe nuk ndahen me palët e treta pa pëlqimin tuaj, përveç kur është e nevojshme për përmbushjen e detyrimeve ligjore."
+    },
+    "section6": {
+      "title": "6. Siguria e të Dhënave",
+      "text1": "Ne marrim masa teknike dhe organizative të arsyeshme për të mbrojtur të dhënat tuaja nga hyrja e paautorizuar, zbulimi ose keqpërdorimi.",
+      "text2": "Megjithatë, asnjë sistem sigurie nuk është absolutisht i sigurt dhe ne nuk mund të garantojmë siguri të plotë të të dhënave."
+    },
+    "section7": {
+      "title": "7. Lidhjet me Faqet e Tjera",
+      "text": "Faqja mund të përmbajë lidhje me faqe të tjera që nuk janë nën kontrollin tonë. Ne nuk jemi përgjegjës për përmbajtjen ose politikën e privatësisë së atyre faqeve."
+    },
+    "section8": {
+      "title": "8. Ndryshimet në Kushtet dhe Politikën e Privatësisë",
+      "text1": "Ne mbajmë të drejtën për të modifikuar këto Kushte dhe Politikën e Privatësisë në çdo kohë. Të gjitha ndryshimet do të publikohen në Faqe me një datë të përditësuar.",
+      "text2": "Ju rekomandojmë që periodikisht të rishikoni këto kushte për të qenë të informuar për ndonjë ndryshim."
+    },
+    "section9": {
+      "title": "9. Kontakt",
+      "text": "Nëse keni pyetje në lidhje me këto Kushte dhe Politikën e Privatësisë, mund të na kontaktoni në:",
+      "emailLabel": "E-mail",
+      "websiteLabel": "Faqja"
+    }
   }
 }

@@ -470,5 +470,67 @@
     "blogsWithCount": "Blog",
     "noBlogsFound": "Nessun blog trovato. Prova con un termine di ricerca diverso.",
     "noResultsFoundMessage": "Nessun risultato trovato. Prova con un termine di ricerca diverso."
+  },
+  "terms": {
+    "title": "Termini di Utilizzo e Informativa sulla Privacy",
+    "subtitle": "Benvenuti su https://southadriaticskills.org/me (di seguito: \"Sito\"). Utilizzando questo Sito, accettate questi Termini di Utilizzo e Informativa sulla Privacy. Se non siete d'accordo con qualsiasi parte di questi termini, vi preghiamo di non utilizzare il Sito.",
+    "section1": {
+      "title": "1. Disposizioni Generali",
+      "text1": "Questi Termini di Utilizzo definiscono le regole per l'utilizzo dei contenuti e dei servizi disponibili tramite il Sito. Il contenuto del Sito è soggetto a diritti d'autore e altri diritti di proprietà intellettuale.",
+      "text2": "Il contenuto del Sito può essere utilizzato per scopi personali e non commerciali, con esplicita citazione della fonte. Qualsiasi riproduzione, distribuzione o utilizzo per scopi commerciali senza autorizzazione è vietato.",
+      "text3": ""
+    },
+    "section2": {
+      "title": "2. Raccolta di Dati Personali",
+      "text": "Quando utilizzate il Sito, possiamo raccogliere determinate informazioni su di voi, inclusi:",
+      "item1": "nome e cognome",
+      "item2": "indirizzo e-mail",
+      "item3": "dati utente che inserite volontariamente tramite moduli",
+      "item4": "informazioni sul dispositivo e sul modo in cui utilizzate il Sito"
+    },
+    "section3": {
+      "title": "3. Scopo della Raccolta Dati",
+      "text": "I dati vengono raccolti per i seguenti scopi:",
+      "item1": "consentire la comunicazione (ad es. rispondere alle richieste)",
+      "item2": "inviare newsletter informative se vi siete iscritti",
+      "item3": "migliorare la funzionalità e l'esperienza utente sul Sito",
+      "item4": "analisi delle visite e statistiche (tramite cookie)"
+    },
+    "section4": {
+      "title": "4. Cookie",
+      "text": "Il Sito utilizza cookie e tecnologie simili per:",
+      "item1": "migliorare le prestazioni del Sito",
+      "item2": "personalizzare i contenuti",
+      "item3": "raccogliere dati anonimi sui visitatori",
+      "text2": "Potete controllare le impostazioni dei cookie tramite le impostazioni del browser o tramite l'opzione visualizzata alla prima visita del Sito."
+    },
+    "section5": {
+      "title": "5. Utilizzo dei Dati",
+      "text": "I dati possono essere utilizzati per:",
+      "item1": "rispondere alle vostre richieste",
+      "item2": "inviare notifiche relative al Sito",
+      "item3": "analisi statistica e miglioramento dei contenuti",
+      "text2": "I dati non vengono venduti, affittati o condivisi con terze parti senza il vostro consenso, tranne quando necessario per adempiere agli obblighi legali."
+    },
+    "section6": {
+      "title": "6. Sicurezza dei Dati",
+      "text1": "Adottiamo misure tecniche e organizzative ragionevoli per proteggere i vostri dati da accesso non autorizzato, divulgazione o uso improprio.",
+      "text2": "Tuttavia, nessun sistema di sicurezza è assolutamente sicuro e non possiamo garantire una sicurezza completa dei dati."
+    },
+    "section7": {
+      "title": "7. Link ad Altri Siti",
+      "text": "Il Sito può contenere link ad altri siti che non sono sotto il nostro controllo. Non siamo responsabili per il contenuto o le politiche sulla privacy di quei siti."
+    },
+    "section8": {
+      "title": "8. Modifiche ai Termini e Informativa sulla Privacy",
+      "text1": "Ci riserviamo il diritto di modificare questi Termini e Informativa sulla Privacy in qualsiasi momento. Tutte le modifiche saranno pubblicate sul Sito con una data aggiornata.",
+      "text2": "Vi raccomandiamo di rivedere periodicamente questi termini per essere informati su eventuali modifiche."
+    },
+    "section9": {
+      "title": "9. Contatto",
+      "text": "Se avete domande riguardo questi Termini e Informativa sulla Privacy, potete contattarci a:",
+      "emailLabel": "E-mail",
+      "websiteLabel": "Sito"
+    }
   }
 }
