@@ -89,7 +89,7 @@ export default async function Home({
               <div className="hero-content" data-aos="fade-left">
                 <h1 className="hero-title" data-aos="fade-up">
                   {locale === "me" ? (
-                    <>Dobro došli<br />na ABGC</>
+                    "Dobro došli na ABGC"
                   ) : (
                     t.welcome.title
                   )}
