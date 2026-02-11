@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       type: fileType,
       extension,
       createdAt: new Date(),
-      createdBy: user._id?.toString(),
+      createdBy: user.userId,
     };
 
     const result = await mediaCollection.insertOne(mediaDoc);
