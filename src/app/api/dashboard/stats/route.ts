@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
+// Cache stats for 30 seconds to improve performance
+let cachedStats: any = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 30 * 1000; // 30 seconds
+
 export async function GET() {
+  // Return cached data if still valid
+  const now = Date.now();
+  if (cachedStats && (now - cacheTimestamp) < CACHE_DURATION) {
+    return NextResponse.json(cachedStats, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      },
+    });
+  }
   try {
     const db = await getDb();
 
@@ -60,7 +74,7 @@ export async function GET() {
       .limit(5)
       .toArray();
 
-    return NextResponse.json({
+    const response = {
       stats: {
         totalUsers,
         totalPosts,
@@ -92,6 +106,16 @@ export async function GET() {
         role: user.role,
         createdAt: user.createdAt,
       })),
+    };
+
+    // Cache the response
+    cachedStats = response;
+    cacheTimestamp = now;
+
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      },
     });
   } catch (error: any) {
     console.error("Error fetching dashboard stats:", error);
@@ -115,6 +139,11 @@ export async function GET() {
       recentPosts: [],
       recentUsers: [],
       error: error.message, // Include error for debugging
-    }, { status: 200 }); // Return 200 so client doesn't treat it as an error
+    }, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    }); // Return 200 so client doesn't treat it as an error
   }
 }

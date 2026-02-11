@@ -55,6 +55,12 @@ export async function GET(request: NextRequest) {
         limit,
         totalPages: Math.ceil(total / limit),
       },
+    }, {
+      headers: {
+        'Cache-Control': status === 'published' 
+          ? 'public, s-maxage=60, stale-while-revalidate=120'
+          : 'no-store',
+      },
     });
   } catch (error: any) {
     return NextResponse.json(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Users, FileText, UserCheck, Eye } from "lucide-react";
 import { getTranslations, type Locale } from "@/lib/getTranslations";
 
@@ -19,7 +19,7 @@ interface StatsSectionProps {
   locale: Locale;
 }
 
-export function StatsSection({ locale }: StatsSectionProps) {
+export const StatsSection = memo(function StatsSection({ locale }: StatsSectionProps) {
   const t = getTranslations(locale);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [visitors, setVisitors] = useState({ today: "0", total: "0" });
@@ -153,4 +153,4 @@ export function StatsSection({ locale }: StatsSectionProps) {
       </div>
     </section>
   );
-}
+});

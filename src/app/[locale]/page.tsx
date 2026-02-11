@@ -60,9 +60,14 @@ export default async function Home({
               </div>
 
               <div className="about-image" data-aos="fade-left">
-                <img
+                <Image
                   src="/wp-content/uploads/2025/09/Frame-10000022261.webp"
                   alt="ABGC logo"
+                  width={800}
+                  height={600}
+                  style={{ width: "100%", height: "auto" }}
+                  loading="lazy"
+                  unoptimized
                 />
               </div>
             </div>
@@ -147,14 +152,18 @@ export default async function Home({
                 </div>
 
                 <div style={{ flex: "1", display: "flex", justifyContent: "center", width: "100%" }} data-aos="fade-left">
-                  <img
+                  <Image
                     src="/wp-content/uploads/2025/09/Frame-10000022261.webp"
                     alt="ABGC logo"
+                    width={800}
+                    height={600}
                     style={{ 
                       maxWidth: "100%", 
                       height: "auto",
                       maxHeight: "500px"
                     }}
+                    loading="lazy"
+                    unoptimized
                   />
                 </div>
               </div>

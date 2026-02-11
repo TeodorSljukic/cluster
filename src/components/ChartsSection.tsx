@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import {
   Bar,
   Doughnut,
@@ -53,7 +53,7 @@ interface ChartsSectionProps {
   locale: Locale;
 }
 
-export function ChartsSection({ locale }: ChartsSectionProps) {
+export const ChartsSection = memo(function ChartsSection({ locale }: ChartsSectionProps) {
   const t = getTranslations(locale);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -217,4 +217,4 @@ export function ChartsSection({ locale }: ChartsSectionProps) {
       </div>
     </section>
   );
-}
+});
