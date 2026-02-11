@@ -17,7 +17,7 @@
   background: url("/wp-content/uploads/2025/09/1307ac939969567fc3d20129454109eb9e99ea13.webp") no-repeat center center;
   background-size: cover;
   overflow: hidden;
-  min-height: 70vh;
+  min-height: 90vh;
 }
 .hero::before {
   content: "";
@@ -37,9 +37,9 @@
 }
 .hero-image { order: 1; }
 .hero-content { order: 2; max-width: 600px; }
-.hero-image img { max-width: 500px; height: auto; display: block; }
+.hero-image img { max-width: 700px; height: auto; display: block; }
 @media (min-width: 1400px) {
-  .hero-image img { max-width: 650px; }
+  .hero-image img { max-width: 700px; }
 }
 .hero-title {
   font-size: 90px;
