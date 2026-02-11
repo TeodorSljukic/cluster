@@ -42,7 +42,7 @@ export default async function Home({
                   alt="Hero illustration"
                   width={700}
                   height={700}
-                  style={{ width: "100%", height: "auto", maxWidth: "500px" }}
+                  style={{ width: "100%", height: "auto", maxWidth: "700px" }}
                   priority
                   unoptimized
                 />
@@ -105,7 +105,7 @@ export default async function Home({
                   alt="Hero illustration"
                   width={700}
                   height={700}
-                  style={{ width: "100%", height: "auto", maxWidth: "500px" }}
+                  style={{ width: "100%", height: "auto", maxWidth: "700px" }}
                   priority
                   unoptimized
                 />
