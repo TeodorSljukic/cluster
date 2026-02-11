@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, getCurrentUser } from "@/lib/auth";
+import { getCollection } from "@/lib/db";
+import { Media } from "@/models/Media";
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user is admin
+    if (user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
@@ -34,18 +44,53 @@ export async function POST(request: NextRequest) {
     const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const filename = `${timestamp}-${originalName}`;
 
-    // Return data URI as URL (will be stored directly in database)
+    // Determine file type and extension
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    let fileType = "other";
+    if (file.type.startsWith("image/")) {
+      fileType = "image";
+    } else if (file.type === "application/pdf") {
+      fileType = "pdf";
+    } else if (file.type.includes("document") || file.type.includes("word") || file.type.includes("text")) {
+      fileType = "document";
+    } else if (file.type.startsWith("video/")) {
+      fileType = "video";
+    } else if (file.type.startsWith("audio/")) {
+      fileType = "audio";
+    } else if (file.type.includes("zip") || file.type.includes("archive") || file.type.includes("compressed")) {
+      fileType = "archive";
+    }
+
+    // Save to database
+    const mediaCollection = await getCollection("media");
+    const mediaDoc: Omit<Media, "_id"> = {
+      filename,
+      originalName: file.name,
+      url: dataUri,
+      size: file.size,
+      type: fileType,
+      extension,
+      createdAt: new Date(),
+      createdBy: user._id?.toString(),
+    };
+
+    const result = await mediaCollection.insertOne(mediaDoc);
+
+    // Return data URI as URL
     return NextResponse.json({
       url: dataUri,
       filename: filename,
       originalName: file.name,
       size: file.size,
-      type: file.type,
+      type: fileType,
+      extension,
+      _id: result.insertedId.toString(),
     });
   } catch (error: any) {
     if (error.message === "Unauthorized" || error.message.includes("Forbidden")) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
+    console.error("Upload error:", error);
     return NextResponse.json(
       { error: error.message || "Upload failed" },
       { status: 500 }

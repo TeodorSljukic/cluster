@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { getCollection } from "@/lib/db";
 
 export async function DELETE(
   request: NextRequest,
@@ -14,13 +15,16 @@ export async function DELETE(
       return NextResponse.json({ error: "Filename is required" }, { status: 400 });
     }
 
-    // Since we now use base64 encoding and store files directly in the database,
-    // files are not stored on the filesystem anymore.
-    // Files are stored as data URIs in posts, user profiles, etc.
-    // To delete a file, you would need to remove it from the respective content (post, profile, etc.).
+    const mediaCollection = await getCollection("media");
+    const result = await mediaCollection.deleteOne({ filename });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+
     return NextResponse.json({ 
       success: true, 
-      message: "File deletion is handled through content management. Files are stored as base64 in the database, not on the filesystem." 
+      message: "File deleted successfully" 
     });
   } catch (error: any) {
     if (error.message === "Unauthorized" || error.message.includes("Forbidden")) {
