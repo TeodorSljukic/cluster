@@ -64,11 +64,8 @@ export default function TermsPage() {
             <p style={{ marginBottom: "15px", color: "#333" }}>
               {t.terms.section1.text1}
             </p>
-            <p style={{ marginBottom: "15px", color: "#333" }}>
-              {t.terms.section1.text2}
-            </p>
             <p style={{ color: "#333" }}>
-              {t.terms.section1.text3}
+              {t.terms.section1.text2}
             </p>
           </section>
 
