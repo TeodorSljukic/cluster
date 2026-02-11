@@ -29,12 +29,14 @@ export function ConditionalHeaderFooter({
 
   // For regular pages, wrap with Header and Footer
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', flex: 1 }}>
+    <>
       <Header />
-      <main style={{ flex: '1 0 auto', minHeight: 0 }}>
-        {children}
-      </main>
-      <Footer />
-    </div>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', flex: 1 }}>
+        <main style={{ flex: '1 0 auto', minHeight: 0 }}>
+          {children}
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 }

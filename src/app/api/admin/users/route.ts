@@ -7,19 +7,20 @@ export async function GET(request: NextRequest) {
     await requireAdmin();
 
     const collection = await getCollection("users");
-    const users = await collection.find({}).toArray();
+    const users = await collection.find({}).project({ password: 0 }).toArray();
 
     return NextResponse.json({
-      users: users.map((user) => ({
-        _id: user._id.toString(),
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        displayName: user.displayName || user.username,
-        organization: user.organization,
-        location: user.location,
-        createdAt: user.createdAt?.toISOString(),
-      })),
+      users: users.map((user: any) => {
+        // Return all fields except password
+        const { password, ...userWithoutPassword } = user;
+        return {
+          ...userWithoutPassword,
+          _id: user._id.toString(),
+          createdAt: user.createdAt?.toISOString(),
+          updatedAt: user.updatedAt?.toISOString(),
+          lastActivity: user.lastActivity?.toISOString(),
+        };
+      }),
     });
   } catch (error: any) {
     if (error.message === "Unauthorized" || error.message.includes("Forbidden")) {

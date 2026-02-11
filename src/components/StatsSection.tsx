@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Users, FileText, UserCheck, Eye } from "lucide-react";
+import { getTranslations, type Locale } from "@/lib/getTranslations";
 
 interface StatsData {
   stats: {
@@ -14,7 +15,12 @@ interface StatsData {
   };
 }
 
-export function StatsSection() {
+interface StatsSectionProps {
+  locale: Locale;
+}
+
+export function StatsSection({ locale }: StatsSectionProps) {
+  const t = getTranslations(locale);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [visitors, setVisitors] = useState({ today: "0", total: "0" });
   const [loading, setLoading] = useState(true);
@@ -85,9 +91,9 @@ export function StatsSection() {
     <section className="stats-section" data-aos="fade-up">
       <div className="container">
         <div className="stats-section-header" data-aos="fade-up">
-          <h2 className="stats-section-title">Community Overview</h2>
+          <h2 className="stats-section-title">{t.stats.title}</h2>
           <p className="stats-section-subtitle">
-            Join our growing community of professionals and organizations
+            {t.stats.subtitle}
           </p>
         </div>
 
@@ -97,10 +103,10 @@ export function StatsSection() {
               <Users size={32} />
             </div>
             <div className="home-stat-card-content">
-              <h3>Total Users</h3>
+              <h3>{t.dashboard.totalUsers}</h3>
               <p className="home-stat-card-value">{stats?.stats?.totalUsers ?? 0}</p>
               <span className="home-stat-card-label">
-                {stats?.stats?.onlineUsers ?? 0} online
+                {stats?.stats?.onlineUsers ?? 0} {t.dashboard.online}
               </span>
             </div>
           </div>
@@ -110,10 +116,10 @@ export function StatsSection() {
               <FileText size={32} />
             </div>
             <div className="home-stat-card-content">
-              <h3>Total Posts</h3>
+              <h3>{t.dashboard.totalPosts}</h3>
               <p className="home-stat-card-value">{stats?.stats?.totalPosts ?? 0}</p>
               <span className="home-stat-card-label">
-                {stats?.stats?.publishedPosts ?? 0} published
+                {stats?.stats?.publishedPosts ?? 0} {t.dashboard.published}
               </span>
             </div>
           </div>
@@ -123,12 +129,12 @@ export function StatsSection() {
               <UserCheck size={32} />
             </div>
             <div className="home-stat-card-content">
-              <h3>Connections</h3>
+              <h3>{t.dashboard.connections}</h3>
               <p className="home-stat-card-value">
                 {stats?.stats?.acceptedConnections ?? 0}
               </p>
               <span className="home-stat-card-label">
-                {stats?.stats?.totalConnections ?? 0} total
+                {stats?.stats?.totalConnections ?? 0} {t.dashboard.total}
               </span>
             </div>
           </div>
@@ -138,9 +144,9 @@ export function StatsSection() {
               <Eye size={32} />
             </div>
             <div className="home-stat-card-content">
-              <h3>Visitors Today</h3>
+              <h3>{t.dashboard.visitorsToday}</h3>
               <p className="home-stat-card-value">{visitors.today}</p>
-              <span className="home-stat-card-label">{visitors.total} total</span>
+              <span className="home-stat-card-label">{visitors.total} {t.dashboard.total}</span>
             </div>
           </div>
         </div>

@@ -74,6 +74,7 @@ export function AdminBar() {
   return (
     <div
       data-admin-bar="true"
+      className="admin-bar"
       style={{
         position: "fixed",
         top: 0,
@@ -91,7 +92,7 @@ export function AdminBar() {
         boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "15px", flex: 1, minWidth: 0 }}>
+      <div className="admin-bar-left" style={{ display: "flex", alignItems: "center", gap: "15px", flex: 1, minWidth: 0 }}>
         {/* Site Logo/Name */}
         <Link
           href="/"
@@ -106,12 +107,12 @@ export function AdminBar() {
           }}
           className="admin-bar-logo"
         >
-          <span style={{ fontSize: "16px" }}>🌊</span>
+          <span className="admin-bar-emoji" style={{ fontSize: "16px" }}>🌊</span>
           <span className="admin-bar-logo-text">ABGC</span>
         </Link>
 
         {/* Main Navigation */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: "1px solid #3c434a", paddingLeft: "15px" }}>
+        <div className="admin-bar-nav" style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: "1px solid #3c434a", paddingLeft: "15px" }}>
           {isOnSite ? (
             <Link
               href="/admin"
@@ -132,7 +133,7 @@ export function AdminBar() {
                 e.currentTarget.style.background = "transparent";
               }}
             >
-              <span style={{ fontSize: "14px" }}>⚙️</span>
+              <span className="admin-bar-icon" style={{ fontSize: "14px" }}>⚙️</span>
               <span>CMS</span>
             </Link>
           ) : (
@@ -155,7 +156,7 @@ export function AdminBar() {
                 e.currentTarget.style.background = "transparent";
               }}
             >
-              <span style={{ fontSize: "14px" }}>🏠</span>
+              <span className="admin-bar-icon" style={{ fontSize: "14px" }}>🏠</span>
               <span>Visit Site</span>
             </Link>
           )}
@@ -163,9 +164,10 @@ export function AdminBar() {
       </div>
 
       {/* Right side - User info */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: "1px solid #3c434a", paddingLeft: "15px", flexShrink: 0 }}>
-        <span style={{ fontSize: "13px" }} className="admin-bar-greeting">Howdy, {user.displayName || user.username}</span>
+      <div className="admin-bar-right" style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: "1px solid #3c434a", paddingLeft: "15px", flexShrink: 0 }}>
+        <span className="admin-bar-greeting" style={{ fontSize: "13px" }}>Howdy, {user.displayName || user.username}</span>
         <div
+          className="admin-bar-avatar"
           style={{
             width: "26px",
             height: "26px",

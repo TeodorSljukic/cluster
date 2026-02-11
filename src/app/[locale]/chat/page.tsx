@@ -111,12 +111,40 @@ function ChatPageInner() {
   const [isMobile, setIsMobile] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState<string>("");
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastMessageIdRef = useRef<string>("");
+
+  // Check authentication on mount and pathname change
+  useEffect(() => {
+    checkAuth();
+  }, [pathname]);
+
+  async function checkAuth() {
+    setCheckingAuth(true);
+    try {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (data.user) {
+        setAuthenticated(true);
+        setCurrentUserId(data.user._id);
+      } else {
+        setAuthenticated(false);
+        router.push(localeLink("/login", locale));
+      }
+    } catch (error) {
+      console.error("Error checking auth:", error);
+      setAuthenticated(false);
+      router.push(localeLink("/login", locale));
+    } finally {
+      setCheckingAuth(false);
+    }
+  }
 
   useEffect(() => {
     // Detect mobile device
@@ -144,10 +172,14 @@ function ChatPageInner() {
   }, [isMobile, tappedMessageId]);
 
   useEffect(() => {
+    // Only load data if authenticated
+    if (!authenticated || checkingAuth) {
+      return;
+    }
+
     setLoadingChats(true);
     // Load data in parallel for better performance
     Promise.all([
-      loadCurrentUser(),
       loadConnections(),
       loadGroups(),
       loadUnreadCounts(),
@@ -180,21 +212,7 @@ function ChatPageInner() {
         clearInterval(activityInterval);
       }
     };
-  }, [userId, groupId]);
-
-  async function loadCurrentUser() {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.user) {
-          setCurrentUserId(data.user._id);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading current user:", error);
-    }
-  }
+  }, [authenticated, checkingAuth, userId, groupId]);
 
   useEffect(() => {
     // Only scroll to bottom if user is near bottom (not scrolled up)
@@ -329,7 +347,7 @@ function ChatPageInner() {
       const res = await fetch("/api/connections");
       if (res.ok) {
         const data = await res.json();
-        const accepted = data.connections.filter((c: Connection) => c.status === "accepted");
+        const accepted = data.connections.filter((c: Connection) => c.status === "accepted" && c.user);
         setConnections(accepted);
       }
     } catch (error) {
@@ -792,8 +810,40 @@ function ChatPageInner() {
     return reactions.some((r) => r.emoji === emoji && r.userId === currentUserId);
   }
 
-  const currentUser = connections.find((c) => c.user._id === userId)?.user;
+  const currentUser = connections.find((c) => c.user && c.user._id === userId)?.user;
   const currentGroup = groups.find((g) => g._id === groupId);
+
+  // Show loading state while checking authentication
+  if (checkingAuth) {
+    return (
+      <main style={{ 
+        padding: "40px", 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center",
+        minHeight: "60vh"
+      }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            display: "inline-block",
+            width: "40px",
+            height: "40px",
+            border: "4px solid #2271b1",
+            borderTop: "4px solid transparent",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+            marginBottom: "16px"
+          }} />
+          <p style={{ color: "#666", fontSize: "14px" }}>{t.chat.loading}</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Redirect if not authenticated (handled in checkAuth, but show message just in case)
+  if (!authenticated) {
+    return null;
+  }
 
   return (
     <main 
@@ -865,12 +915,12 @@ function ChatPageInner() {
               Contacts
             </h3>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, flex: 1, overflowY: "auto" }}>
-              {connections.map((conn) => {
-                const unread = unreadCounts.users[conn.user._id] || 0;
+              {connections.filter((conn) => conn.user).map((conn) => {
+                const unread = unreadCounts.users[conn.user!._id] || 0;
                 return (
                   <li key={conn._id} style={{ marginBottom: "8px" }}>
                     <Link
-                      href={localeLink(`/chat?userId=${conn.user._id}`, locale)}
+                      href={localeLink(`/chat?userId=${conn.user!._id}`, locale)}
                       onClick={() => setShowSidebar(false)}
                       style={{
                         display: "flex",
@@ -880,16 +930,16 @@ function ChatPageInner() {
                         borderRadius: "8px",
                         textDecoration: "none",
                         color: "inherit",
-                        background: userId === conn.user._id ? "#e3f2fd" : "transparent",
+                        background: userId === conn.user!._id ? "#e3f2fd" : "transparent",
                         transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        if (userId !== conn.user._id) {
+                        if (userId !== conn.user!._id) {
                           e.currentTarget.style.background = "#f5f5f5";
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (userId !== conn.user._id) {
+                        if (userId !== conn.user!._id) {
                           e.currentTarget.style.background = "transparent";
                         }
                       }}
@@ -907,15 +957,15 @@ function ChatPageInner() {
                             width: "32px",
                             height: "32px",
                             borderRadius: "50%",
-                            background: conn.user.profilePicture
-                              ? `url(${conn.user.profilePicture}) center/cover`
+                            background: conn.user!.profilePicture
+                              ? `url(${conn.user!.profilePicture}) center/cover`
                               : "#e4e4e4",
                           }}
                         />
-                        <UserStatus userId={conn.user._id} size="small" />
+                        <UserStatus userId={conn.user!._id} size="small" />
                       </div>
                       <span style={{ flex: 1, fontSize: "14px", fontWeight: "500" }}>
-                        {conn.user.displayName || conn.user.username}
+                        {conn.user!.displayName || conn.user!.username}
                       </span>
                       {unread > 0 && (
                         <span
@@ -2656,12 +2706,12 @@ function ChatPageInner() {
                     gap: "16px",
                     width: "100%"
                   }}>
-                    {connections.map((conn) => {
-                      const unread = unreadCounts.users[conn.user._id] || 0;
+                    {connections.filter((conn) => conn.user).map((conn) => {
+                      const unread = unreadCounts.users[conn.user!._id] || 0;
                       return (
                         <Link
                           key={conn._id}
-                          href={localeLink(`/chat?userId=${conn.user._id}`, locale)}
+                          href={localeLink(`/chat?userId=${conn.user!._id}`, locale)}
                           onClick={() => setShowSidebar(false)}
                           className="chat-list-item"
                           style={{
@@ -2705,17 +2755,17 @@ function ChatPageInner() {
                                 width: "56px",
                                 height: "56px",
                                 borderRadius: "50%",
-                                background: conn.user.profilePicture
-                                  ? `url(${conn.user.profilePicture}) center/cover`
+                                background: conn.user!.profilePicture
+                                  ? `url(${conn.user!.profilePicture}) center/cover`
                                   : "#e4e4e4",
                                 border: "2px solid #f0f0f0",
                               }}
                             />
-                            <UserStatus userId={conn.user._id} size="small" />
+                            <UserStatus userId={conn.user!._id} size="small" />
                           </div>
                           <div className="chat-item-text" style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
                             <div className="chat-item-name" style={{ fontSize: "17px", fontWeight: "600", color: "#1a1a1a", marginBottom: "4px", lineHeight: "1.3", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {conn.user.displayName || conn.user.username}
+                              {conn.user!.displayName || conn.user!.username}
                             </div>
                           </div>
                           {unread > 0 && (
@@ -3453,7 +3503,7 @@ function ChatPageInner() {
                 Forward to:
               </label>
               <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #e0e0e0", borderRadius: "8px" }}>
-                {connections.map((conn) => (
+                {connections.filter((conn) => conn.user).map((conn) => (
                   <button
                     key={conn._id}
                     onClick={async () => {
@@ -3462,7 +3512,7 @@ function ChatPageInner() {
                       
                       try {
                         const formData = new FormData();
-                        formData.append("receiverId", conn.user._id);
+                        formData.append("receiverId", conn.user!._id);
                         formData.append("message", forwardText);
                         if (forwardingTo.fileUrl) {
                           formData.append("message", `${forwardText}\n\nFile: ${forwardingTo.fileUrl}`);
@@ -3476,7 +3526,7 @@ function ChatPageInner() {
                         if (res.ok) {
                           setShowForwardModal(false);
                           setForwardingTo(null);
-                          router.push(localeLink(`/chat?userId=${conn.user._id}`, locale));
+                          router.push(localeLink(`/chat?userId=${conn.user!._id}`, locale));
                         } else {
                           alert("Failed to forward message");
                         }
@@ -3509,15 +3559,15 @@ function ChatPageInner() {
                         width: "40px",
                         height: "40px",
                         borderRadius: "50%",
-                        background: conn.user.profilePicture
-                          ? `url(${conn.user.profilePicture}) center/cover`
+                        background: conn.user!.profilePicture
+                          ? `url(${conn.user!.profilePicture}) center/cover`
                           : "#e4e4e4",
                         flexShrink: 0,
                       }}
                     />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                        {conn.user.displayName || conn.user.username}
+                        {conn.user!.displayName || conn.user!.username}
                       </div>
                     </div>
                   </button>

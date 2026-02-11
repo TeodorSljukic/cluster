@@ -32,6 +32,9 @@ export async function NewsSection({ locale = "me" }: NewsSectionProps) {
   const posts = await getLatestNews();
   const t = getTranslations(locale);
 
+  // Get first 4 posts
+  const displayPosts = posts.slice(0, 4);
+
   return (
     <section className="news">
       <div className="container">
@@ -41,22 +44,11 @@ export async function NewsSection({ locale = "me" }: NewsSectionProps) {
         <p className="news-subtitle" data-aos="fade-up" data-aos-delay="150">
           {t.news.subtitle}
         </p>
-      </div>
 
-      {posts.length > 0 && (
-        <div className="news-swiper-wrapper">
-          <swiper-container
-            className="news-swiper"
-            data-aos="fade-up"
-            slides-per-view="auto"
-            space-between="30"
-            loop="false"
-            navigation="true"
-            pagination="true"
-            breakpoints='{"0":{"slidesPerView":1.2,"spaceBetween":15},"640":{"slidesPerView":2,"spaceBetween":20},"1024":{"slidesPerView":3,"spaceBetween":25},"1280":{"slidesPerView":4,"spaceBetween":30}}'
-          >
-            {posts.map((post: Post) => (
-              <swiper-slide key={post._id} className="news-item" data-aos="fade-up">
+        {displayPosts.length > 0 && (
+          <div className="news-grid" data-aos="fade-up">
+            {displayPosts.map((post: Post) => (
+              <div key={post._id} className="news-item">
                 {post.featuredImage && (
                   <Link href={localeLink(`/posts/${post.slug}`, locale)}>
                     <img
@@ -71,14 +63,14 @@ export async function NewsSection({ locale = "me" }: NewsSectionProps) {
                 </h3>
                 {post.excerpt && (
                   <p className="news-excerpt">
-                    {post.excerpt.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                    {post.excerpt.replace(/<[^>]*>/g, '').substring(0, 120)}...
                   </p>
                 )}
-              </swiper-slide>
+              </div>
             ))}
-          </swiper-container>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

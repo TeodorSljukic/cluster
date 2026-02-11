@@ -66,7 +66,6 @@ interface DashboardStats {
   postsByType: {
     news: number;
     events: number;
-    resources: number;
   };
   recentPosts: Array<{
     _id: string;
@@ -263,27 +262,22 @@ export default function DashboardPage() {
   };
 
   const postsByTypeData = {
-    labels: ["News", "Events", "Resources"],
+    labels: [t.common.news, t.common.events],
     datasets: [
       {
         data: stats
           ? [
               stats.postsByType.news,
               stats.postsByType.events,
-              stats.postsByType.resources,
             ]
-          : [0, 0, 0],
+          : [0, 0],
         backgroundColor: [
           "rgba(0, 95, 153, 0.8)",
           "rgba(0, 153, 76, 0.8)",
-          "rgba(255, 165, 0, 0.8)",
-          "rgba(230, 57, 70, 0.8)",
         ],
         borderColor: [
           "rgba(0, 95, 153, 1)",
           "rgba(0, 153, 76, 1)",
-          "rgba(255, 165, 0, 1)",
-          "rgba(230, 57, 70, 1)",
         ],
         borderWidth: 2,
       },
@@ -294,7 +288,7 @@ export default function DashboardPage() {
     labels: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.interest),
     datasets: [
       {
-        label: "Users",
+        label: t.dashboard.totalUsers,
         data: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.count),
         backgroundColor: "rgba(0, 119, 204, 0.7)",
         borderColor: "rgba(0, 119, 204, 1)",
@@ -431,7 +425,7 @@ export default function DashboardPage() {
           <div className="stat-card-content">
             <h3>{t.dashboard.visitorsToday}</h3>
             <p className="stat-card-value">{visitors.today}</p>
-            <span className="stat-card-label">{visitors.total} total</span>
+            <span className="stat-card-label">{visitors.total} {t.dashboard.total}</span>
           </div>
         </div>
       </div>
@@ -502,21 +496,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="chart-card">
-          <div className="chart-card-header">
-            <h3>
-              <TrendingUp size={20} />
-              {t.dashboard.topInterests}
-            </h3>
-          </div>
-          <div className="chart-card-body">
-            {interests.length > 0 ? (
-              <Bar data={interestsChartData} options={chartOptions} />
-            ) : (
-              <div className="chart-empty">{t.dashboard.noDataAvailable}</div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Platform Links Section */}
@@ -558,16 +537,18 @@ export default function DashboardPage() {
                   borderRadius: "8px",
                   color: "white",
                   textDecoration: "none",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                  e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
+                  e.currentTarget.style.boxShadow = "0 16px 32px rgba(0,0,0,0.2)";
+                  e.currentTarget.style.borderRadius = "12px";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                  e.currentTarget.style.transform = "translateY(0) scale(1)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                  e.currentTarget.style.borderRadius = "8px";
                 }}
               >
                 <div style={{
@@ -578,14 +559,29 @@ export default function DashboardPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                }}>
+                  transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.1) rotate(5deg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1) rotate(0deg)";
+                }}
+                >
                   <FileText size={20} />
                 </div>
                 <div>
                   <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.eLearning}</div>
                   <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.lmsPlatform}</div>
                 </div>
-                <ArrowRight size={16} style={{ marginLeft: "auto" }} />
+                <ArrowRight size={16} style={{ marginLeft: "auto", transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }} 
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateX(4px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateX(0)";
+                  }}
+                />
               </a>
             )}
             {registeredPlatforms.ecommerce && (
@@ -602,16 +598,18 @@ export default function DashboardPage() {
                   borderRadius: "8px",
                   color: "white",
                   textDecoration: "none",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                  e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
+                  e.currentTarget.style.boxShadow = "0 16px 32px rgba(0,0,0,0.2)";
+                  e.currentTarget.style.borderRadius = "12px";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                  e.currentTarget.style.transform = "translateY(0) scale(1)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                  e.currentTarget.style.borderRadius = "8px";
                 }}
               >
                 <div style={{
@@ -622,14 +620,29 @@ export default function DashboardPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                }}>
+                  transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.1) rotate(5deg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1) rotate(0deg)";
+                }}
+                >
                   <TrendingUp size={20} />
                 </div>
                 <div>
                   <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.marketplace}</div>
                   <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.ecommercePlatform}</div>
                 </div>
-                <ArrowRight size={16} style={{ marginLeft: "auto" }} />
+                <ArrowRight size={16} style={{ marginLeft: "auto", transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }} 
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateX(4px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateX(0)";
+                  }}
+                />
               </a>
             )}
             {registeredPlatforms.dms && (
@@ -646,16 +659,18 @@ export default function DashboardPage() {
                   borderRadius: "8px",
                   color: "white",
                   textDecoration: "none",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+                  e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
+                  e.currentTarget.style.boxShadow = "0 16px 32px rgba(0,0,0,0.2)";
+                  e.currentTarget.style.borderRadius = "12px";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                  e.currentTarget.style.transform = "translateY(0) scale(1)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+                  e.currentTarget.style.borderRadius = "8px";
                 }}
               >
                 <div style={{
@@ -666,14 +681,29 @@ export default function DashboardPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                }}>
+                  transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.1) rotate(5deg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1) rotate(0deg)";
+                }}
+                >
                   <FileText size={20} />
                 </div>
                 <div>
                   <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.documents}</div>
                   <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.dmsPlatform}</div>
                 </div>
-                <ArrowRight size={16} style={{ marginLeft: "auto" }} />
+                <ArrowRight size={16} style={{ marginLeft: "auto", transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }} 
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateX(4px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateX(0)";
+                  }}
+                />
               </a>
             )}
           </div>

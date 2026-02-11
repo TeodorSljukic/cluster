@@ -19,6 +19,7 @@ import {
   Filler,
 } from "chart.js";
 import { FileText, TrendingUp } from "lucide-react";
+import { getTranslations, type Locale } from "@/lib/getTranslations";
 
 // Register Chart.js components
 ChartJS.register(
@@ -38,7 +39,6 @@ interface DashboardStats {
   postsByType: {
     news: number;
     events: number;
-    resources: number;
   };
 }
 
@@ -49,7 +49,12 @@ interface InterestData {
 
 type ChartType = "posts" | "interests";
 
-export function ChartsSection() {
+interface ChartsSectionProps {
+  locale: Locale;
+}
+
+export function ChartsSection({ locale }: ChartsSectionProps) {
+  const t = getTranslations(locale);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [interests, setInterests] = useState<InterestData[]>([]);
@@ -79,27 +84,22 @@ export function ChartsSection() {
   }
 
   const postsByTypeData = {
-    labels: ["News", "Events", "Resources"],
+    labels: [t.common.news, t.common.events],
     datasets: [
       {
         data: stats
           ? [
               stats.postsByType.news,
               stats.postsByType.events,
-              stats.postsByType.resources,
             ]
-          : [0, 0, 0],
+          : [0, 0],
         backgroundColor: [
           "rgba(0, 95, 153, 0.8)",
           "rgba(0, 153, 76, 0.8)",
-          "rgba(255, 165, 0, 0.8)",
-          "rgba(230, 57, 70, 0.8)",
         ],
         borderColor: [
           "rgba(0, 95, 153, 1)",
           "rgba(0, 153, 76, 1)",
-          "rgba(255, 165, 0, 1)",
-          "rgba(230, 57, 70, 1)",
         ],
         borderWidth: 2,
       },
@@ -110,7 +110,7 @@ export function ChartsSection() {
     labels: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.interest),
     datasets: [
       {
-        label: "Users",
+        label: t.dashboard.totalUsers,
         data: (Array.isArray(interests) ? interests.slice(0, 10) : []).map((item) => item.count),
         backgroundColor: "rgba(0, 119, 204, 0.7)",
         borderColor: "rgba(0, 119, 204, 1)",
@@ -191,61 +191,25 @@ export function ChartsSection() {
     <section className="charts-section" data-aos="fade-up">
       <div className="container">
         <div className="charts-section-header" data-aos="fade-up">
-          <h2 className="charts-section-title">Community Insights</h2>
+          <h2 className="charts-section-title">{t.charts.title}</h2>
           <p className="charts-section-subtitle">
-            Explore data and trends from our community
+            {t.charts.subtitle}
           </p>
-        </div>
-
-        <div className="charts-selector-wrapper" data-aos="fade-up" data-aos-delay="100">
-          <div className="charts-selector">
-            <button
-              className={`chart-selector-btn ${selectedChart === "posts" ? "active" : ""}`}
-              onClick={() => setSelectedChart("posts")}
-              type="button"
-            >
-              <FileText size={20} />
-              <span>Posts by Type</span>
-            </button>
-            <button
-              className={`chart-selector-btn ${selectedChart === "interests" ? "active" : ""}`}
-              onClick={() => setSelectedChart("interests")}
-              type="button"
-            >
-              <TrendingUp size={20} />
-              <span>Top Interests</span>
-            </button>
-          </div>
         </div>
 
         <div className="chart-display-wrapper" data-aos="fade-up" data-aos-delay="200">
           <div className="chart-display-card">
             <div className="chart-display-header">
               <h3>
-                {selectedChart === "posts" ? (
-                  <>
-                    <FileText size={24} />
-                    Posts by Type
-                  </>
-                ) : (
-                  <>
-                    <TrendingUp size={24} />
-                    Top Interests
-                  </>
-                )}
+                <FileText size={24} />
+                {t.dashboard.postsByType}
               </h3>
             </div>
             <div className="chart-display-body">
-              {selectedChart === "posts" ? (
-                stats && stats.postsByType ? (
-                  <Doughnut data={postsByTypeData} options={doughnutOptions} />
-                ) : (
-                  <div className="chart-empty">No data available</div>
-                )
-              ) : interests.length > 0 ? (
-                <Bar data={interestsChartData} options={chartOptions} />
+              {stats && stats.postsByType ? (
+                <Doughnut data={postsByTypeData} options={doughnutOptions} />
               ) : (
-                <div className="chart-empty">No data available</div>
+                <div className="chart-empty">{t.dashboard.noDataAvailable}</div>
               )}
             </div>
           </div>

@@ -26,13 +26,6 @@ export default async function Home({
         <>
           <section className="hero">
             <div className="container hero-inner">
-              <div className="hero-image" data-aos="fade-right">
-                <img
-                  src="/wp-content/uploads/2025/09/Hero-image-Mask-group.webp"
-                  alt="Hero illustration"
-                />
-              </div>
-
               <div className="hero-content" data-aos="fade-left">
                 <h1 className="hero-title" data-aos="fade-up">
                   {t.hero.title}
@@ -40,6 +33,13 @@ export default async function Home({
                 <p className="hero-subtitle" data-aos="fade-up" data-aos-delay="200">
                   {t.hero.subtitle}
                 </p>
+              </div>
+
+              <div className="hero-image" data-aos="fade-right">
+                <img
+                  src="/wp-content/uploads/2025/09/Hero-image-Mask-group.webp"
+                  alt="Hero illustration"
+                />
               </div>
             </div>
           </section>
@@ -66,52 +66,33 @@ export default async function Home({
 
           <AccordionSection locale={locale} />
 
-          <section className="projects">
-            <div className="container projects-inner">
-              <div className="projects-image" data-aos="fade-right">
-                <img
-                  src="/wp-content/uploads/2025/09/Frame-10000022263.png"
-                  alt="Projects logo"
-                />
-              </div>
-
-              <div className="projects-content" data-aos="fade-left">
-                <h2 className="projects-title">{t.projects.title}</h2>
-                <ul className="projects-list">
-                  <li data-aos="fade-up" data-aos-delay="100">
-                    {t.projects.skills}
-                  </li>
-                  <li data-aos="fade-up" data-aos-delay="200">
-                    {t.projects.blueconnect}
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
           <NewsSection locale={locale} />
           <EventsSection locale={locale} />
-          <StatsSection />
-          <ChartsSection />
+          <StatsSection locale={locale} />
+          <ChartsSection locale={locale} />
         </>
       ) : (
         <>
           <section className="hero">
             <div className="container hero-inner">
+              <div className="hero-content" data-aos="fade-left">
+                <h1 className="hero-title" data-aos="fade-up">
+                  {locale === "me" ? (
+                    <>Dobro došli<br />na ABGC</>
+                  ) : (
+                    t.welcome.title
+                  )}
+                </h1>
+                <p className="hero-subtitle" data-aos="fade-up" data-aos-delay="200">
+                  {t.welcome.subtitle}
+                </p>
+              </div>
+
               <div className="hero-image" data-aos="fade-right">
                 <img
                   src="/wp-content/uploads/2025/09/Hero-image-Mask-group.webp"
                   alt="Hero illustration"
                 />
-              </div>
-
-              <div className="hero-content" data-aos="fade-left">
-                <h1 className="hero-title" data-aos="fade-up" style={{ fontSize: "72px", lineHeight: "80px" }}>
-                  {t.welcome.title}
-                </h1>
-                <p className="hero-subtitle" data-aos="fade-up" data-aos-delay="200" style={{ fontSize: "28px", lineHeight: "36px" }}>
-                  {t.welcome.subtitle}
-                </p>
               </div>
             </div>
           </section>

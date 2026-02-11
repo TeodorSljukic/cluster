@@ -39,6 +39,9 @@ export async function EventsSection({ locale = "me" }: EventsSectionProps) {
     return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
   }
 
+  // Get first 2 posts
+  const displayPosts = posts.slice(0, 2);
+
   return (
     <section className="events">
       <div className="container">
@@ -49,17 +52,10 @@ export async function EventsSection({ locale = "me" }: EventsSectionProps) {
           {t.events.subtitle}
         </p>
 
-        {posts.length > 0 && (
-          <swiper-container
-            className="events-swiper"
-            data-aos="fade-up"
-            slides-per-view="3"
-            space-between="30"
-            loop="true"
-            breakpoints='{"0":{"slidesPerView":1,"spaceBetween":20},"768":{"slidesPerView":2,"spaceBetween":25},"1200":{"slidesPerView":3,"spaceBetween":30}}'
-          >
-            {posts.map((post: Post) => (
-              <swiper-slide key={post._id} className="event-card" data-aos="fade-up">
+        {displayPosts.length > 0 && (
+          <div className="events-grid" data-aos="fade-up">
+            {displayPosts.map((post: Post) => (
+              <div key={post._id} className="event-card">
                 {post.featuredImage && (
                   <Link href={localeLink(`/posts/${post.slug}`, locale)}>
                     <img
@@ -80,9 +76,9 @@ export async function EventsSection({ locale = "me" }: EventsSectionProps) {
                 <Link href={localeLink(`/posts/${post.slug}`, locale)} className="event-button">
                   {t.events.readMore}
                 </Link>
-              </swiper-slide>
+              </div>
             ))}
-          </swiper-container>
+          </div>
         )}
       </div>
     </section>

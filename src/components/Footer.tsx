@@ -103,9 +103,9 @@ export function Footer() {
 
           <div className="footer-center" style={{
             flex: "1",
-            maxWidth: "600px",
+            maxWidth: "800px",
             margin: "0 40px",
-            fontSize: "12px",
+            fontSize: "14px",
             lineHeight: "1.6",
             color: "#555",
             textAlign: "left"

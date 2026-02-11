@@ -78,18 +78,6 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
               data-aos="zoom-in"
               data-aos-delay={(index + 1) * 100}
               onClick={() => handlePlatformClick(platform.url)}
-              style={{
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)";
-                e.currentTarget.style.boxShadow = "0 8px 16px rgba(0,0,0,0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "";
-              }}
             >
               <img src={platform.image} alt={platform.label} />
               <h3>{platform.label}</h3>
