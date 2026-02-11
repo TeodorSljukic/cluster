@@ -40,8 +40,8 @@ function PostsPageInner() {
     };
     window.addEventListener("storage", handleLocaleChange);
     window.addEventListener("cms-locale-changed", handleLocaleChange);
-    // Also check on interval in case localStorage is updated in same window
-    const interval = setInterval(handleLocaleChange, 100);
+    // Check on interval less frequently (every 1 second instead of 100ms)
+    const interval = setInterval(handleLocaleChange, 1000);
     return () => {
       window.removeEventListener("storage", handleLocaleChange);
       window.removeEventListener("cms-locale-changed", handleLocaleChange);

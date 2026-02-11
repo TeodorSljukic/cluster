@@ -29,8 +29,9 @@ export function Header() {
   const t = getTranslations(currentLocale);
 
   useEffect(() => {
+    // Only check auth on mount, not on every pathname change
     checkAuth();
-  }, [pathname]); // Refresh when route changes (e.g., after login/logout)
+  }, []); // Only run once on mount
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -56,12 +57,33 @@ export function Header() {
 
   async function checkAuth() {
     try {
+      // Check cache first
+      const cachedUser = sessionStorage.getItem("header-current-user");
+      if (cachedUser) {
+        try {
+          const user = JSON.parse(cachedUser);
+          const cacheTime = user._cacheTime || 0;
+          // Cache for 2 minutes
+          if (Date.now() - cacheTime < 2 * 60 * 1000) {
+            setUser(user);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          // Invalid cache, continue to fetch
+        }
+      }
+
       const res = await fetch("/api/auth/me");
       const data = await res.json();
       if (data.user) {
+        // Cache user data
+        const userWithCache = { ...data.user, _cacheTime: Date.now() };
+        sessionStorage.setItem("header-current-user", JSON.stringify(userWithCache));
         setUser(data.user);
       } else {
         setUser(null);
+        sessionStorage.removeItem("header-current-user");
       }
     } catch (error) {
       console.error("Error checking auth:", error);
@@ -103,26 +125,26 @@ export function Header() {
         <nav className="main-nav" aria-label="Main Menu" id="site-menu">
           <ul className="nav-menu">
             <li>
-              <Link href={`/${currentLocale}`}>{t.common.home}</Link>
+              <Link href={`/${currentLocale}`} prefetch={true}>{t.common.home}</Link>
             </li>
             <li>
-              <Link href={`/${currentLocale}/about`}>{t.common.about}</Link>
+              <Link href={`/${currentLocale}/about`} prefetch={true}>{t.common.about}</Link>
             </li>
             <li>
-              <Link href={`/${currentLocale}/news`}>{t.common.news}</Link>
+              <Link href={`/${currentLocale}/news`} prefetch={true}>{t.common.news}</Link>
             </li>
             {user && (
               <>
                 <li>
-                  <Link href={`/${currentLocale}/dashboard`}>{t.common.dashboard}</Link>
+                  <Link href={`/${currentLocale}/dashboard`} prefetch={true}>{t.common.dashboard}</Link>
                 </li>
                 <li>
-                  <Link href={`/${currentLocale}/chat`}>{t.chat.title}</Link>
+                  <Link href={`/${currentLocale}/chat`} prefetch={true}>{t.chat.title}</Link>
                 </li>
               </>
             )}
             <li>
-              <Link href={`/${currentLocale}/contact`}>{t.common.contact}</Link>
+              <Link href={`/${currentLocale}/contact`} prefetch={true}>{t.common.contact}</Link>
             </li>
           </ul>
         </nav>
@@ -132,6 +154,7 @@ export function Header() {
           {user && (
             <Link 
               href={localeLink("/search", currentLocale)}
+              prefetch={true}
               className="search-btn"
               style={{ 
                 cursor: "pointer", 
@@ -200,12 +223,12 @@ export function Header() {
           {/* Register / Profile button */}
           {!loading && (
             user ? (
-              <Link href={`/${currentLocale}/profile`} className="btn-register">
+              <Link href={`/${currentLocale}/profile`} prefetch={true} className="btn-register">
                 <User size={20} className="register-icon" />
                 <span>{user.displayName || user.username || t.common.profile}</span>
               </Link>
             ) : (
-              <Link href={`/${currentLocale}/login`} className="btn-register">
+              <Link href={`/${currentLocale}/login`} prefetch={true} className="btn-register">
                 <User size={20} className="register-icon" />
                 <span>{t.common.login}</span>
               </Link>
@@ -242,6 +265,7 @@ export function Header() {
             <li>
               <Link 
                 href={`/${currentLocale}`}
+                prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t.common.home}
@@ -250,6 +274,7 @@ export function Header() {
             <li>
               <Link 
                 href={`/${currentLocale}/about`}
+                prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t.common.about}
@@ -258,6 +283,7 @@ export function Header() {
             <li>
               <Link 
                 href={`/${currentLocale}/news`}
+                prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t.common.news}
@@ -268,6 +294,7 @@ export function Header() {
                 <li>
                   <Link 
                     href={`/${currentLocale}/dashboard`}
+                    prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t.common.dashboard}
@@ -276,6 +303,7 @@ export function Header() {
                 <li>
                   <Link 
                     href={`/${currentLocale}/chat`}
+                    prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t.chat.title}
@@ -286,6 +314,7 @@ export function Header() {
             <li>
               <Link 
                 href={`/${currentLocale}/contact`}
+                prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t.common.contact}
@@ -298,6 +327,7 @@ export function Header() {
             {user && (
               <Link 
                 href={localeLink("/search", currentLocale)}
+                prefetch={true}
                 className="search-btn"
                 style={{ cursor: "pointer", width: "100%", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
               >
@@ -348,12 +378,12 @@ export function Header() {
 
             {!loading && (
               user ? (
-                <Link href={`/${currentLocale}/profile`} className="btn-register">
+                <Link href={`/${currentLocale}/profile`} prefetch={true} className="btn-register">
                   <User size={20} className="register-icon" />
                   <span>{user.displayName || user.username || t.common.profile}</span>
                 </Link>
               ) : (
-                <Link href={`/${currentLocale}/login`} className="btn-register">
+                <Link href={`/${currentLocale}/login`} prefetch={true} className="btn-register">
                   <User size={20} className="register-icon" />
                   <span>{t.common.login}</span>
                 </Link>

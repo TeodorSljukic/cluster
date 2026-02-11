@@ -40,14 +40,35 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
     localStorage.setItem("cms-locale", cmsLocale);
   }, [cmsLocale]);
 
-  // Fetch current user
+  // Fetch current user - cache in sessionStorage to avoid repeated calls
   useEffect(() => {
     async function fetchUser() {
       try {
+        // Check cache first
+        const cachedUser = sessionStorage.getItem("cms-current-user");
+        if (cachedUser) {
+          try {
+            const user = JSON.parse(cachedUser);
+            const cacheTime = user._cacheTime || 0;
+            // Cache for 5 minutes
+            if (Date.now() - cacheTime < 5 * 60 * 1000) {
+              setCurrentUser(user);
+              return;
+            }
+          } catch (e) {
+            // Invalid cache, continue to fetch
+          }
+        }
+
         const res = await fetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
-          setCurrentUser(data.user);
+          if (data.user) {
+            // Cache user data
+            const userWithCache = { ...data.user, _cacheTime: Date.now() };
+            sessionStorage.setItem("cms-current-user", JSON.stringify(userWithCache));
+            setCurrentUser(data.user);
+          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -314,6 +335,7 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
                           <Link
                             key={childIndex}
                             href={child.href}
+                            prefetch={true}
                             style={{
                               display: "block",
                               padding: "6px 12px",
@@ -347,6 +369,7 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
               ) : (
                 <Link
                   href={item.href || "#"}
+                  prefetch={true}
                   style={{
                     display: "flex",
                     alignItems: "center",
