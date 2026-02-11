@@ -146,6 +146,18 @@ function ChatPageInner() {
     }
   }
 
+  async function loadCurrentUser() {
+    try {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (data.user) {
+        setCurrentUserId(data.user._id);
+      }
+    } catch (error) {
+      console.error("Error loading current user:", error);
+    }
+  }
+
   useEffect(() => {
     // Detect mobile device
     const checkMobile = () => {
