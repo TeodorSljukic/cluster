@@ -7,6 +7,7 @@ import { getTranslations, type Locale } from "@/lib/getTranslations";
 import { getCurrentUser } from "@/lib/auth";
 import { RegisterForm } from "@/components/RegisterForm";
 import { PlatformLinksSection } from "@/components/PlatformLinksSection";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +37,14 @@ export default async function Home({
               </div>
 
               <div className="hero-image" data-aos="fade-right">
-                <img
+                <Image
                   src="/wp-content/uploads/2025/09/Hero-image-Mask-group.webp"
                   alt="Hero illustration"
+                  width={700}
+                  height={700}
+                  style={{ width: "100%", height: "auto", maxWidth: "500px" }}
+                  priority
+                  unoptimized
                 />
               </div>
             </div>
@@ -89,9 +95,14 @@ export default async function Home({
               </div>
 
               <div className="hero-image" data-aos="fade-right">
-                <img
+                <Image
                   src="/wp-content/uploads/2025/09/Hero-image-Mask-group.webp"
                   alt="Hero illustration"
+                  width={700}
+                  height={700}
+                  style={{ width: "100%", height: "auto", maxWidth: "500px" }}
+                  priority
+                  unoptimized
                 />
               </div>
             </div>
