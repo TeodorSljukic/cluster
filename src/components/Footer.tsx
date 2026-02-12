@@ -94,7 +94,7 @@ export function Footer() {
           <div className="footer-left">
             <Link href={localeLink("/", locale)} className="site-title">
               <img 
-                src="/wp-content/uploads/2025/09/logo.png" 
+                src="/wp-content/uploads/2025/09/Nenaslovljeni dizajn(3).png" 
                 alt="Adriatic Blue Growth Cluster"
                 style={{ height: "80px", width: "auto", objectFit: "contain" }}
               />
