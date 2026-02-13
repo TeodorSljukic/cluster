@@ -36,7 +36,7 @@ interface NewsSectionProps {
   locale?: Locale;
 }
 
-export async function NewsSection({ locale = "me" }: NewsSectionProps) {
+export async function NewsSection({ locale = "en" }: NewsSectionProps) {
   const posts = await getLatestNews();
   const t = getTranslations(locale);
 

@@ -12,8 +12,8 @@ const translations = {
   sq,
 };
 
-export function getTranslations(locale: Locale = "me") {
-  return translations[locale] || translations.me;
+export function getTranslations(locale: Locale = "en") {
+  return translations[locale] || translations.en;
 }
 
 export type Translations = typeof me;

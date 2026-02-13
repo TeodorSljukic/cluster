@@ -36,7 +36,7 @@ interface EventsSectionProps {
   locale?: Locale;
 }
 
-export async function EventsSection({ locale = "me" }: EventsSectionProps) {
+export async function EventsSection({ locale = "en" }: EventsSectionProps) {
   const posts = await getUpcomingEvents();
   const t = getTranslations(locale);
 

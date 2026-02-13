@@ -5,7 +5,7 @@ import { type Locale } from "@/lib/i18n";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, html, sourceLocale = "me" } = body;
+    const { text, html, sourceLocale = "en" } = body;
 
     if (!text && !html) {
       return NextResponse.json(

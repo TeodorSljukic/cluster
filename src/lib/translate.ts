@@ -22,7 +22,7 @@ const libreTranslateCodes: Record<Locale, string> = {
  */
 export async function autoTranslate(
   text: string,
-  sourceLocale: Locale = "me"
+  sourceLocale: Locale = "en"
 ): Promise<Record<Locale, string>> {
   const translations: Record<Locale, string> = {
     me: text,
@@ -162,7 +162,7 @@ async function translateText(
  */
 export async function translateHTML(
   html: string,
-  sourceLocale: Locale = "me"
+  sourceLocale: Locale = "en"
 ): Promise<Record<Locale, string>> {
   // Extract text content from HTML
   const textContent = html.replace(/<[^>]*>/g, " ").trim();
