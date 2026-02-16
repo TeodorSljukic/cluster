@@ -175,7 +175,7 @@ export function Header() {
               }}
             >
               <Search size={20} className="search-icon" />
-              <span>Search</span>
+              <span>{t.common.search}</span>
             </Link>
           )}
 

@@ -720,6 +720,75 @@ export async function POST(request: NextRequest) {
       role: user.role,
     });
 
+    // Send welcome email to user
+    console.log("\n📧 Sending welcome email...");
+    try {
+      const resendApiKey = process.env.RESEND_API_KEY;
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://southadriaticskills.org";
+      
+      if (resendApiKey) {
+        const emailSubject = `Welcome to ABGC - Registration Successful`;
+        const emailBody = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #B53251; margin: 0; font-size: 28px;">Welcome to Adriatic Blue Growth Cluster!</h1>
+            </div>
+            <p style="font-size: 16px; line-height: 1.6; color: #333;">Dear ${displayName || username},</p>
+            <p style="font-size: 16px; line-height: 1.6; color: #333;">Thank you for registering with the Adriatic Blue Growth Cluster (ABGC) platform!</p>
+            <p style="font-size: 16px; line-height: 1.6; color: #333;">Your registration has been successfully completed. You can now access all the features and services available on our platform.</p>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #E23F65;">
+              <p style="margin: 8px 0; font-size: 15px;"><strong style="color: #333;">Username:</strong> <span style="color: #666;">${username}</span></p>
+              <p style="margin: 8px 0; font-size: 15px;"><strong style="color: #333;">Email:</strong> <span style="color: #666;">${email}</span></p>
+              <p style="margin: 15px 0 8px 0; font-size: 15px;"><strong style="color: #333;">Registered Platforms:</strong></p>
+              <ul style="margin: 8px 0; padding-left: 25px; color: #666;">
+                ${platforms.includes("lms") && lmsSuccess ? "<li style='margin: 5px 0;'>✅ Learning Management System (LMS)</li>" : ""}
+                ${platforms.includes("ecommerce") && ecommerceSuccess ? "<li style='margin: 5px 0;'>✅ E-Commerce Platform</li>" : ""}
+                ${platforms.includes("dms") && dmsSuccess ? "<li style='margin: 5px 0;'>✅ Document Management System (DMS)</li>" : ""}
+              </ul>
+            </div>
+            <p style="font-size: 16px; line-height: 1.6; color: #333;">You can now log in to your account and start exploring the platform:</p>
+            <div style="text-align: center; margin: 35px 0;">
+              <a href="${baseUrl}/en/login" style="background-color: #E23F65; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: 600; font-size: 16px;">Log In to Your Account</a>
+            </div>
+            <p style="font-size: 16px; line-height: 1.6; color: #333;">If you have any questions or need assistance, please don't hesitate to contact us.</p>
+            <p style="font-size: 16px; line-height: 1.6; color: #333; margin-top: 25px;">Best regards,<br><strong style="color: #B53251;">The ABGC Team</strong></p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 35px 0;">
+            <p style="color: #999; font-size: 12px; line-height: 1.5; margin: 0;">
+              This is an automated email. Please do not reply to this message.<br>
+              For support, contact us at: <a href="mailto:info@southadriaticskills.org" style="color: #E23F65;">info@southadriaticskills.org</a>
+            </p>
+          </div>
+        `;
+
+        const resendResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: "ABGC <onboarding@resend.dev>",
+            to: [email],
+            subject: emailSubject,
+            html: emailBody,
+          }),
+        });
+
+        if (resendResponse.ok) {
+          console.log("✅ Welcome email sent successfully to:", email);
+        } else {
+          const errorData = await resendResponse.json();
+          console.error("❌ Failed to send welcome email:", errorData);
+        }
+      } else {
+        console.log("⚠️  RESEND_API_KEY not configured - skipping welcome email");
+        console.log("   Email would be sent to:", email);
+      }
+    } catch (emailError: any) {
+      console.error("❌ Error sending welcome email:", emailError.message);
+      // Don't fail registration if email fails
+    }
+
     // Set cookie
     const response = NextResponse.json({
       user: {

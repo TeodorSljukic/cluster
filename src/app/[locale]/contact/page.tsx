@@ -56,7 +56,7 @@ export default function ContactPage() {
         <div className="info-cards">
           <div className="card" data-aos="zoom-in" data-aos-delay="100">
             <h4>📞 {t.contact.phone}</h4>
-            <p>+012 8237 2934</p>
+            <p>+382 67 322 441</p>
           </div>
           <div className="card" data-aos="zoom-in" data-aos-delay="200">
             <h4>✉️ {t.contact.email}</h4>
