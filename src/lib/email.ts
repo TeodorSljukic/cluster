@@ -19,7 +19,38 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
   console.log("   To:", toArray.join(", "));
   console.log("   Subject:", subject);
   
-  // Try EmailJS first (simplest, no domain verification needed)
+  // Convert HTML to plain text
+  const plainText = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
+  
+  // Try Formspree (no configuration needed, just endpoint)
+  const formspreeEndpoint = process.env.FORMSPREE_ENDPOINT;
+  if (formspreeEndpoint) {
+    try {
+      console.log("   Trying Formspree...");
+      const formspreeResponse = await fetch(formspreeEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          _to: toArray[0],
+          _subject: subject,
+          _replyto: replyTo || toArray[0],
+          message: plainText,
+          html: html,
+        }),
+      });
+
+      if (formspreeResponse.ok) {
+        console.log("✅ Email sent successfully via Formspree!");
+        return { success: true };
+      }
+    } catch (error: any) {
+      console.error("❌ Formspree exception:", error.message);
+    }
+  }
+  
+  // Try EmailJS (if configured)
   const emailjsPublicKey = process.env.EMAILJS_PUBLIC_KEY;
   const emailjsServiceId = process.env.EMAILJS_SERVICE_ID;
   const emailjsTemplateId = process.env.EMAILJS_TEMPLATE_ID;
@@ -27,9 +58,6 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
   if (emailjsPublicKey && emailjsServiceId && emailjsTemplateId) {
     try {
       console.log("   Trying EmailJS...");
-      // Convert HTML to plain text for EmailJS
-      const plainText = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-      
       const emailjsResponse = await fetch(`https://api.emailjs.com/api/v1.0/email/send`, {
         method: "POST",
         headers: {
@@ -59,34 +87,6 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
       }
     } catch (error: any) {
       console.error("❌ EmailJS exception:", error.message);
-    }
-  }
-  
-  // Try simple webhook approach (if configured)
-  const webhookUrl = process.env.EMAIL_WEBHOOK_URL;
-  if (webhookUrl) {
-    try {
-      console.log("   Trying webhook...");
-      const webhookResponse = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: toArray,
-          subject,
-          html,
-          from,
-          replyTo,
-        }),
-      });
-
-      if (webhookResponse.ok) {
-        console.log("✅ Email sent successfully via webhook!");
-        return { success: true };
-      }
-    } catch (error: any) {
-      console.error("❌ Webhook exception:", error.message);
     }
   }
   
@@ -129,15 +129,44 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
     }
   }
   
-  // Fallback: Try using a simple webhook or mailto (not recommended for production)
-  console.warn("⚠️  No email service configured");
-  console.warn("   Configure one of the following:");
-  console.warn("   - EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID (easiest)");
+  // Try webhook (if configured)
+  const webhookUrl = process.env.EMAIL_WEBHOOK_URL;
+  if (webhookUrl) {
+    try {
+      console.log("   Trying webhook...");
+      const webhookResponse = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: toArray,
+          subject,
+          html,
+          from,
+          replyTo,
+        }),
+      });
+
+      if (webhookResponse.ok) {
+        console.log("✅ Email sent successfully via webhook!");
+        return { success: true };
+      }
+    } catch (error: any) {
+      console.error("❌ Webhook exception:", error.message);
+    }
+  }
+  
+  // If nothing works, at least save to database
+  console.warn("⚠️  No email service configured - saving to database only");
+  console.warn("   To enable email sending, configure one of:");
+  console.warn("   - FORMSPREE_ENDPOINT (easiest: https://formspree.io - just get endpoint URL)");
+  console.warn("   - EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID");
   console.warn("   - RESEND_API_KEY");
   console.warn("   Email details:", { to: toArray, subject });
   
   return { 
     success: false, 
-    error: "No email service configured. Please add EMAILJS_* or RESEND_API_KEY to environment variables." 
+    error: "No email service configured. Emails are saved to database only." 
   };
 }
