@@ -805,8 +805,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                                   outline: "none"
                                 }}
                               >
-                                <option value="1">Viewer</option>
-                                <option value="2">Editor</option>
+                                <option value="1">{t.join.viewer}</option>
+                                <option value="2">{t.join.editor}</option>
                               </select>
                             </div>
                           );
@@ -868,7 +868,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   if (!loading) e.currentTarget.style.background = "#B53251";
                 }}
               >
-                {loading ? "Registrujem..." : t.join.register}
+                {loading ? t.join.registering : t.join.register}
               </button>
 
               <p style={{ 
@@ -876,7 +876,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 fontSize: "14px", 
                 color: "#666" 
               }}>
-                Već imaš nalog?{" "}
+                {t.login.noAccount}{" "}
                 <a 
                   href={localeLink("/login", locale)} 
                   style={{ 
@@ -885,7 +885,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                     fontWeight: "600"
                   }}
                 >
-                  Uloguj se ovdje
+                  {t.login.registerHere}
                 </a>
               </p>
             </form>

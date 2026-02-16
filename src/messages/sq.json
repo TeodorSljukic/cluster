@@ -126,7 +126,10 @@
     "allPlatforms": "Të gjitha platformat",
     "newsletter": "Dëshiroj të marr përditësime dhe buletine nga ABGC",
     "terms": "Pranoj Kushtet dhe Termat dhe Politikën e Privatësisë",
-    "register": "Regjistrohu"
+    "register": "Regjistrohu",
+    "registering": "Duke u regjistruar...",
+    "viewer": "Shikues",
+    "editor": "Redaktor"
   },
   "cms": {
     "dashboard": "Paneli",

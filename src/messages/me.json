@@ -126,7 +126,10 @@
     "allPlatforms": "Sve platforme",
     "newsletter": "Želim da primam obavještenja i biltene od ABGC",
     "terms": "Slažem se sa Uslovima korištenja i Politikom privatnosti",
-    "register": "Registruj se"
+    "register": "Registruj se",
+    "registering": "Registrujem...",
+    "viewer": "Gledalac",
+    "editor": "Urednik"
   },
   "cms": {
     "dashboard": "Kontrolna tabla",

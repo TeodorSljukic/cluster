@@ -126,7 +126,10 @@
     "allPlatforms": "All platforms",
     "newsletter": "I want to receive updates and newsletters from ABGC",
     "terms": "I agree to the Terms and Conditions and the Privacy Policy",
-    "register": "Register"
+    "register": "Register",
+    "registering": "Registering...",
+    "viewer": "Viewer",
+    "editor": "Editor"
   },
   "cms": {
     "dashboard": "Dashboard",
