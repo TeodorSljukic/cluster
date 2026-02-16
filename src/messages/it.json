@@ -57,7 +57,9 @@
     "title": "Strumenti della piattaforma",
     "documents": "Documenti",
     "elearning": "eLearning",
-    "ecommerce": "eCommerce"
+    "ecommerce": "eCommerce",
+    "lms": "LMS",
+    "dms": "DMS"
   },
   "accordion": {
     "cluster": "Organizzazioni Cluster",
@@ -94,6 +96,20 @@
   "charts": {
     "title": "Approfondimenti della Comunità",
     "subtitle": "Esplora i dati e le tendenze della nostra comunità"
+  },
+  "register": {
+    "success": "Registrazione riuscita!",
+    "userCreatedOn": "Utente creato su:",
+    "error": "Errore:",
+    "somethingWentWrong": "Qualcosa è andato storto",
+    "registrationError": "Errore di registrazione. Riprova.",
+    "partialSuccess": "Registrazione parzialmente riuscita:",
+    "partialSuccessCreated": "Creato con successo su:",
+    "partialSuccessFailed": "Fallito:",
+    "partialSuccessNote": "Puoi accedere e utilizzare le piattaforme su cui sei stato creato.",
+    "platformCreated": "creato",
+    "platformFailed": "fallito",
+    "unknown": "Sconosciuto"
   },
   "join": {
     "title": "Unisciti alla Comunità ABGC",

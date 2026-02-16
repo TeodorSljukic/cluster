@@ -57,7 +57,9 @@
     "title": "Platform tools",
     "documents": "Documents",
     "elearning": "eLearning",
-    "ecommerce": "eCommerce"
+    "ecommerce": "eCommerce",
+    "lms": "LMS",
+    "dms": "DMS"
   },
   "accordion": {
     "cluster": "Cluster Organisations",
@@ -94,6 +96,20 @@
   "charts": {
     "title": "Community Insights",
     "subtitle": "Explore data and trends from our community"
+  },
+  "register": {
+    "success": "Registration successful!",
+    "userCreatedOn": "User created on:",
+    "error": "Error:",
+    "somethingWentWrong": "Something went wrong",
+    "registrationError": "Registration error. Please try again.",
+    "partialSuccess": "Registration partially successful:",
+    "partialSuccessCreated": "Successfully created on:",
+    "partialSuccessFailed": "Failed:",
+    "partialSuccessNote": "You can log in and use the platforms where you were created.",
+    "platformCreated": "created",
+    "platformFailed": "failed",
+    "unknown": "Unknown"
   },
   "join": {
     "title": "Join the ABGC Community",

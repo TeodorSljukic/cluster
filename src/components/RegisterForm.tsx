@@ -108,24 +108,24 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           const failed = [];
           
           if (data.registrations?.lms?.success) {
-            succeeded.push("✅ LMS");
+            succeeded.push(`✅ ${t.platform.lms}`);
           } else if (data.registrations?.lms?.error) {
-            failed.push(`❌ LMS: ${data.registrations.lms.error}`);
+            failed.push(`❌ ${t.platform.lms}: ${data.registrations.lms.error}`);
           }
           
           if (data.registrations?.ecommerce?.success) {
-            succeeded.push("✅ Ecommerce");
+            succeeded.push(`✅ ${t.platform.ecommerce}`);
           } else if (data.registrations?.ecommerce?.error) {
-            failed.push(`❌ Ecommerce: ${data.registrations.ecommerce.error}`);
+            failed.push(`❌ ${t.platform.ecommerce}: ${data.registrations.ecommerce.error}`);
           }
           
           if (data.registrations?.dms?.success) {
-            succeeded.push("✅ DMS");
+            succeeded.push(`✅ ${t.platform.dms}`);
           } else if (data.registrations?.dms?.error) {
-            failed.push(`❌ DMS: ${data.registrations.dms.error}`);
+            failed.push(`❌ ${t.platform.dms}: ${data.registrations.dms.error}`);
           }
           
-          const warningMessage = `⚠️ Registracija delimično uspješna:\n\n${succeeded.length > 0 ? "Uspješno kreiran na:\n" + succeeded.join("\n") + "\n\n" : ""}${failed.length > 0 ? "Neuspješno:\n" + failed.join("\n") + "\n\n" : ""}Možete se prijaviti i koristiti platforme na kojima ste kreirani.`;
+          const warningMessage = `⚠️ ${t.register.partialSuccess}\n\n${succeeded.length > 0 ? t.register.partialSuccessCreated + "\n" + succeeded.join("\n") + "\n\n" : ""}${failed.length > 0 ? t.register.partialSuccessFailed + "\n" + failed.join("\n") + "\n\n" : ""}${t.register.partialSuccessNote}`;
           
           // Use success style if at least one succeeded
           if (succeeded.length > 0) {
@@ -139,12 +139,12 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             window.location.href = localeLink("/dashboard", locale);
           }, 2000);
         } else {
-          const successMessage = `✅ Registracija uspješna!\n\nKorisnik kreiran na:\n${
-            data.registrations?.lms?.success ? "✅ LMS\n" : ""
+          const successMessage = `✅ ${t.register.success}\n\n${t.register.userCreatedOn}\n${
+            data.registrations?.lms?.success ? `✅ ${t.platform.lms}\n` : ""
           }${
-            data.registrations?.ecommerce?.success ? "✅ Ecommerce\n" : ""
+            data.registrations?.ecommerce?.success ? `✅ ${t.platform.ecommerce}\n` : ""
           }${
-            data.registrations?.dms?.success ? "✅ DMS\n" : ""
+            data.registrations?.dms?.success ? `✅ ${t.platform.dms}\n` : ""
           }`;
           setSuccess(successMessage);
           
@@ -154,10 +154,10 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           }, 1000);
         }
       } else {
-        setError(`❌ Greška: ${data.error || data.message || "Nešto je pošlo po zlu"}`);
+        setError(`❌ ${t.register.error} ${data.error || data.message || t.register.somethingWentWrong}`);
       }
     } catch (error) {
-      setError("❌ Greška pri registraciji. Pokušaj ponovo.");
+      setError(`❌ ${t.register.registrationError}`);
     } finally {
       setLoading(false);
     }

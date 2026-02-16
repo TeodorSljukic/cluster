@@ -57,7 +57,9 @@
     "title": "Mjetet e platformës",
     "documents": "Dokumente",
     "elearning": "eMësimi",
-    "ecommerce": "eTregtia"
+    "ecommerce": "eTregtia",
+    "lms": "LMS",
+    "dms": "DMS"
   },
   "accordion": {
     "cluster": "Organizatat e Klasterit",
@@ -94,6 +96,20 @@
   "charts": {
     "title": "Njohuri të Komunitetit",
     "subtitle": "Eksploroni të dhënat dhe trendet nga komuniteti ynë"
+  },
+  "register": {
+    "success": "Regjistrimi u krye me sukses!",
+    "userCreatedOn": "Përdoruesi u krijua në:",
+    "error": "Gabim:",
+    "somethingWentWrong": "Diçka shkoi keq",
+    "registrationError": "Gabim gjatë regjistrimit. Ju lutem provoni përsëri.",
+    "partialSuccess": "Regjistrimi pjesërisht i suksesshëm:",
+    "partialSuccessCreated": "Krijuar me sukses në:",
+    "partialSuccessFailed": "Dështoi:",
+    "partialSuccessNote": "Mund të hyni dhe të përdorni platformat ku u krijuat.",
+    "platformCreated": "krijuar",
+    "platformFailed": "dështoi",
+    "unknown": "E panjohur"
   },
   "join": {
     "title": "Bashkohu me Komunitetin ABGC",

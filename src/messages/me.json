@@ -57,7 +57,9 @@
     "title": "Alati platforme",
     "documents": "Dokumenti",
     "elearning": "eUčenje",
-    "ecommerce": "eTrgovina"
+    "ecommerce": "eTrgovina",
+    "lms": "LMS",
+    "dms": "DMS"
   },
   "accordion": {
     "cluster": "Klaster Organizacije",
@@ -94,6 +96,20 @@
   "charts": {
     "title": "Uvidi zajednice",
     "subtitle": "Istražite podatke i trendove iz naše zajednice"
+  },
+  "register": {
+    "success": "Registracija uspješna!",
+    "userCreatedOn": "Korisnik kreiran na:",
+    "error": "Greška:",
+    "somethingWentWrong": "Nešto je pošlo po zlu",
+    "registrationError": "Greška pri registraciji. Pokušaj ponovo.",
+    "partialSuccess": "Registracija delimično uspješna:",
+    "partialSuccessCreated": "Uspješno kreiran na:",
+    "partialSuccessFailed": "Neuspješno:",
+    "partialSuccessNote": "Možete se prijaviti i koristiti platforme na kojima ste kreirani.",
+    "platformCreated": "kreiran",
+    "platformFailed": "neuspješan",
+    "unknown": "Nepoznato"
   },
   "join": {
     "title": "Pridružite se ABGC zajednici",
