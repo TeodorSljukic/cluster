@@ -185,6 +185,10 @@
   "profile": {
     "loading": "Učitavanje profila...",
     "pleaseLogin": "Molimo prijavite se da biste vidjeli svoj profil.",
+    "uploadFailed": "Učitavanje neuspješno",
+    "member": "Član",
+    "unauthorized": "Neovlašćeno",
+    "error": "Greška",
     "editProfile": "Uredi profil",
     "saveProfile": "Sačuvaj profil",
     "saving": "Čuvanje...",
@@ -361,6 +365,11 @@
   "chat": {
     "title": "Chat",
     "loading": "Učitavanje...",
+    "unknownError": "Nepoznata greška",
+    "moreOptions": "Više opcija",
+    "saveChanges": "Sačuvaj izmjene",
+    "cancelEditing": "Otkaži uređivanje",
+    "removeMember": "Ukloni člana",
     "noChatSelected": "Odaberite razgovor da počnete",
     "typeMessage": "Unesite poruku...",
     "send": "Pošalji",

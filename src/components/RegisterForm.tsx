@@ -191,7 +191,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     },
     { 
       id: "all", 
-      label: t.join.allPlatforms || "Sve platforme"
+      label: t.join.allPlatforms
     }
   ];
 
@@ -514,7 +514,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   fontSize: "14px",
                   color: "#333"
                 }}>
-                  {t.join.city || "City"}
+                  {t.join.city}
                 </label>
                 <input
                   type="text"

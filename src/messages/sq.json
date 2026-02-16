@@ -185,6 +185,10 @@
   "profile": {
     "loading": "Duke ngarkuar profilin...",
     "pleaseLogin": "Ju lutem bëni hyrje për të parë profilin tuaj.",
+    "uploadFailed": "Ngarkimi dështoi",
+    "member": "Anëtar",
+    "unauthorized": "E paautorizuar",
+    "error": "Gabim",
     "editProfile": "Redakto profilin",
     "saveProfile": "Ruaj profilin",
     "saving": "Duke ruajtur...",
@@ -361,6 +365,11 @@
   "chat": {
     "title": "Chat",
     "loading": "Duke ngarkuar...",
+    "unknownError": "Gabim i panjohur",
+    "moreOptions": "Më shumë opsione",
+    "saveChanges": "Ruaj ndryshimet",
+    "cancelEditing": "Anulo redaktimin",
+    "removeMember": "Hiq anëtarin",
     "noChatSelected": "Zgjidhni një bisedë për të filluar",
     "typeMessage": "Shkruani një mesazh...",
     "send": "Dërgo",

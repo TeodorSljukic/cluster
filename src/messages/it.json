@@ -185,6 +185,10 @@
   "profile": {
     "loading": "Caricamento profilo...",
     "pleaseLogin": "Effettua l'accesso per visualizzare il tuo profilo.",
+    "uploadFailed": "Caricamento fallito",
+    "member": "Membro",
+    "unauthorized": "Non autorizzato",
+    "error": "Errore",
     "editProfile": "Modifica profilo",
     "saveProfile": "Salva profilo",
     "saving": "Salvataggio...",
@@ -361,6 +365,11 @@
   "chat": {
     "title": "Chat",
     "loading": "Caricamento...",
+    "unknownError": "Errore sconosciuto",
+    "moreOptions": "Altre opzioni",
+    "saveChanges": "Salva modifiche",
+    "cancelEditing": "Annulla modifica",
+    "removeMember": "Rimuovi membro",
     "noChatSelected": "Seleziona una conversazione per iniziare",
     "typeMessage": "Scrivi un messaggio...",
     "send": "Invia",

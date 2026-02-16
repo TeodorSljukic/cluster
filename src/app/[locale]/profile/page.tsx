@@ -159,7 +159,7 @@ export default function ProfilePage({
       const data = await res.json();
       if (data.error) {
         console.error("API error:", data.error);
-        if (data.error === "Unauthorized" || data.error.includes("Unauthorized")) {
+        if (data.error === "Unauthorized" || data.error === t.profile.unauthorized || data.error.includes("Unauthorized") || data.error.includes(t.profile.unauthorized)) {
           router.push(localeLink("/login", locale));
           return;
         }
@@ -265,7 +265,7 @@ export default function ProfilePage({
         }
       } else {
         const error = await res.json();
-        alert(`Error: ${error.error || "Upload failed"}`);
+        alert(`${t.profile.error || "Error"}: ${error.error || t.profile.uploadFailed}`);
       }
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -700,7 +700,7 @@ export default function ProfilePage({
                   />
                 ) : (
                   <p style={{ fontSize: "16px", color: "#666", margin: "4px 0" }}>
-                    {getTranslatedText(user.headline, (user as any).headlineTranslations, locale) || user.role_custom || user.organization || "Member"}
+                    {getTranslatedText(user.headline, (user as any).headlineTranslations, locale) || user.role_custom || user.organization || t.profile.member}
                   </p>
                 )}
 

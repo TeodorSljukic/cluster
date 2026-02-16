@@ -574,7 +574,7 @@ function ChatPageInner() {
         }
         lastMessageIdRef.current = data._id;
       } else {
-        const error = await res.json().catch(() => ({ error: "Unknown error" }));
+        const error = await res.json().catch(() => ({ error: t.chat.unknownError }));
         console.error("Failed to send message:", error);
         alert(error.error || t.chat.messageFailed);
       }
@@ -612,7 +612,7 @@ function ChatPageInner() {
         setEditingMessageId(null);
         setEditingText("");
       } else {
-        const error = await res.json().catch(() => ({ error: "Unknown error" }));
+        const error = await res.json().catch(() => ({ error: t.chat.unknownError }));
         console.error("Failed to edit message:", error);
         alert(error.error || t.chat.messageFailed);
       }
@@ -796,9 +796,9 @@ function ChatPageInner() {
         );
         setShowEmojiPicker(null);
       } else {
-        const error = await res.json().catch(() => ({ error: "Unknown error" }));
+        const error = await res.json().catch(() => ({ error: t.chat.unknownError }));
         console.error("Failed to toggle reaction:", error);
-        alert(`Failed to add reaction: ${error.error || "Unknown error"}`);
+        alert(`Failed to add reaction: ${error.error || t.chat.unknownError}`);
       }
     } catch (error) {
       console.error("Error toggling reaction:", error);
@@ -1652,7 +1652,7 @@ function ChatPageInner() {
                                 e.currentTarget.style.background = "white";
                                 e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.1)";
                               }}
-                              title="More options"
+                              title={t.chat.moreOptions}
                             >
                               <MoreVertical size={isMobile ? 18 : 16} color="#666" />
                             </button>
@@ -2562,7 +2562,7 @@ function ChatPageInner() {
                         opacity: editingText.trim() ? 1 : 0.5,
                         transition: "all 0.2s ease",
                       }}
-                      title="Save changes"
+                      title={t.chat.saveChanges}
                     >
                       <Send size={18} />
                     </button>
@@ -2584,7 +2584,7 @@ function ChatPageInner() {
                         cursor: "pointer",
                         transition: "all 0.2s ease",
                       }}
-                      title="Cancel editing"
+                      title={t.chat.cancelEditing}
                     >
                       <X size={20} />
                     </button>
@@ -3320,7 +3320,7 @@ function ChatPageInner() {
                             padding: "4px",
                             color: "#dc3545",
                           }}
-                          title="Remove member"
+                          title={t.chat.removeMember}
                         >
                           <UserMinus size={16} />
                         </button>
