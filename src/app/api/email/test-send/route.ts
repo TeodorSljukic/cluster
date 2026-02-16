@@ -8,7 +8,19 @@ import { sendEmail } from "@/lib/email";
 export async function POST(request: NextRequest) {
   try {
     const { to } = await request.json();
+    // Default test email, but you can send to any email via request body
     const testEmail = to || "teodorsljukic@gmail.com";
+    
+    if (!testEmail || !testEmail.includes("@")) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Invalid email address",
+          message: "Please provide a valid email address in the 'to' field" 
+        },
+        { status: 400 }
+      );
+    }
 
     const result = await sendEmail({
       to: testEmail,
