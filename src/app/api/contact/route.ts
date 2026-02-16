@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,67 +18,62 @@ export async function POST(request: NextRequest) {
     
     // Email body
     const emailBody = `
-      <h2>New Contact Form Submission</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Message:</strong></p>
-      <p>${message.replace(/\n/g, '<br>')}</p>
-      <hr>
-      <p style="color: #666; font-size: 12px;">This email was sent from the contact form on ${process.env.NEXT_PUBLIC_BASE_URL || 'the website'}.</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #B53251;">New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong></p>
+        <p style="white-space: pre-wrap;">${message.replace(/\n/g, '<br>')}</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">This email was sent from the contact form on ${process.env.NEXT_PUBLIC_BASE_URL || 'the website'}.</p>
+      </div>
     `;
 
-    // Try to send email using Resend API (if API key is configured)
-    const resendApiKey = process.env.RESEND_API_KEY;
-    
-    if (resendApiKey) {
-      try {
-        const resendResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${resendApiKey}`,
-          },
-          body: JSON.stringify({
-            from: "Contact Form <onboarding@resend.dev>", // You can change this domain
-            to: [recipientEmail],
-            subject: subject,
-            html: emailBody,
-            reply_to: email,
-          }),
-        });
+    // Try to send email
+    const emailResult = await sendEmail({
+      to: recipientEmail,
+      subject,
+      html: emailBody,
+      from: "ABGC Contact <onboarding@resend.dev>",
+      replyTo: email,
+    });
 
-        if (!resendResponse.ok) {
-          const errorData = await resendResponse.json();
-          console.error("Resend API error:", errorData);
-          throw new Error("Failed to send email via Resend");
-        }
-
-        console.log("Email sent successfully via Resend to:", recipientEmail);
-        return NextResponse.json({ success: true });
-      } catch (resendError) {
-        console.error("Resend API error:", resendError);
-        // Fall through to alternative method
-      }
+    // Save to database as backup
+    try {
+      const { getCollection } = await import("@/lib/db");
+      const contactCollection = await getCollection("contact_submissions");
+      await contactCollection.insertOne({
+        name,
+        email,
+        message,
+        recipientEmail,
+        subject,
+        createdAt: new Date(),
+        sent: emailResult.success,
+      });
+      console.log("✅ Contact submission saved to database");
+    } catch (dbError: any) {
+      console.error("❌ Failed to save to database:", dbError.message);
     }
 
-    // Alternative: Use a simple email service or log for manual processing
-    // For production, you can also use:
-    // - Nodemailer with SMTP
-    // - SendGrid
-    // - AWS SES
-    // - Or any other email service
-
-    // Log the submission (for development/debugging)
-    console.log("Contact form submission:", { name, email, message });
-    console.log("Email would be sent to:", recipientEmail);
-    
-    // In production without email service, you might want to save to database
-    // For now, we'll return success (email will be sent if Resend is configured)
-    return NextResponse.json({ success: true });
-  } catch (error) {
+    if (emailResult.success) {
+      return NextResponse.json({ 
+        success: true, 
+        message: "Your message has been sent successfully!" 
+      });
+    } else {
+      // Still return success, but indicate email wasn't sent
+      return NextResponse.json({ 
+        success: true, 
+        message: "Your message has been received. We will contact you soon.",
+        emailSent: false,
+        warning: "Email service not configured. Message saved for manual processing."
+      });
+    }
+  } catch (error: any) {
     console.error("Error processing contact form:", error);
     return NextResponse.json(
-      { error: "Failed to send message" },
+      { error: "Failed to send message", details: error.message },
       { status: 500 }
     );
   }
