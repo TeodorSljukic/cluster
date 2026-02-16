@@ -24,52 +24,7 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
   // Convert HTML to plain text
   const plainText = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
   
-  // Try Formspree FIRST (easiest, no API key needed)
-  const formspreeEndpoint = process.env.FORMSPREE_ENDPOINT;
-  console.log("   Formspree config check:", { hasEndpoint: !!formspreeEndpoint });
-  
-  if (formspreeEndpoint) {
-    try {
-      console.log("   Trying Formspree (first priority)...");
-      const formspreeBody = {
-        _to: toArray[0],
-        _subject: subject,
-        _replyto: replyTo || toArray[0],
-        message: plainText,
-        html: html,
-      };
-      
-      console.log("   Formspree request body:", JSON.stringify(formspreeBody, null, 2));
-      
-      const formspreeResponse = await fetch(formspreeEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formspreeBody),
-      });
-
-      const formspreeResponseText = await formspreeResponse.text();
-      
-      console.log("   Formspree response:", {
-        status: formspreeResponse.status,
-        statusText: formspreeResponse.statusText,
-        responseText: formspreeResponseText.substring(0, 200),
-      });
-
-      if (formspreeResponse.ok) {
-        console.log("✅ Email sent successfully via Formspree!");
-        return { success: true };
-      } else {
-        console.error("❌ Formspree error:", formspreeResponseText);
-      }
-    } catch (error: any) {
-      console.error("❌ Formspree exception:", error.message);
-      console.error("   Full error:", error);
-    }
-  }
-  
-  // Try EmailJS (if configured) - FIRST PRIORITY
+  // Try EmailJS FIRST (if configured) - PRIMARY SERVICE
   const emailjsPublicKey = process.env.EMAILJS_PUBLIC_KEY;
   const emailjsServiceId = process.env.EMAILJS_SERVICE_ID;
   const emailjsTemplateId = process.env.EMAILJS_TEMPLATE_ID;
@@ -134,22 +89,38 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
         body: JSON.stringify(requestBody),
       });
 
-      const responseText = await emailjsResponse.text();
+      let responseText = "";
+      try {
+        responseText = await emailjsResponse.text();
+      } catch (e) {
+        responseText = "Could not read response text";
+      }
       
       console.log("   EmailJS response:", {
         status: emailjsResponse.status,
         statusText: emailjsResponse.statusText,
-        responseText: responseText.substring(0, 200), // First 200 chars
+        responseText: responseText.substring(0, 500), // First 500 chars
+        headers: Object.fromEntries(emailjsResponse.headers.entries()),
       });
       
       if (emailjsResponse.ok) {
         console.log("✅ Email sent successfully via EmailJS!");
         return { success: true };
       } else {
+        // Try to parse error if it's JSON
+        let errorDetails = responseText;
+        try {
+          const errorJson = JSON.parse(responseText);
+          errorDetails = JSON.stringify(errorJson, null, 2);
+        } catch (e) {
+          // Not JSON, use as is
+        }
+        
         console.error("❌ EmailJS error:", {
           status: emailjsResponse.status,
           statusText: emailjsResponse.statusText,
-          error: responseText
+          error: errorDetails,
+          fullResponse: responseText,
         });
       }
     } catch (error: any) {
@@ -162,6 +133,51 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
       serviceId: emailjsServiceId ? "✅" : "❌",
       templateId: emailjsTemplateId ? "✅" : "❌",
     });
+  }
+  
+  // Try Formspree (fallback)
+  const formspreeEndpoint = process.env.FORMSPREE_ENDPOINT;
+  console.log("   Formspree config check:", { hasEndpoint: !!formspreeEndpoint });
+  
+  if (formspreeEndpoint) {
+    try {
+      console.log("   Trying Formspree (fallback)...");
+      const formspreeBody = {
+        _to: toArray[0],
+        _subject: subject,
+        _replyto: replyTo || toArray[0],
+        message: plainText,
+        html: html,
+      };
+      
+      console.log("   Formspree request body:", JSON.stringify(formspreeBody, null, 2));
+      
+      const formspreeResponse = await fetch(formspreeEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formspreeBody),
+      });
+
+      const formspreeResponseText = await formspreeResponse.text();
+      
+      console.log("   Formspree response:", {
+        status: formspreeResponse.status,
+        statusText: formspreeResponse.statusText,
+        responseText: formspreeResponseText.substring(0, 200),
+      });
+
+      if (formspreeResponse.ok) {
+        console.log("✅ Email sent successfully via Formspree!");
+        return { success: true };
+      } else {
+        console.error("❌ Formspree error:", formspreeResponseText);
+      }
+    } catch (error: any) {
+      console.error("❌ Formspree exception:", error.message);
+      console.error("   Full error:", error);
+    }
   }
   
   // Try Resend API
