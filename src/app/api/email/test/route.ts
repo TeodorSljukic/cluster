@@ -45,12 +45,20 @@ export async function GET() {
   return NextResponse.json({
     status: hasAnyService ? "✅ Email service configured" : "❌ No email service configured",
     services: config,
+    debug: {
+      allEnvVars: Object.keys(process.env).filter(key => 
+        key.includes('SMTP') || key.includes('EMAIL') || key.includes('RESEND')
+      ),
+      smtpUserExists: !!process.env.SMTP_USER,
+      smtpPassExists: !!process.env.SMTP_PASS,
+    },
     instructions: {
       smtp: "Use Gmail App Password: https://myaccount.google.com/apppasswords - Set SMTP_USER and SMTP_PASS",
       emailjs: "Get credentials from https://www.emailjs.com - you need Public Key, Service ID, and Template ID",
       formspree: "Get endpoint from https://formspree.io - just create a form and use the endpoint URL",
       resend: "Get API key from https://resend.com - create account and get API key",
       webhook: "Set EMAIL_WEBHOOK_URL to your custom webhook endpoint",
+      note: "After adding environment variables, you MUST redeploy the application for them to take effect!",
     },
   });
 }
