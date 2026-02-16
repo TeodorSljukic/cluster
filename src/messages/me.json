@@ -27,7 +27,31 @@
     "title": "O ABGC",
     "text1": "Adriatic Blue Growth Cluster (ABGC) povećava kapacitet i konkurentnost kompanija i profesionalaca koji rade u sektorima plave ekonomije kroz međusobno učenje i saradnju.",
     "text2": "Gradnja na temeljima već aktivnog klastera u Crnoj Gori—uspostavljenog u okviru Smart Adria inicijative—ABGC se razvija u dinamičan prostor gdje se poslovni subjekti, obrazovne institucije i dionici duž cijelog lanca vrijednosti mogu povezati, razmijeniti iskustva i usvojiti zajedničke prakse učenja.",
-    "text3": "Podsticanjem saradnje preko granica i sektora, ABGC služi kao katalizator za inovacije, razvoj vještina i održivi plavi rast u regiji Južnog Jadrana."
+    "text3": "Podsticanjem saradnje preko granica i sektora, ABGC služi kao katalizator za inovacije, razvoj vještina i održivi plavi rast u regiji Južnog Jadrana.",
+    "pageTitle": "Adriatic Blue Growth Cluster",
+    "pageDescription1": "Adriatic Blue Growth Cluster (ABGC) je prekogranična inicijativa koja okuplja poslovne subjekte, institucije i zajednice širom Jadranske regije kako bi promovisala održivi razvoj u plavoj ekonomiji.",
+    "pageDescription2": "Sa sjedištem u Kotoru, Crna Gora, ABGC služi kao platforma za saradnju u unapređenju inovacija, saradnje i investicija u ključnim plavim sektorima—uključujući ribarstvo, akvakulturu, pomorske tehnologije, pomorski transport, brodogradnju i obalni turizam.",
+    "whatWeDo": "Šta radimo",
+    "whatWeDoItem1": "Umrežavanje i saradnja između preduzeća, istraživačkih institucija i javnih vlasti",
+    "whatWeDoItem2": "Promocija plavih tehnologija i njihova primjena u regiji",
+    "whatWeDoItem3": "Učešće u nacionalnim i EU projektima",
+    "whatWeDoItem4": "Savjetovanje i obuka za preduzeća i dionike",
+    "whatWeDoItem5": "Zagovaranje i angažovanje u politici plave ekonomije",
+    "ourStructure": "Naša struktura",
+    "ourStructureText": "ABGC je organizovan u dva regionalna odjeljenja:",
+    "ourStructureItem1": "Centralni i Južni Jadranski Odjeljak — Bosna i Hercegovina, Hrvatska i Crna Gora",
+    "ourStructureItem2": "Južni Jadranski Odjeljak — Albanija, Italija i Crna Gora",
+    "whoCanJoin": "Ko može da se pridruži",
+    "whoCanJoinItem1": "Preduzeća i zadruge u sektorima plave ekonomije",
+    "whoCanJoinItem2": "Univerziteti i istraživački centri",
+    "whoCanJoinItem3": "Javne institucije i NVO",
+    "whoCanJoinItem4": "Pojedinci i profesionalci u pomorskom/obalnom razvoju",
+    "whyJoin": "Zašto se pridružiti ABGC?",
+    "whyJoinItem1": "Pristup regionalnoj/međunarodnoj mreži partnera",
+    "whyJoinItem2": "Učešće u projektima saradnje",
+    "whyJoinItem3": "Razmjena znanja i najboljih praksi",
+    "whyJoinItem4": "Povećanje vidljivosti kroz zajedničku promociju",
+    "whyJoinItem5": "Pomozite u oblikovanju održivog rasta na Jadranu"
   },
   "platform": {
     "title": "Alati platforme",
@@ -233,6 +257,9 @@
     "requestPending": "Zahtjev na čekanju",
     "connect": "Poveži",
     "sending": "Slanje..."
+  },
+  "footer": {
+    "copyright": "© 2026 Adriatic Blue Growth Cluster"
   },
   "contact": {
     "title": "Slobodno nas pozovite i pišite",

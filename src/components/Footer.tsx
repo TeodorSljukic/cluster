@@ -142,7 +142,7 @@ export function Footer() {
             margin: "0",
             textAlign: "center"
           }}>
-            © 2026 Adriatic Blue Growth Cluster
+            {t.footer.copyright}
           </p>
         </div>
       </footer>

@@ -1,4 +1,19 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import { getTranslations, type Locale } from "@/lib/getTranslations";
+
 export default function AboutPage() {
+  const pathname = usePathname();
+  const locale: Locale = (() => {
+    const match = pathname?.match(/^\/([^\/]+)/);
+    if (match && ["me", "en", "it", "sq"].includes(match[1])) {
+      return match[1] as Locale;
+    }
+    return "en";
+  })();
+  const t = getTranslations(locale);
+
   return (
     <main className="about-page">
       <div className="container about-header" data-aos="fade-up">
@@ -7,73 +22,58 @@ export default function AboutPage() {
             src="/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp"
             alt="ABGC Logo"
           />
-          <h2>Adriatic Blue Growth Cluster</h2>
+          <h2>{t.about.pageTitle}</h2>
         </div>
         <div className="about-text" data-aos="fade-left" data-aos-delay="200">
-          <h3>Adriatic Blue Growth Cluster</h3>
-          <p>
-            The Adriatic Blue Growth Cluster (ABGC) is a cross-border initiative
-            that brings together businesses, institutions, and communities
-            across the Adriatic region to promote sustainable development in the
-            blue economy.
-          </p>
-          <p>
-            Headquartered in Kotor, Montenegro, ABGC serves as a collaborative
-            platform for advancing innovation, cooperation, and investment in
-            key blue sectors—including fisheries, aquaculture, marine
-            technologies, maritime transport, shipbuilding, and coastal tourism.
-          </p>
+          <h3>{t.about.pageTitle}</h3>
+          <p>{t.about.pageDescription1}</p>
+          <p>{t.about.pageDescription2}</p>
         </div>
       </div>
 
       <div className="container about-cards">
         <div className="card" data-aos="zoom-in" data-aos-delay="100">
-          <h4>What we do</h4>
+          <h4>{t.about.whatWeDo}</h4>
           <ul>
-            <li>
-              Networking and collaboration among enterprises, research
-              institutions, and public authorities
-            </li>
-            <li>Promotion of blue technologies and their adoption in the region</li>
-            <li>Participation in national and EU-funded projects</li>
-            <li>Consulting and training for businesses and stakeholders</li>
-            <li>Advocacy and policy engagement in the blue economy</li>
+            <li>{t.about.whatWeDoItem1}</li>
+            <li>{t.about.whatWeDoItem2}</li>
+            <li>{t.about.whatWeDoItem3}</li>
+            <li>{t.about.whatWeDoItem4}</li>
+            <li>{t.about.whatWeDoItem5}</li>
           </ul>
         </div>
 
         <div className="card" data-aos="zoom-in" data-aos-delay="200">
-          <h4>Our structure</h4>
-          <p>ABGC is organized into two regional sections:</p>
+          <h4>{t.about.ourStructure}</h4>
+          <p>{t.about.ourStructureText}</p>
           <ul>
             <li>
-              <strong>Central and South Adriatic Section</strong> — Bosnia and
-              Herzegovina, Croatia, and Montenegro
+              <strong>{t.about.ourStructureItem1}</strong>
             </li>
             <li>
-              <strong>South Adriatic Section</strong> — Albania, Italy, and
-              Montenegro
+              <strong>{t.about.ourStructureItem2}</strong>
             </li>
           </ul>
         </div>
 
         <div className="card" data-aos="zoom-in" data-aos-delay="300">
-          <h4>Who Can Join</h4>
+          <h4>{t.about.whoCanJoin}</h4>
           <ul>
-            <li>Businesses and cooperatives in blue economy sectors</li>
-            <li>Universities and research centers</li>
-            <li>Public institutions and NGOs</li>
-            <li>Individuals and professionals in marine/coastal development</li>
+            <li>{t.about.whoCanJoinItem1}</li>
+            <li>{t.about.whoCanJoinItem2}</li>
+            <li>{t.about.whoCanJoinItem3}</li>
+            <li>{t.about.whoCanJoinItem4}</li>
           </ul>
         </div>
 
         <div className="card" data-aos="zoom-in" data-aos-delay="400">
-          <h4>Why join ABGC?</h4>
+          <h4>{t.about.whyJoin}</h4>
           <ul>
-            <li>Access a regional/international partner network</li>
-            <li>Participate in collaborative projects</li>
-            <li>Share knowledge and best practices</li>
-            <li>Increase visibility through joint promotion</li>
-            <li>Help shape sustainable growth in the Adriatic</li>
+            <li>{t.about.whyJoinItem1}</li>
+            <li>{t.about.whyJoinItem2}</li>
+            <li>{t.about.whyJoinItem3}</li>
+            <li>{t.about.whyJoinItem4}</li>
+            <li>{t.about.whyJoinItem5}</li>
           </ul>
         </div>
       </div>

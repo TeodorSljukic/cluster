@@ -27,7 +27,31 @@
     "title": "About ABGC",
     "text1": "The Adriatic Blue Growth Cluster (ABGC) enhances the capacity and competitiveness of companies and professionals operating in the blue economy sectors through mutual learning and collaboration.",
     "text2": "Building on the foundation of an already active cluster in Montenegro—established under the Smart Adria initiative—ABGC is evolving into a dynamic space where businesses, training institutions, and stakeholders across the value chain can connect, exchange experiences, and adopt shared learning practices.",
-    "text3": "By fostering cooperation across borders and sectors, ABGC serves as a catalyst for innovation, skills development, and sustainable blue growth in the South Adriatic region."
+    "text3": "By fostering cooperation across borders and sectors, ABGC serves as a catalyst for innovation, skills development, and sustainable blue growth in the South Adriatic region.",
+    "pageTitle": "Adriatic Blue Growth Cluster",
+    "pageDescription1": "The Adriatic Blue Growth Cluster (ABGC) is a cross-border initiative that brings together businesses, institutions, and communities across the Adriatic region to promote sustainable development in the blue economy.",
+    "pageDescription2": "Headquartered in Kotor, Montenegro, ABGC serves as a collaborative platform for advancing innovation, cooperation, and investment in key blue sectors—including fisheries, aquaculture, marine technologies, maritime transport, shipbuilding, and coastal tourism.",
+    "whatWeDo": "What we do",
+    "whatWeDoItem1": "Networking and collaboration among enterprises, research institutions, and public authorities",
+    "whatWeDoItem2": "Promotion of blue technologies and their adoption in the region",
+    "whatWeDoItem3": "Participation in national and EU-funded projects",
+    "whatWeDoItem4": "Consulting and training for businesses and stakeholders",
+    "whatWeDoItem5": "Advocacy and policy engagement in the blue economy",
+    "ourStructure": "Our structure",
+    "ourStructureText": "ABGC is organized into two regional sections:",
+    "ourStructureItem1": "Central and South Adriatic Section — Bosnia and Herzegovina, Croatia, and Montenegro",
+    "ourStructureItem2": "South Adriatic Section — Albania, Italy, and Montenegro",
+    "whoCanJoin": "Who Can Join",
+    "whoCanJoinItem1": "Businesses and cooperatives in blue economy sectors",
+    "whoCanJoinItem2": "Universities and research centers",
+    "whoCanJoinItem3": "Public institutions and NGOs",
+    "whoCanJoinItem4": "Individuals and professionals in marine/coastal development",
+    "whyJoin": "Why join ABGC?",
+    "whyJoinItem1": "Access a regional/international partner network",
+    "whyJoinItem2": "Participate in collaborative projects",
+    "whyJoinItem3": "Share knowledge and best practices",
+    "whyJoinItem4": "Increase visibility through joint promotion",
+    "whyJoinItem5": "Help shape sustainable growth in the Adriatic"
   },
   "platform": {
     "title": "Platform tools",
@@ -233,6 +257,9 @@
     "requestPending": "Request Pending",
     "connect": "Connect",
     "sending": "Sending..."
+  },
+  "footer": {
+    "copyright": "© 2026 Adriatic Blue Growth Cluster"
   },
   "contact": {
     "title": "Feel free to Call & Write us",

@@ -27,7 +27,31 @@
     "title": "Su ABGC",
     "text1": "L'Adriatic Blue Growth Cluster (ABGC) migliora la capacità e la competitività delle aziende e dei professionisti che operano nei settori dell'economia blu attraverso l'apprendimento reciproco e la collaborazione.",
     "text2": "Costruendo sulle fondamenta di un cluster già attivo in Montenegro—stabilito nell'ambito dell'iniziativa Smart Adria—l'ABGC si sta evolvendo in uno spazio dinamico dove imprese, istituzioni formative e stakeholder lungo tutta la catena del valore possono connettersi, scambiare esperienze e adottare pratiche di apprendimento condivise.",
-    "text3": "Promuovendo la cooperazione oltre i confini e i settori, l'ABGC funge da catalizzatore per l'innovazione, lo sviluppo delle competenze e la crescita blu sostenibile nella regione dell'Adriatico Meridionale."
+    "text3": "Promuovendo la cooperazione oltre i confini e i settori, l'ABGC funge da catalizzatore per l'innovazione, lo sviluppo delle competenze e la crescita blu sostenibile nella regione dell'Adriatico Meridionale.",
+    "pageTitle": "Adriatic Blue Growth Cluster",
+    "pageDescription1": "L'Adriatic Blue Growth Cluster (ABGC) è un'iniziativa transfrontaliera che riunisce imprese, istituzioni e comunità in tutta la regione adriatica per promuovere lo sviluppo sostenibile nell'economia blu.",
+    "pageDescription2": "Con sede a Kotor, Montenegro, ABGC funge da piattaforma collaborativa per promuovere l'innovazione, la cooperazione e gli investimenti nei settori chiave blu—inclusi pesca, acquacoltura, tecnologie marine, trasporto marittimo, cantieristica e turismo costiero.",
+    "whatWeDo": "Cosa facciamo",
+    "whatWeDoItem1": "Networking e collaborazione tra imprese, istituzioni di ricerca e autorità pubbliche",
+    "whatWeDoItem2": "Promozione delle tecnologie blu e loro adozione nella regione",
+    "whatWeDoItem3": "Partecipazione a progetti nazionali e finanziati dall'UE",
+    "whatWeDoItem4": "Consulenza e formazione per imprese e stakeholder",
+    "whatWeDoItem5": "Advocacy e impegno politico nell'economia blu",
+    "ourStructure": "La nostra struttura",
+    "ourStructureText": "ABGC è organizzato in due sezioni regionali:",
+    "ourStructureItem1": "Sezione Adriatico Centrale e Meridionale — Bosnia ed Erzegovina, Croazia e Montenegro",
+    "ourStructureItem2": "Sezione Adriatico Meridionale — Albania, Italia e Montenegro",
+    "whoCanJoin": "Chi può unirsi",
+    "whoCanJoinItem1": "Imprese e cooperative nei settori dell'economia blu",
+    "whoCanJoinItem2": "Università e centri di ricerca",
+    "whoCanJoinItem3": "Istituzioni pubbliche e ONG",
+    "whoCanJoinItem4": "Individui e professionisti nello sviluppo marino/costiero",
+    "whyJoin": "Perché unirsi ad ABGC?",
+    "whyJoinItem1": "Accedere a una rete di partner regionale/internazionale",
+    "whyJoinItem2": "Partecipare a progetti collaborativi",
+    "whyJoinItem3": "Condividere conoscenze e migliori pratiche",
+    "whyJoinItem4": "Aumentare la visibilità attraverso promozione congiunta",
+    "whyJoinItem5": "Aiutare a plasmare la crescita sostenibile nell'Adriatico"
   },
   "platform": {
     "title": "Strumenti della piattaforma",
@@ -233,6 +257,9 @@
     "requestPending": "Richiesta in sospeso",
     "connect": "Connetti",
     "sending": "Invio..."
+  },
+  "footer": {
+    "copyright": "© 2026 Adriatic Blue Growth Cluster"
   },
   "contact": {
     "title": "Sentitevi liberi di chiamarci e scriverci",

@@ -27,7 +27,31 @@
     "title": "Rreth ABGC",
     "text1": "Adriatic Blue Growth Cluster (ABGC) rrit kapacitetin dhe konkurrencën e kompanive dhe profesionistëve që operojnë në sektorët e ekonomisë blu përmes të mësuarit të ndërsjellë dhe bashkëpunimit.",
     "text2": "Duke u ndërtuar mbi themelet e një klasteri tashmë aktiv në Mal të Zi—të krijuar nën iniciativën Smart Adria—ABGC po evoluon në një hapësirë dinamike ku bizneset, institucionet e trajnimit dhe palët e interesuara përgjatë tërë zinxhirit të vlerës mund të lidhen, të shkëmbejnë përvojë dhe të adoptojnë praktika të përbashkëta të të mësuarit.",
-    "text3": "Duke nxitur bashkëpunimin përtej kufijve dhe sektorëve, ABGC shërben si katalizator për inovacion, zhvillim aftësish dhe rritje të qëndrueshme blu në rajonin e Adriatikut Jugor."
+    "text3": "Duke nxitur bashkëpunimin përtej kufijve dhe sektorëve, ABGC shërben si katalizator për inovacion, zhvillim aftësish dhe rritje të qëndrueshme blu në rajonin e Adriatikut Jugor.",
+    "pageTitle": "Adriatic Blue Growth Cluster",
+    "pageDescription1": "Adriatic Blue Growth Cluster (ABGC) është një iniciativë ndërkufitare që bashkon bizneset, institucionet dhe komunitetet në të gjithë rajonin adriatik për të promovuar zhvillimin e qëndrueshëm në ekonominë blu.",
+    "pageDescription2": "Me seli në Kotor, Mali i Zi, ABGC shërben si një platformë bashkëpunimi për përparimin e inovacionit, bashkëpunimit dhe investimeve në sektorët kryesorë blu—duke përfshirë peshkimin, akuakulturën, teknologjitë detare, transportin detar, ndërtimin e anijeve dhe turizmin bregdetar.",
+    "whatWeDo": "Çfarë bëjmë",
+    "whatWeDoItem1": "Rrjetëzimi dhe bashkëpunimi midis ndërmarrjeve, institucioneve kërkimore dhe autoriteteve publike",
+    "whatWeDoItem2": "Promovimi i teknologjive blu dhe adopimi i tyre në rajon",
+    "whatWeDoItem3": "Pjesëmarrja në projekte kombëtare dhe të financuara nga BE",
+    "whatWeDoItem4": "Konsultim dhe trajnim për bizneset dhe palët e interesuara",
+    "whatWeDoItem5": "Avokimi dhe angazhimi politik në ekonominë blu",
+    "ourStructure": "Struktura jonë",
+    "ourStructureText": "ABGC është i organizuar në dy seksione rajonale:",
+    "ourStructureItem1": "Seksioni i Adriatikut Qendror dhe Jugor — Bosnja dhe Hercegovina, Kroacia dhe Mali i Zi",
+    "ourStructureItem2": "Seksioni i Adriatikut Jugor — Shqipëria, Italia dhe Mali i Zi",
+    "whoCanJoin": "Kush mund të bashkohet",
+    "whoCanJoinItem1": "Bizneset dhe kooperativat në sektorët e ekonomisë blu",
+    "whoCanJoinItem2": "Universitetet dhe qendrat kërkimore",
+    "whoCanJoinItem3": "Institucionet publike dhe ONG-të",
+    "whoCanJoinItem4": "Individët dhe profesionistët në zhvillimin detar/bregdetar",
+    "whyJoin": "Pse të bashkoheni me ABGC?",
+    "whyJoinItem1": "Qasje në një rrjet partnerësh rajonal/ndërkombëtar",
+    "whyJoinItem2": "Pjesëmarrje në projekte bashkëpunimi",
+    "whyJoinItem3": "Ndarje e njohurive dhe praktikave më të mira",
+    "whyJoinItem4": "Rritje e dukshmërisë përmes promovimit të përbashkët",
+    "whyJoinItem5": "Ndihmë në formimin e rritjes së qëndrueshme në Adriatik"
   },
   "platform": {
     "title": "Mjetet e platformës",
@@ -233,6 +257,9 @@
     "requestPending": "Kërkesa në pritje",
     "connect": "Lidhu",
     "sending": "Duke dërguar..."
+  },
+  "footer": {
+    "copyright": "© 2026 Adriatic Blue Growth Cluster"
   },
   "contact": {
     "title": "Mos nguroni të na telefononi dhe të na shkruani",
