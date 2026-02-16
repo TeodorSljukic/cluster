@@ -16,7 +16,9 @@
     "language": "Language",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "mainMenu": "Main Menu"
+    "mainMenu": "Main Menu",
+    "chat": "Chat",
+    "unknown": "Unknown"
   },
   "hero": {
     "title": "Welcome to ABGC",
