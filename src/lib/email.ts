@@ -3,6 +3,8 @@
  * Supports multiple email services as fallback
  */
 
+import nodemailer from "nodemailer";
+
 interface EmailOptions {
   to: string | string[];
   subject: string;
@@ -24,7 +26,82 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
   // Convert HTML to plain text
   const plainText = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
   
-  // Try EmailJS FIRST (if configured) - PRIMARY SERVICE
+  // Try Gmail SMTP FIRST (if configured) - PRIMARY SERVICE
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  
+  console.log("   SMTP config check:", {
+    hasUser: !!smtpUser,
+    hasPass: !!smtpPass,
+    user: smtpUser ? smtpUser.substring(0, 10) + "..." : "not set",
+  });
+  
+  if (smtpUser && smtpPass) {
+    try {
+      console.log("   Trying Gmail SMTP (first priority)...");
+      
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true, // true for 465, false for other ports
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+      
+      // Extract email from "Name <email>" format if needed
+      let fromEmail = smtpUser;
+      let fromName = "ABGC";
+      if (from && from.includes("<")) {
+        const match = from.match(/(.+?)\s*<(.+?)>/);
+        if (match) {
+          fromName = match[1].trim();
+          fromEmail = match[2].trim();
+        }
+      } else if (from && !from.includes("@")) {
+        fromName = from;
+        fromEmail = smtpUser;
+      } else if (from) {
+        fromEmail = from;
+      }
+      
+      const mailOptions = {
+        from: `${fromName} <${fromEmail}>`,
+        to: toArray.join(", "),
+        subject: subject,
+        html: html,
+        text: plainText,
+        ...(replyTo && { replyTo: replyTo }),
+      };
+      
+      console.log("   SMTP mail options:", {
+        from: mailOptions.from,
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+        hasReplyTo: !!mailOptions.replyTo,
+      });
+      
+      const info = await transporter.sendMail(mailOptions);
+      
+      console.log("✅ Email sent successfully via Gmail SMTP!");
+      console.log("   Message ID:", info.messageId);
+      console.log("   Response:", info.response);
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error("❌ Gmail SMTP exception:", error.message);
+      console.error("   Error code:", error.code);
+      console.error("   Full error:", error);
+    }
+  } else {
+    console.warn("⚠️  Gmail SMTP not configured:", {
+      user: smtpUser ? "✅" : "❌",
+      pass: smtpPass ? "✅" : "❌",
+    });
+  }
+  
+  // Try EmailJS (if configured) - SECONDARY SERVICE
   const emailjsPublicKey = process.env.EMAILJS_PUBLIC_KEY;
   const emailjsServiceId = process.env.EMAILJS_SERVICE_ID;
   const emailjsTemplateId = process.env.EMAILJS_TEMPLATE_ID;
