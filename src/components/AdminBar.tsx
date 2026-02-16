@@ -44,7 +44,18 @@ export function AdminBar() {
   async function handleLogout() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+      
+      // Clear all caches
+      sessionStorage.removeItem("header-current-user");
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear user state
       setUser(null);
+      
+      // Dispatch logout event for other components
+      window.dispatchEvent(new Event("user-logged-out"));
+      
       // Extract locale from pathname
       const locale: Locale = (() => {
         const match = pathname?.match(/^\/([^\/]+)/);
@@ -53,8 +64,9 @@ export function AdminBar() {
         }
         return "me";
       })();
-      router.push(localeLink("/login", locale));
-      router.refresh();
+      
+      // Force page reload to clear all state
+      window.location.href = localeLink("/login", locale);
     } catch (error) {
       console.error("Error logging out:", error);
     }

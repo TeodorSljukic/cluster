@@ -33,6 +33,28 @@ export function Header() {
     checkAuth();
   }, []); // Only run once on mount
 
+  // Listen for logout events
+  useEffect(() => {
+    function handleLogoutEvent() {
+      setUser(null);
+      sessionStorage.removeItem("header-current-user");
+      checkAuth(); // Re-check auth status
+    }
+
+    // Listen for custom logout event
+    window.addEventListener("user-logged-out", handleLogoutEvent);
+    
+    // Also check auth when pathname changes (e.g., after logout redirect)
+    if (pathname === "/login" || pathname?.includes("/login")) {
+      setUser(null);
+      sessionStorage.removeItem("header-current-user");
+    }
+
+    return () => {
+      window.removeEventListener("user-logged-out", handleLogoutEvent);
+    };
+  }, [pathname]);
+
   // Close mobile menu when route changes
   useEffect(() => {
     setMobileMenuOpen(false);

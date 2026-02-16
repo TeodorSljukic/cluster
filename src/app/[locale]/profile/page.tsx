@@ -371,8 +371,20 @@ export default function ProfilePage({
   async function handleLogout() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      router.push(localeLink("/login", locale));
-      router.refresh();
+      
+      // Clear all caches
+      sessionStorage.removeItem("header-current-user");
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear user state
+      setUser(null);
+      
+      // Dispatch logout event for other components
+      window.dispatchEvent(new Event("user-logged-out"));
+      
+      // Force page reload to clear all state
+      window.location.href = localeLink("/login", locale);
     } catch (error) {
       console.error("Error logging out:", error);
       alert(locale === "en" ? "Error logging out" : locale === "me" ? "Greška pri odjavi" : locale === "sq" ? "Gabim gjatë daljes" : "Errore durante il logout");
