@@ -18,35 +18,54 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
   console.log("📧 Attempting to send email...");
   console.log("   To:", toArray.join(", "));
   console.log("   Subject:", subject);
+  console.log("   From:", from);
+  console.log("   ReplyTo:", replyTo || "none");
   
   // Convert HTML to plain text
   const plainText = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
   
-  // Try Formspree (no configuration needed, just endpoint)
+  // Try Formspree FIRST (easiest, no API key needed)
   const formspreeEndpoint = process.env.FORMSPREE_ENDPOINT;
+  console.log("   Formspree config check:", { hasEndpoint: !!formspreeEndpoint });
+  
   if (formspreeEndpoint) {
     try {
-      console.log("   Trying Formspree...");
+      console.log("   Trying Formspree (first priority)...");
+      const formspreeBody = {
+        _to: toArray[0],
+        _subject: subject,
+        _replyto: replyTo || toArray[0],
+        message: plainText,
+        html: html,
+      };
+      
+      console.log("   Formspree request body:", JSON.stringify(formspreeBody, null, 2));
+      
       const formspreeResponse = await fetch(formspreeEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          _to: toArray[0],
-          _subject: subject,
-          _replyto: replyTo || toArray[0],
-          message: plainText,
-          html: html,
-        }),
+        body: JSON.stringify(formspreeBody),
+      });
+
+      const formspreeResponseText = await formspreeResponse.text();
+      
+      console.log("   Formspree response:", {
+        status: formspreeResponse.status,
+        statusText: formspreeResponse.statusText,
+        responseText: formspreeResponseText.substring(0, 200),
       });
 
       if (formspreeResponse.ok) {
         console.log("✅ Email sent successfully via Formspree!");
         return { success: true };
+      } else {
+        console.error("❌ Formspree error:", formspreeResponseText);
       }
     } catch (error: any) {
       console.error("❌ Formspree exception:", error.message);
+      console.error("   Full error:", error);
     }
   }
   
@@ -54,6 +73,15 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
   const emailjsPublicKey = process.env.EMAILJS_PUBLIC_KEY;
   const emailjsServiceId = process.env.EMAILJS_SERVICE_ID;
   const emailjsTemplateId = process.env.EMAILJS_TEMPLATE_ID;
+  
+  console.log("   EmailJS config check:", {
+    hasPublicKey: !!emailjsPublicKey,
+    hasServiceId: !!emailjsServiceId,
+    hasTemplateId: !!emailjsTemplateId,
+    publicKeyLength: emailjsPublicKey?.length || 0,
+    serviceId: emailjsServiceId,
+    templateId: emailjsTemplateId,
+  });
   
   if (emailjsPublicKey && emailjsServiceId && emailjsTemplateId) {
     try {
@@ -73,34 +101,46 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
         }
       }
       
+      const requestBody = {
+        service_id: emailjsServiceId,
+        template_id: emailjsTemplateId,
+        user_id: emailjsPublicKey,
+        template_params: {
+          // Standard fields that EmailJS templates usually use
+          name: name,
+          email: email,
+          subject: subject,
+          message: plainText,
+          message_html: html,
+          message_text: plainText,
+          // Additional fields
+          to_email: toArray[0],
+          to_name: toArray[0].split('@')[0],
+          reply_to: replyTo || email,
+          from_email: email,
+          from_name: name,
+          // Also try title in case template uses it
+          title: subject,
+        },
+      };
+      
+      console.log("   EmailJS request body:", JSON.stringify(requestBody, null, 2));
+      
       const emailjsResponse = await fetch(`https://api.emailjs.com/api/v1.0/email/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          service_id: emailjsServiceId,
-          template_id: emailjsTemplateId,
-          user_id: emailjsPublicKey,
-          template_params: {
-            // Standard fields that EmailJS templates usually use
-            name: name,
-            email: email,
-            subject: subject,
-            message: plainText,
-            message_html: html,
-            message_text: plainText,
-            // Additional fields
-            to_email: toArray[0],
-            to_name: toArray[0].split('@')[0],
-            reply_to: replyTo || email,
-            from_email: email,
-            from_name: name,
-          },
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const responseText = await emailjsResponse.text();
+      
+      console.log("   EmailJS response:", {
+        status: emailjsResponse.status,
+        statusText: emailjsResponse.statusText,
+        responseText: responseText.substring(0, 200), // First 200 chars
+      });
       
       if (emailjsResponse.ok) {
         console.log("✅ Email sent successfully via EmailJS!");
@@ -114,7 +154,14 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
       }
     } catch (error: any) {
       console.error("❌ EmailJS exception:", error.message);
+      console.error("   Full error:", error);
     }
+  } else {
+    console.warn("⚠️  EmailJS not fully configured:", {
+      publicKey: emailjsPublicKey ? "✅" : "❌",
+      serviceId: emailjsServiceId ? "✅" : "❌",
+      templateId: emailjsTemplateId ? "✅" : "❌",
+    });
   }
   
   // Try Resend API
