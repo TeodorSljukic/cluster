@@ -140,7 +140,7 @@ export function Header() {
         {/* Hamburger dugme */}
         <button
           className="hamburger"
-          aria-label="Open menu"
+          aria-label={t.common.openMenu}
           aria-controls="site-menu"
           aria-expanded={mobileMenuOpen}
           type="button"
@@ -152,7 +152,7 @@ export function Header() {
         </button>
 
         {/* Desktop navigacija */}
-        <nav className="main-nav" aria-label="Main Menu" id="site-menu">
+        <nav className="main-nav" aria-label={t.common.mainMenu} id="site-menu">
           <ul className="nav-menu">
             <li>
               <Link href={`/${currentLocale}`} prefetch={true}>{t.common.home}</Link>
@@ -282,7 +282,7 @@ export function Header() {
           </div>
           <button 
             className="close-mobile" 
-            aria-label="Close menu" 
+            aria-label={t.common.closeMenu} 
             type="button"
             onClick={() => setMobileMenuOpen(false)}
           >

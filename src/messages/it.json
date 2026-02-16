@@ -13,7 +13,10 @@
     "profile": "Profilo",
     "dashboard": "Dashboard",
     "logout": "Esci",
-    "language": "Lingua"
+    "language": "Lingua",
+    "openMenu": "Apri menu",
+    "closeMenu": "Chiudi menu",
+    "mainMenu": "Menu principale"
   },
   "hero": {
     "title": "Benvenuti in ABGC",
@@ -95,7 +98,8 @@
   },
   "charts": {
     "title": "Approfondimenti della Comunità",
-    "subtitle": "Esplora i dati e le tendenze della nostra comunità"
+    "subtitle": "Esplora i dati e le tendenze della nostra comunità",
+    "loading": "Caricamento grafici..."
   },
   "register": {
     "success": "Registrazione riuscita!",

@@ -180,7 +180,7 @@ export const ChartsSection = memo(function ChartsSection({ locale }: ChartsSecti
         <div className="container">
           <div className="charts-loading">
             <div className="loading-spinner"></div>
-            <p>Loading charts...</p>
+            <p>{t.charts.loading}</p>
           </div>
         </div>
       </section>

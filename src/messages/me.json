@@ -13,7 +13,10 @@
     "profile": "Profil",
     "dashboard": "Kontrolna tabla",
     "logout": "Odjava",
-    "language": "Jezik"
+    "language": "Jezik",
+    "openMenu": "Otvori meni",
+    "closeMenu": "Zatvori meni",
+    "mainMenu": "Glavni meni"
   },
   "hero": {
     "title": "Dobrodošli na ABGC",
@@ -95,7 +98,8 @@
   },
   "charts": {
     "title": "Uvidi zajednice",
-    "subtitle": "Istražite podatke i trendove iz naše zajednice"
+    "subtitle": "Istražite podatke i trendove iz naše zajednice",
+    "loading": "Učitavanje grafikona..."
   },
   "register": {
     "success": "Registracija uspješna!",

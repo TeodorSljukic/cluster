@@ -13,7 +13,10 @@
     "profile": "Profili",
     "dashboard": "Paneli",
     "logout": "Dil",
-    "language": "Gjuha"
+    "language": "Gjuha",
+    "openMenu": "Hap menunë",
+    "closeMenu": "Mbyll menunë",
+    "mainMenu": "Menyja kryesore"
   },
   "hero": {
     "title": "Mirë se vini në ABGC",
@@ -95,7 +98,8 @@
   },
   "charts": {
     "title": "Njohuri të Komunitetit",
-    "subtitle": "Eksploroni të dhënat dhe trendet nga komuniteti ynë"
+    "subtitle": "Eksploroni të dhënat dhe trendet nga komuniteti ynë",
+    "loading": "Duke ngarkuar grafikët..."
   },
   "register": {
     "success": "Regjistrimi u krye me sukses!",
