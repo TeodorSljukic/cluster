@@ -5,11 +5,23 @@ import { NextResponse } from "next/server";
  * This helps debug which email services are configured
  */
 export async function GET() {
+  // Get all environment variables (for debugging)
+  const allEnvKeys = Object.keys(process.env);
+  const emailRelatedKeys = allEnvKeys.filter(key => 
+    key.includes('SMTP') || 
+    key.includes('EMAIL') || 
+    key.includes('RESEND') ||
+    key.includes('FORMSPREE') ||
+    key.includes('WEBHOOK')
+  );
+  
   const config = {
     smtp: {
       configured: !!(process.env.SMTP_USER && process.env.SMTP_PASS),
-      user: process.env.SMTP_USER ? "✅ Set" : "❌ Not set",
-      pass: process.env.SMTP_PASS ? "✅ Set" : "❌ Not set",
+      user: process.env.SMTP_USER ? `✅ Set (${process.env.SMTP_USER.substring(0, 10)}...)` : "❌ Not set",
+      pass: process.env.SMTP_PASS ? "✅ Set (hidden)" : "❌ Not set",
+      rawUser: process.env.SMTP_USER || null,
+      rawPass: process.env.SMTP_PASS ? "***" : null,
     },
     emailjs: {
       configured: !!(
@@ -46,11 +58,14 @@ export async function GET() {
     status: hasAnyService ? "✅ Email service configured" : "❌ No email service configured",
     services: config,
     debug: {
-      allEnvVars: Object.keys(process.env).filter(key => 
-        key.includes('SMTP') || key.includes('EMAIL') || key.includes('RESEND')
-      ),
+      allEnvVars: emailRelatedKeys,
+      totalEnvVars: allEnvKeys.length,
       smtpUserExists: !!process.env.SMTP_USER,
       smtpPassExists: !!process.env.SMTP_PASS,
+      smtpUserValue: process.env.SMTP_USER ? `${process.env.SMTP_USER.substring(0, 15)}...` : "NOT SET",
+      smtpPassLength: process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0,
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
     },
     instructions: {
       smtp: "Use Gmail App Password: https://myaccount.google.com/apppasswords - Set SMTP_USER and SMTP_PASS",
