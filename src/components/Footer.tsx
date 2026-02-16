@@ -163,7 +163,7 @@ export function Footer() {
         >
           <Link 
             href={localeLink("/chat", locale)} 
-            title="Chat"
+            title={t.common.chat || "Chat"}
             style={{
               display: "flex",
               alignItems: "center",

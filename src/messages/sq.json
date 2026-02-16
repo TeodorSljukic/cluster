@@ -16,7 +16,9 @@
     "language": "Gjuha",
     "openMenu": "Hap menunë",
     "closeMenu": "Mbyll menunë",
-    "mainMenu": "Menyja kryesore"
+    "mainMenu": "Menyja kryesore",
+    "chat": "Chat",
+    "unknown": "E panjohur"
   },
   "hero": {
     "title": "Mirë se vini në ABGC",

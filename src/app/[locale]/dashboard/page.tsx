@@ -220,10 +220,10 @@ export default function DashboardPage() {
 
       // Chart configurations
       const cityChartData = {
-        labels: (Array.isArray(usersByCity) ? usersByCity.slice(0, 10) : []).map((item) => item.city || "Unknown"),
+        labels: (Array.isArray(usersByCity) ? usersByCity.slice(0, 10) : []).map((item) => item.city || t.common.unknown || "Unknown"),
         datasets: [
           {
-            label: "Users",
+            label: t.dashboard.totalUsers,
             data: (Array.isArray(usersByCity) ? usersByCity.slice(0, 10) : []).map((item) => parseInt(item.total)),
         backgroundColor: "rgba(0, 95, 153, 0.7)",
         borderColor: "rgba(0, 95, 153, 1)",
@@ -234,10 +234,10 @@ export default function DashboardPage() {
   };
 
       const regionChartData = {
-        labels: (Array.isArray(usersByRegion) ? usersByRegion.slice(0, 10) : []).map((item) => item.region || "Unknown"),
+        labels: (Array.isArray(usersByRegion) ? usersByRegion.slice(0, 10) : []).map((item) => item.region || t.common.unknown || "Unknown"),
         datasets: [
           {
-            label: "Users",
+            label: t.dashboard.totalUsers,
             data: (Array.isArray(usersByRegion) ? usersByRegion.slice(0, 10) : []).map((item) => parseInt(item.total)),
         backgroundColor: "rgba(0, 153, 76, 0.7)",
         borderColor: "rgba(0, 153, 76, 1)",
@@ -248,10 +248,10 @@ export default function DashboardPage() {
   };
 
   const countryChartData = {
-    labels: (Array.isArray(usersByCountry) ? usersByCountry : []).map((item) => item.country || "Unknown"),
+    labels: (Array.isArray(usersByCountry) ? usersByCountry : []).map((item) => item.country || t.common.unknown || "Unknown"),
     datasets: [
       {
-        label: "Users",
+        label: t.dashboard.totalUsers,
         data: (Array.isArray(usersByCountry) ? usersByCountry : []).map((item) => parseInt(item.total)),
         backgroundColor: "rgba(255, 165, 0, 0.7)",
         borderColor: "rgba(255, 165, 0, 1)",

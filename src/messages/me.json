@@ -16,7 +16,9 @@
     "language": "Jezik",
     "openMenu": "Otvori meni",
     "closeMenu": "Zatvori meni",
-    "mainMenu": "Glavni meni"
+    "mainMenu": "Glavni meni",
+    "chat": "Chat",
+    "unknown": "Nepoznato"
   },
   "hero": {
     "title": "Dobrodošli na ABGC",
