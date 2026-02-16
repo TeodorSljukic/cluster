@@ -33,7 +33,7 @@ export function Header() {
     checkAuth();
   }, []); // Only run once on mount
 
-  // Listen for logout events
+  // Listen for login/logout events
   useEffect(() => {
     function handleLogoutEvent() {
       setUser(null);
@@ -41,8 +41,15 @@ export function Header() {
       checkAuth(); // Re-check auth status
     }
 
-    // Listen for custom logout event
+    function handleLoginEvent() {
+      // Clear cache and re-check auth when user logs in
+      sessionStorage.removeItem("header-current-user");
+      checkAuth();
+    }
+
+    // Listen for custom events
     window.addEventListener("user-logged-out", handleLogoutEvent);
+    window.addEventListener("user-logged-in", handleLoginEvent);
     
     // Also check auth when pathname changes (e.g., after logout redirect)
     if (pathname === "/login" || pathname?.includes("/login")) {
@@ -52,6 +59,7 @@ export function Header() {
 
     return () => {
       window.removeEventListener("user-logged-out", handleLogoutEvent);
+      window.removeEventListener("user-logged-in", handleLoginEvent);
     };
   }, [pathname]);
 

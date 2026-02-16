@@ -85,7 +85,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         partialSuccess: data.partialSuccess,
       });
 
-      if (res.ok) {
+      if (res.ok && data.user) {
         // Log registration results
         if (data.registrations) {
           console.log("📊 Registration results:", {
@@ -94,6 +94,12 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             dms: data.registrations.dms?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.dms?.error || "Unknown"}`,
           });
         }
+        
+        // Cookie should be set by the server, but clear cache to force refresh
+        sessionStorage.removeItem("header-current-user");
+        
+        // Dispatch event to notify Header component
+        window.dispatchEvent(new Event("user-logged-in"));
         
         // Check if there are warnings (partial success)
         if (data.warnings && data.warnings.length > 0) {
@@ -128,11 +134,10 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             setError(warningMessage);
           }
           
-          // Still allow login after a delay
+          // Redirect immediately to dashboard
           setTimeout(() => {
-            router.push(localeLink("/dashboard", locale));
-            router.refresh();
-          }, 3000);
+            window.location.href = localeLink("/dashboard", locale);
+          }, 2000);
         } else {
           const successMessage = `✅ Registracija uspješna!\n\nKorisnik kreiran na:\n${
             data.registrations?.lms?.success ? "✅ LMS\n" : ""
@@ -142,10 +147,11 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             data.registrations?.dms?.success ? "✅ DMS\n" : ""
           }`;
           setSuccess(successMessage);
+          
+          // Redirect immediately to dashboard
           setTimeout(() => {
-            router.push(localeLink("/dashboard", locale));
-            router.refresh();
-          }, 1500);
+            window.location.href = localeLink("/dashboard", locale);
+          }, 1000);
         }
       } else {
         setError(`❌ Greška: ${data.error || data.message || "Nešto je pošlo po zlu"}`);
