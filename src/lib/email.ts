@@ -50,14 +50,29 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
     }
   }
   
-  // Try EmailJS (if configured)
+  // Try EmailJS (if configured) - FIRST PRIORITY
   const emailjsPublicKey = process.env.EMAILJS_PUBLIC_KEY;
   const emailjsServiceId = process.env.EMAILJS_SERVICE_ID;
   const emailjsTemplateId = process.env.EMAILJS_TEMPLATE_ID;
   
   if (emailjsPublicKey && emailjsServiceId && emailjsTemplateId) {
     try {
-      console.log("   Trying EmailJS...");
+      console.log("   Trying EmailJS (first priority)...");
+      
+      // Extract name and email from replyTo if available (for contact form)
+      let name = "User";
+      let email = replyTo || toArray[0];
+      if (replyTo) {
+        // Try to extract name from replyTo if it's in format "Name <email>"
+        const match = replyTo.match(/(.+?)\s*<(.+?)>/);
+        if (match) {
+          name = match[1].trim();
+          email = match[2].trim();
+        } else {
+          email = replyTo;
+        }
+      }
+      
       const emailjsResponse = await fetch(`https://api.emailjs.com/api/v1.0/email/send`, {
         method: "POST",
         headers: {
@@ -68,22 +83,34 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
           template_id: emailjsTemplateId,
           user_id: emailjsPublicKey,
           template_params: {
-            to_email: toArray[0],
-            to_name: toArray[0].split('@')[0],
+            // Standard fields that EmailJS templates usually use
+            name: name,
+            email: email,
             subject: subject,
+            message: plainText,
             message_html: html,
             message_text: plainText,
-            reply_to: replyTo || from,
+            // Additional fields
+            to_email: toArray[0],
+            to_name: toArray[0].split('@')[0],
+            reply_to: replyTo || email,
+            from_email: email,
+            from_name: name,
           },
         }),
       });
 
+      const responseText = await emailjsResponse.text();
+      
       if (emailjsResponse.ok) {
         console.log("✅ Email sent successfully via EmailJS!");
         return { success: true };
       } else {
-        const errorText = await emailjsResponse.text();
-        console.error("❌ EmailJS error:", errorText);
+        console.error("❌ EmailJS error:", {
+          status: emailjsResponse.status,
+          statusText: emailjsResponse.statusText,
+          error: responseText
+        });
       }
     } catch (error: any) {
       console.error("❌ EmailJS exception:", error.message);
