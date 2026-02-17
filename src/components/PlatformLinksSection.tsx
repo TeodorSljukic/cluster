@@ -146,7 +146,6 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
                 marginBottom: "24px",
                 overflow: "hidden",
                 borderRadius: "12px",
-                background: "linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)",
                 padding: "20px"
               }}>
                 <img 
