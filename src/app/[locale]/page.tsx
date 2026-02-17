@@ -7,7 +7,9 @@ import { getTranslations, type Locale } from "@/lib/getTranslations";
 import { getCurrentUser } from "@/lib/auth";
 import { RegisterForm } from "@/components/RegisterForm";
 import { PlatformLinksSection } from "@/components/PlatformLinksSection";
+import { localeLink } from "@/lib/localeLink";
 import Image from "next/image";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -88,14 +90,10 @@ export default async function Home({
             <div className="container hero-inner">
               <div className="hero-content" data-aos="fade-left">
                 <h1 className="hero-title" data-aos="fade-up">
-                  {locale === "me" ? (
-                    "Dobrodošli na ABGC"
-                  ) : (
-                    t.welcome.title
-                  )}
+                  {t.welcomeBanner.title}
                 </h1>
                 <p className="hero-subtitle" data-aos="fade-up" data-aos-delay="200">
-                  {t.welcome.subtitle}
+                  {t.welcomeBanner.subtitle}
                 </p>
               </div>
 
@@ -119,7 +117,36 @@ export default async function Home({
             padding: "80px 20px",
             background: "linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(234,243,250,0.75) 100%)"
           }}>
-            <div className="container" style={{ 
+            <style dangerouslySetInnerHTML={{__html: `
+              @media (max-width: 768px) {
+                .about-responsive {
+                  flex-direction: column !important;
+                  gap: 30px !important;
+                }
+                .about-text h2 {
+                  font-size: 28px !important;
+                }
+                .about-text p {
+                  font-size: 15px !important;
+                  line-height: 1.6 !important;
+                  word-wrap: break-word !important;
+                  overflow-wrap: break-word !important;
+                  hyphens: auto !important;
+                }
+              }
+              @media (max-width: 480px) {
+                .about-section {
+                  padding: 40px 12px !important;
+                }
+                .about-text h2 {
+                  font-size: 24px !important;
+                }
+                .about-text p {
+                  font-size: 14px !important;
+                }
+              }
+            `}} />
+            <div className="container about-section" style={{ 
               maxWidth: "1600px",
               margin: "0 auto"
             }}>
@@ -130,7 +157,7 @@ export default async function Home({
                 gap: "60px", 
                 justifyContent: "space-between"
               }} className="about-responsive">
-                <div style={{ flex: "1", maxWidth: "100%", minWidth: 0 }} data-aos="fade-right">
+                <div className="about-text" style={{ flex: "1", maxWidth: "100%", minWidth: 0 }} data-aos="fade-right">
                   <h2 style={{ 
                     fontSize: "36px", 
                     fontWeight: "600", 
@@ -145,9 +172,9 @@ export default async function Home({
                     lineHeight: "1.8", 
                     color: "#333" 
                   }}>
-                    <p style={{ marginBottom: "20px" }}>{t.about.text1}</p>
-                    <p style={{ marginBottom: "20px" }}>{t.about.text2}</p>
-                    <p>{t.about.text3}</p>
+                    <p style={{ marginBottom: "20px", wordWrap: "break-word", overflowWrap: "break-word" }}>{t.about.text1}</p>
+                    <p style={{ marginBottom: "20px", wordWrap: "break-word", overflowWrap: "break-word" }}>{t.about.text2}</p>
+                    <p style={{ wordWrap: "break-word", overflowWrap: "break-word" }}>{t.about.text3}</p>
                   </div>
                 </div>
 

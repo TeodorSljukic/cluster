@@ -64,27 +64,118 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
   }
 
   return (
-    <section className="platform">
-      <div className="container">
-        <h2 className="platform-title" data-aos="fade-up">
+    <>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 768px) {
+          .platform-card {
+            padding: 30px 20px !important;
+          }
+          .platform-card img {
+            max-height: 150px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .platform-section {
+            padding: 60px 15px !important;
+          }
+          .platform-card {
+            padding: 25px 15px !important;
+          }
+        }
+      `}} />
+    <section className="platform platform-section" style={{
+      padding: "100px 20px",
+      background: "linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(234,243,250,0.75) 100%)",
+      textAlign: "center"
+    }}>
+      <div className="container" style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        <h2 style={{
+          fontSize: "clamp(28px, 4vw, 42px)",
+          fontWeight: "700",
+          color: "#52484C",
+          marginBottom: "60px",
+          lineHeight: "1.3"
+        }} data-aos="fade-up">
           {t.platform.title}
         </h2>
 
-        <div className="platform-grid">
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "40px",
+          maxWidth: "1200px",
+          margin: "0 auto"
+        }}>
           {platforms.map((platform, index) => (
             <div
               key={platform.id}
-              className="platform-item"
+              className="platform-card"
               data-aos="zoom-in"
               data-aos-delay={(index + 1) * 100}
               onClick={() => handlePlatformClick(platform.url)}
+              style={{
+                background: "white",
+                borderRadius: "16px",
+                padding: "40px 30px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                border: "1px solid rgba(0,0,0,0.05)"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-8px)";
+                e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.15)";
+                e.currentTarget.style.borderColor = "rgba(102, 126, 234, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)";
+                e.currentTarget.style.borderColor = "rgba(0,0,0,0.05)";
+              }}
             >
-              <img src={platform.image} alt={platform.label} />
-              <h3>{platform.label}</h3>
+              <div style={{
+                width: "100%",
+                height: "200px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "24px",
+                overflow: "hidden",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)",
+                padding: "20px"
+              }}>
+                <img 
+                  src={platform.image} 
+                  alt={platform.label}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "contain",
+                    transition: "transform 0.3s ease",
+                    width: "auto",
+                    height: "auto"
+                  }}
+                />
+              </div>
+              <h3 style={{
+                fontSize: "22px",
+                fontWeight: "600",
+                color: "#52484C",
+                margin: 0,
+                lineHeight: "1.4"
+              }}>
+                {platform.label}
+              </h3>
             </div>
           ))}
         </div>
       </div>
     </section>
+    </>
   );
 }

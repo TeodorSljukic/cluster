@@ -96,9 +96,21 @@ export function Footer() {
               <img 
                 src="/wp-content/uploads/2025/09/Nenaslovljeni dizajn(3).png" 
                 alt="Adriatic Blue Growth Cluster"
-                style={{ height: "80px", width: "auto", objectFit: "contain" }}
+                style={{ height: "80px", width: "auto", objectFit: "contain", marginBottom: "16px" }}
               />
             </Link>
+            {/* EU Disclaimer ispod logotipa SKILLS */}
+            <div style={{
+              fontSize: "12px",
+              lineHeight: "1.5",
+              color: "#666",
+              maxWidth: "300px",
+              marginTop: "16px"
+            }}>
+              <p style={{ margin: 0 }}>
+                {t.contact.euDisclaimer}
+              </p>
+            </div>
           </div>
 
           <div className="footer-center" style={{
@@ -110,9 +122,7 @@ export function Footer() {
             color: "#555",
             textAlign: "left"
           }}>
-            <p style={{ margin: 0 }}>
-              {t.contact.euDisclaimer}
-            </p>
+            {/* Može se dodati dodatni sadržaj ovde ako je potrebno */}
           </div>
 
           <div className="footer-right">

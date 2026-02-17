@@ -143,20 +143,33 @@ export function LoginForm({ locale }: LoginFormProps) {
           </div>
 
           <div style={{ 
-            marginBottom: "20px", 
-            textAlign: "right" 
+            marginBottom: "20px"
           }}>
-            <Link 
-              href={localeLink("/forgot-password", locale)}
-              style={{ 
-                color: "#0073e6", 
-                textDecoration: "none",
-                fontSize: "14px",
-                fontWeight: "500"
-              }}
-            >
-              {t.login.forgotPassword}
-            </Link>
+            <div style={{ 
+              textAlign: "right",
+              marginBottom: "8px"
+            }}>
+              <Link 
+                href={localeLink("/forgot-password", locale)}
+                style={{ 
+                  color: "#0073e6", 
+                  textDecoration: "none",
+                  fontSize: "14px",
+                  fontWeight: "500"
+                }}
+              >
+                🔑 {t.login.forgotPassword}
+              </Link>
+            </div>
+            <p style={{
+              fontSize: "12px",
+              color: "#666",
+              textAlign: "right",
+              margin: 0,
+              lineHeight: "1.4"
+            }}>
+              {t.login.forgotPasswordText}
+            </p>
           </div>
 
           <button 

@@ -1010,9 +1010,28 @@ export default function ProfilePage({
                       if (a.current && !b.current) return -1;
                       if (!a.current && b.current) return 1;
                       
+                      // Helper function to parse date (handles both YYYY-MM and YYYY-MM-DD formats)
+                      const parseDate = (dateStr: string) => {
+                        if (!dateStr) return new Date(0);
+                        // If format is YYYY-MM, add -01 to make it a valid date
+                        if (dateStr.match(/^\d{4}-\d{2}$/)) {
+                          return new Date(dateStr + '-01');
+                        }
+                        return new Date(dateStr);
+                      };
+                      
                       // Compare end dates (or start dates if both current)
-                      const dateA = a.current ? new Date(a.startDate) : new Date(a.endDate || a.startDate);
-                      const dateB = b.current ? new Date(b.startDate) : new Date(b.endDate || b.startDate);
+                      const dateA = a.current 
+                        ? parseDate(a.startDate) 
+                        : parseDate(a.endDate || a.startDate);
+                      const dateB = b.current 
+                        ? parseDate(b.startDate) 
+                        : parseDate(b.endDate || b.startDate);
+                      
+                      // If dates are invalid, put them at the end
+                      if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                      if (isNaN(dateA.getTime())) return 1;
+                      if (isNaN(dateB.getTime())) return -1;
                       
                       return dateB.getTime() - dateA.getTime(); // Most recent first
                     })
@@ -2172,9 +2191,11 @@ export default function ProfilePage({
                   newExp.push(exp);
                 }
                 const updatedFormData = { ...formData, experience: newExp };
+                // Update user state immediately for instant UI update
+                setUser({ ...user, experience: newExp });
                 setFormData(updatedFormData);
                 
-                // Save immediately to update display
+                // Save to server in background
                 try {
                   const dataToSend = {
                     ...updatedFormData,
@@ -2194,6 +2215,9 @@ export default function ProfilePage({
                   }
                 } catch (error) {
                   console.error("Error saving experience:", error);
+                  // Revert on error
+                  setUser(user);
+                  setFormData(formData);
                 }
                 
                 setShowExpModal(false);
@@ -2254,9 +2278,11 @@ export default function ProfilePage({
                   newEdu.push(edu);
                 }
                 const updatedFormData = { ...formData, education: newEdu };
+                // Update user state immediately for instant UI update
+                setUser({ ...user, education: newEdu });
                 setFormData(updatedFormData);
                 
-                // Save immediately to update display
+                // Save to server in background
                 try {
                   const dataToSend = {
                     ...updatedFormData,
@@ -2276,6 +2302,9 @@ export default function ProfilePage({
                   }
                 } catch (error) {
                   console.error("Error saving education:", error);
+                  // Revert on error
+                  setUser(user);
+                  setFormData(formData);
                 }
                 
                 setShowEduModal(false);
