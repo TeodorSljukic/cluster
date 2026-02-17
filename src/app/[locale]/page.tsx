@@ -120,7 +120,7 @@ export default async function Home({
             background: "linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(234,243,250,0.75) 100%)"
           }}>
             <div className="container" style={{ 
-              maxWidth: "1200px",
+              maxWidth: "1600px",
               margin: "0 auto"
             }}>
               <div style={{ 
@@ -130,7 +130,7 @@ export default async function Home({
                 gap: "60px", 
                 justifyContent: "space-between"
               }} className="about-responsive">
-                <div style={{ flex: "1", maxWidth: "50%", minWidth: 0 }} data-aos="fade-right">
+                <div style={{ flex: "1", maxWidth: "100%", minWidth: 0 }} data-aos="fade-right">
                   <h2 style={{ 
                     fontSize: "36px", 
                     fontWeight: "600", 
@@ -151,7 +151,7 @@ export default async function Home({
                   </div>
                 </div>
 
-                <div style={{ flex: "1", maxWidth: "50%", minWidth: 0, display: "flex", justifyContent: "center", alignItems: "center" }} data-aos="fade-left">
+                <div style={{ flex: "1", maxWidth: "50%", minWidth: 0, display: "none", justifyContent: "center", alignItems: "center" }} data-aos="fade-left">
                   <Image
                     src="/wp-content/uploads/2025/09/Frame-10000022261.webp"
                     alt="ABGC logo"

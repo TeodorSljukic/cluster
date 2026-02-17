@@ -219,7 +219,7 @@ body:has(.mobile-overlay-menu.active) .chat-main-content {
     width: 280px !important;
     minWidth: 0 !important;
     maxWidth: 85vw !important;
-    z-index: 999 !important;
+    z-index: 100 !important;
     transform: translateX(-100%);
     border-radius: 0 !important;
     box-shadow: 2px 0 10px rgba(0,0,0,0.2) !important;

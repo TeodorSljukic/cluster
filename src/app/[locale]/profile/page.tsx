@@ -470,8 +470,76 @@ export default function ProfilePage({
   }
 
   return (
+    <>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 768px) {
+          .profile-page-container {
+            padding: 0 12px !important;
+          }
+          .profile-page-cover {
+            height: 200px !important;
+          }
+          .profile-page-header-content {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 16px !important;
+          }
+          .profile-page-picture {
+            width: 120px !important;
+            height: 120px !important;
+            font-size: 48px !important;
+          }
+          .profile-page-name {
+            font-size: 24px !important;
+          }
+          .profile-page-headline {
+            font-size: 14px !important;
+          }
+          .profile-page-actions {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 8px !important;
+          }
+          .profile-page-actions button {
+            width: 100% !important;
+          }
+          .profile-page-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .profile-page-section {
+            padding: 16px !important;
+          }
+          .profile-page-section h2 {
+            font-size: 18px !important;
+          }
+          .profile-page-experience-item > div,
+          .profile-page-education-item > div {
+            flex-direction: column !important;
+            gap: 8px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .profile-page-container {
+            padding: 0 8px !important;
+          }
+          .profile-page-cover {
+            height: 150px !important;
+          }
+          .profile-page-picture {
+            width: 100px !important;
+            height: 100px !important;
+            font-size: 40px !important;
+          }
+          .profile-page-name {
+            font-size: 20px !important;
+          }
+          .profile-page-section {
+            padding: 12px !important;
+          }
+        }
+      `}} />
     <main style={{ background: "#f3f2ef", minHeight: "100vh", paddingTop: "20px", paddingBottom: "60px" }}>
-      <div style={{ maxWidth: "1128px", margin: "0 auto", padding: "0 24px" }}>
+      <div className="profile-page-container" style={{ maxWidth: "1128px", margin: "0 auto", padding: "0 24px" }}>
         {/* Profile Header */}
         <div
           style={{
@@ -485,6 +553,7 @@ export default function ProfilePage({
           {/* Cover Image */}
           <div
             key={String(formData.coverImage || user.coverImage || 'no-cover')}
+            className="profile-page-cover"
             style={{
               height: "300px",
               background: (() => {
@@ -530,12 +599,13 @@ export default function ProfilePage({
 
           {/* Profile Info */}
           <div style={{ padding: "0 24px 24px", marginTop: "-72px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+            <div className="profile-page-header-content" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
               <div>
                 {/* Profile Picture */}
                 <div style={{ position: "relative", display: "inline-block" }}>
                   <div
                     key={String(formData.profilePicture || user.profilePicture || 'no-image')}
+                    className="profile-page-picture"
                     style={{
                       width: "168px",
                       height: "168px",
@@ -640,7 +710,7 @@ export default function ProfilePage({
                   </div>
                 </div>
 
-                <h1 style={{ fontSize: "32px", fontWeight: "600", margin: "12px 0 4px" }}>
+                <h1 className="profile-page-name" style={{ fontSize: "32px", fontWeight: "600", margin: "12px 0 4px" }}>
                   {editing ? (
                     <input
                       type="text"
@@ -699,7 +769,7 @@ export default function ProfilePage({
                     }}
                   />
                 ) : (
-                  <p style={{ fontSize: "16px", color: "#666", margin: "4px 0" }}>
+                  <p className="profile-page-headline" style={{ fontSize: "16px", color: "#666", margin: "4px 0" }}>
                     {getTranslatedText(user.headline, (user as any).headlineTranslations, locale) || user.role_custom || user.organization || t.profile.member}
                   </p>
                 )}
@@ -789,7 +859,7 @@ export default function ProfilePage({
                     </button>
                   </div>
                 ) : (
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                  <div className="profile-page-actions" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                     <button
                       onClick={() => setEditing(true)}
                       style={{
@@ -857,11 +927,12 @@ export default function ProfilePage({
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "16px" }}>
+        <div className="profile-page-grid" style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "16px" }}>
           {/* Main Content */}
           <div>
             {/* About */}
             <div
+              className="profile-page-section"
               style={{
                 background: "white",
                 borderRadius: "8px",
@@ -898,6 +969,7 @@ export default function ProfilePage({
 
             {/* Experience */}
             <div
+              className="profile-page-section"
               style={{
                 ...getCardStyle(),
                 borderRadius: "8px",
@@ -946,7 +1018,8 @@ export default function ProfilePage({
                     })
                     .map((exp: any, idx: number) => (
                     <div 
-                      key={idx} 
+                      key={idx}
+                      className="profile-page-experience-item"
                       style={{ 
                         marginBottom: "16px", 
                         paddingBottom: "16px", 
@@ -1077,6 +1150,7 @@ export default function ProfilePage({
 
             {/* Education */}
             <div
+              className="profile-page-section"
               style={{
                 ...getCardStyle(),
                 borderRadius: "8px",
@@ -1139,7 +1213,8 @@ export default function ProfilePage({
                     })
                     .map((edu: any, idx: number) => (
                     <div 
-                      key={idx} 
+                      key={idx}
+                      className="profile-page-education-item"
                       style={{ 
                         marginBottom: "16px", 
                         paddingBottom: "16px", 
@@ -1268,6 +1343,144 @@ export default function ProfilePage({
 
           {/* Sidebar */}
           <div>
+            {/* Contact Info */}
+            <div
+              style={{
+                ...getCardStyle(),
+                borderRadius: "8px",
+                padding: "24px",
+                marginBottom: "16px",
+              }}
+            >
+              <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
+                {t.profile.contactInfo}
+              </h2>
+              {editing ? (
+                <div style={{ fontSize: "14px" }}>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                      {t.profile.email}
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email || ""}
+                      disabled
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        ...getInputStyle(),
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        opacity: 0.7,
+                      }}
+                    />
+                    <p style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>{t.profile.emailCannotChange}</p>
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                      {t.profile.phone}
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone || ""}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder={t.profile.phonePlaceholder}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        ...getInputStyle(),
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                      {t.profile.website}
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.website || ""}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      placeholder={t.profile.websitePlaceholder}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        ...getInputStyle(),
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                      {t.profile.linkedin}
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.linkedin || ""}
+                      onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                      placeholder={t.profile.linkedinPlaceholder}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        ...getInputStyle(),
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
+                      {t.profile.twitter}
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.twitter || ""}
+                      onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
+                      placeholder={t.profile.twitterPlaceholder}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        ...getInputStyle(),
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: "14px", color: "#666" }}>
+                  {user.email && <p style={{ marginBottom: "8px" }}>📧 {user.email}</p>}
+                  {user.phone && <p style={{ marginBottom: "8px" }}>📱 {user.phone}</p>}
+                  {user.website && (
+                    <p style={{ marginBottom: "8px" }}>
+                      🌐 <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+                        {user.website}
+                      </a>
+                    </p>
+                  )}
+                  {user.linkedin && (
+                    <p style={{ marginBottom: "8px" }}>
+                      💼 <a href={user.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+                        {t.profile.linkedin}
+                      </a>
+                    </p>
+                  )}
+                  {user.twitter && (
+                    <p style={{ marginBottom: "8px" }}>
+                      🐦 <a href={user.twitter} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+                        {t.profile.twitter}
+                      </a>
+                    </p>
+                  )}
+                  {!user.phone && !user.website && !user.linkedin && !user.twitter && (
+                    <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noContactInfo}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Skills */}
             <div
               style={{
@@ -1680,16 +1893,26 @@ export default function ProfilePage({
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "12px",
-                        padding: "8px",
+                        gap: "16px",
+                        padding: "12px",
                         border: "1px solid #e0e0e0",
                         borderRadius: "8px",
+                        transition: "all 0.2s ease",
+                        background: "white",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = "#0a66c2";
+                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(10, 102, 194, 0.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "#e0e0e0";
+                        e.currentTarget.style.boxShadow = "none";
                       }}
                     >
                       <div
                         style={{
-                          width: "40px",
-                          height: "40px",
+                          width: "48px",
+                          height: "48px",
                           borderRadius: "50%",
                           background: conn.user?.profilePicture
                             ? `url(${conn.user.profilePicture}) center/cover`
@@ -1697,27 +1920,38 @@ export default function ProfilePage({
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontSize: "16px",
+                          fontSize: "18px",
                           color: "#666",
+                          flexShrink: 0,
+                          border: "2px solid #f0f0f0",
                         }}
                       >
                         {!conn.user?.profilePicture &&
                           (conn.user?.displayName || conn.user?.username)?.[0]?.toUpperCase()}
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <Link
                           href={localeLink(`/user-profile?id=${conn.user?._id}`, locale)}
                           style={{
-                            fontSize: "14px",
+                            fontSize: "15px",
                             fontWeight: "600",
-                            color: "#0a66c2",
+                            color: "#333",
                             textDecoration: "none",
+                            display: "block",
+                            marginBottom: "4px",
+                            transition: "color 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = "#0a66c2";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "#333";
                           }}
                         >
                           {conn.user?.displayName || conn.user?.username}
                         </Link>
                         {conn.user?.headline && (
-                          <p style={{ fontSize: "12px", color: "#666", margin: "2px 0 0" }}>
+                          <p style={{ fontSize: "13px", color: "#666", margin: 0, lineHeight: "1.4" }}>
                             {conn.user.headline}
                           </p>
                         )}
@@ -1725,15 +1959,17 @@ export default function ProfilePage({
                       <Link
                         href={localeLink(`/chat?userId=${conn.user?._id}`, locale)}
                         style={{
-                          padding: "6px 12px",
+                          padding: "8px 16px",
                           border: "1px solid #0a66c2",
                           background: "white",
                           color: "#0a66c2",
-                          borderRadius: "16px",
-                          fontSize: "12px",
+                          borderRadius: "20px",
+                          fontSize: "13px",
                           fontWeight: "600",
                           textDecoration: "none",
                           transition: "all 0.2s ease",
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "#0a66c2";
@@ -1882,143 +2118,6 @@ export default function ProfilePage({
                 </p>
               )}
             </div>
-
-            {/* Contact Info */}
-            <div
-              style={{
-                ...getCardStyle(),
-                borderRadius: "8px",
-                padding: "24px",
-              }}
-            >
-              <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-                {t.profile.contactInfo}
-              </h2>
-              {editing ? (
-                <div style={{ fontSize: "14px" }}>
-                  <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      {t.profile.email}
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email || ""}
-                      disabled
-                      style={{
-                        width: "100%",
-                        padding: "8px",
-                        ...getInputStyle(),
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        opacity: 0.7,
-                      }}
-                    />
-                    <p style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>{t.profile.emailCannotChange}</p>
-                  </div>
-                  <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      {t.profile.phone}
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.phone || ""}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder={t.profile.phonePlaceholder}
-                      style={{
-                        width: "100%",
-                        padding: "8px",
-                        ...getInputStyle(),
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                  <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      {t.profile.website}
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.website || ""}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      placeholder={t.profile.websitePlaceholder}
-                      style={{
-                        width: "100%",
-                        padding: "8px",
-                        ...getInputStyle(),
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                  <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      {t.profile.linkedin}
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.linkedin || ""}
-                      onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                      placeholder={t.profile.linkedinPlaceholder}
-                      style={{
-                        width: "100%",
-                        padding: "8px",
-                        ...getInputStyle(),
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                  <div style={{ marginBottom: "12px" }}>
-                    <label style={{ display: "block", marginBottom: "4px", fontWeight: "600", color: "#666" }}>
-                      {t.profile.twitter}
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.twitter || ""}
-                      onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
-                      placeholder={t.profile.twitterPlaceholder}
-                      style={{
-                        width: "100%",
-                        padding: "8px",
-                        ...getInputStyle(),
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div style={{ fontSize: "14px", color: "#666" }}>
-                  {user.email && <p style={{ marginBottom: "8px" }}>📧 {user.email}</p>}
-                  {user.phone && <p style={{ marginBottom: "8px" }}>📱 {user.phone}</p>}
-                  {user.website && (
-                    <p style={{ marginBottom: "8px" }}>
-                      🌐 <a href={user.website} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
-                        {user.website}
-                      </a>
-                    </p>
-                  )}
-                  {user.linkedin && (
-                    <p style={{ marginBottom: "8px" }}>
-                      💼 <a href={user.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
-                        {t.profile.linkedin}
-                      </a>
-                    </p>
-                  )}
-                  {user.twitter && (
-                    <p style={{ marginBottom: "8px" }}>
-                      🐦 <a href={user.twitter} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
-                        {t.profile.twitter}
-                      </a>
-                    </p>
-                  )}
-                  {!user.phone && !user.website && !user.linkedin && !user.twitter && (
-                    <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.noContactInfo}</p>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -2048,6 +2147,11 @@ export default function ProfilePage({
             onClick={(e) => e.stopPropagation()}
             style={{
               animation: "scaleIn 0.2s ease-out",
+              width: "100%",
+              maxWidth: "1200px",
+              display: "flex",
+              justifyContent: "center",
+              margin: "0 auto",
             }}
           >
             <ExperienceModal
@@ -2125,6 +2229,11 @@ export default function ProfilePage({
             onClick={(e) => e.stopPropagation()}
             style={{
               animation: "scaleIn 0.2s ease-out",
+              width: "100%",
+              maxWidth: "1200px",
+              display: "flex",
+              justifyContent: "center",
+              margin: "0 auto",
             }}
           >
             <EducationModal
@@ -2205,7 +2314,7 @@ export default function ProfilePage({
               borderRadius: "8px",
               padding: "24px",
               width: "90%",
-              maxWidth: "500px",
+              maxWidth: "1200px",
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
               animation: "scaleIn 0.2s ease-out",
             }}
@@ -2807,6 +2916,7 @@ export default function ProfilePage({
         </div>
       )}
     </main>
+    </>
   );
 }
 
@@ -2867,8 +2977,8 @@ function ExperienceModal({
         background: "white",
         borderRadius: "8px",
         padding: "24px",
-        width: "90%",
-        maxWidth: "500px",
+        width: "100%",
+        maxWidth: "1200px",
         maxHeight: "90vh",
         overflowY: "auto",
         boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
@@ -2958,7 +3068,7 @@ function ExperienceModal({
             }}
           />
         </div>
-        <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
           <div>
             <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
               {t.profile.startDate} *
@@ -2970,10 +3080,11 @@ function ExperienceModal({
               required
               style={{
                 width: "100%",
-                padding: "8px",
+                padding: "12px",
                 border: "1px solid #ddd",
                 borderRadius: "4px",
-                fontSize: "14px",
+                fontSize: "16px",
+                minHeight: "44px",
               }}
             />
           </div>
@@ -2988,10 +3099,11 @@ function ExperienceModal({
               disabled={formData.current}
               style={{
                 width: "100%",
-                padding: "8px",
+                padding: "12px",
                 border: "1px solid #ddd",
                 borderRadius: "4px",
-                fontSize: "14px",
+                fontSize: "16px",
+                minHeight: "44px",
                 opacity: formData.current ? 0.5 : 1,
               }}
             />
@@ -3137,8 +3249,8 @@ function EducationModal({
         background: "white",
         borderRadius: "8px",
         padding: "24px",
-        width: "90%",
-        maxWidth: "500px",
+        width: "100%",
+        maxWidth: "1200px",
         maxHeight: "90vh",
         overflowY: "auto",
         boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
@@ -3200,7 +3312,7 @@ function EducationModal({
             }}
           />
         </div>
-        <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div style={{ marginBottom: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             <div>
               <label style={{ display: "block", marginBottom: "4px", fontSize: "14px", fontWeight: "600" }}>
                 {t.profile.startDate} *
@@ -3212,10 +3324,11 @@ function EducationModal({
                 required
                 style={{
                   width: "100%",
-                  padding: "8px",
+                  padding: "12px",
                   border: "1px solid #ddd",
                   borderRadius: "4px",
-                  fontSize: "14px",
+                  fontSize: "16px",
+                  minHeight: "44px",
                 }}
               />
             </div>
@@ -3230,10 +3343,11 @@ function EducationModal({
                 disabled={formData.current}
                 style={{
                   width: "100%",
-                  padding: "8px",
+                  padding: "12px",
                   border: "1px solid #ddd",
                   borderRadius: "4px",
-                  fontSize: "14px",
+                  fontSize: "16px",
+                  minHeight: "44px",
                   opacity: formData.current ? 0.5 : 1,
                 }}
               />

@@ -3038,7 +3038,7 @@ function ChatPageInner() {
                   {t.chat.selectMembers}
                 </label>
                 <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #e0e0e0", borderRadius: "8px", padding: "8px" }}>
-                  {availableUsers.map((user) => (
+                  {availableUsers.filter((user) => user && user._id).map((user) => (
                     <label
                       key={user._id}
                       style={{
@@ -3351,7 +3351,7 @@ function ChatPageInner() {
                 >
                   <option value="">Select a user...</option>
                   {availableUsers
-                    .filter((user) => !(currentGroup.members || []).some((m: any) => m?._id === user._id))
+                    .filter((user) => user && user._id && !(currentGroup.members || []).some((m: any) => m?._id === user._id))
                     .map((user) => (
                       <option key={user._id} value={user._id}>
                         {user.displayName || user.username}

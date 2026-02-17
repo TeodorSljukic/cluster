@@ -132,8 +132,9 @@ body:has(main[data-chat-page="true"]) #main-content {
 }
 
 body:has(main[data-chat-page="true"]) header.site-header {
-  position: relative !important;
-  z-index: 10;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10001 !important;
   flex-shrink: 0;
   margin-top: 0 !important;
   padding-top: 15px !important;
