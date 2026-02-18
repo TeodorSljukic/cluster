@@ -213,8 +213,10 @@ export async function PUT(
     };
 
     // If status changed to published, set publishedAt and publishedBy
+    // Also handle republish (when republish flag is true and post is already published)
     const now = new Date();
-    if (body.status === "published" && existing.status !== "published") {
+    const isRepublish = body.republish === true && existing.status === "published";
+    if ((body.status === "published" && existing.status !== "published") || isRepublish) {
       update.publishedAt = now;
       
       // Get current user for publishedBy
@@ -261,9 +263,11 @@ export async function PUT(
     if (body.type !== undefined) updatesForAllLocales.type = body.type;
     if (eventDate !== undefined) updatesForAllLocales.eventDate = eventDate;
     if (body.eventLocation !== undefined) updatesForAllLocales.eventLocation = body.eventLocation || "";
-    if (body.status === "published") {
+    // Handle republish for all locales
+    const isRepublishForAll = body.republish === true && existing.status === "published";
+    if (body.status === "published" || isRepublishForAll) {
       updatesForAllLocales.publishedAt = now;
-      // Set publishedBy for all locales when publishing
+      // Set publishedBy for all locales when publishing or republishing
       if (update.publishedBy) {
         updatesForAllLocales.publishedBy = update.publishedBy;
         updatesForAllLocales.publishedByName = update.publishedByName;

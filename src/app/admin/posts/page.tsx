@@ -113,6 +113,31 @@ function PostsPageInner() {
     }
   }
 
+  async function handleRepublish(id: string) {
+    if (!confirm("Are you sure you want to republish this post? This will update the published date.")) return;
+
+    try {
+      const res = await fetch(`/api/posts/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "published",
+          republish: true, // Flag to indicate republish
+        }),
+      });
+      if (res.ok) {
+        loadPosts();
+        alert("Post republished successfully!");
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.error || "Failed to republish post"}`);
+      }
+    } catch (error) {
+      console.error("Error republishing post:", error);
+      alert("Error republishing post");
+    }
+  }
+
   function handleEdit(post: Post) {
     setEditingPost(post);
     setShowForm(true);
@@ -364,6 +389,25 @@ function PostsPageInner() {
                     >
                       {t.cms.edit}
                     </button>
+                    {post.status === "published" && (
+                      <>
+                        |
+                        <button
+                          onClick={() => post._id && handleRepublish(post._id)}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#00a32a",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            padding: "0 5px",
+                            textDecoration: "underline",
+                          }}
+                        >
+                          Republish
+                        </button>
+                      </>
+                    )}
                     |
                     <button
                       onClick={() => post._id && handleDelete(post._id)}
