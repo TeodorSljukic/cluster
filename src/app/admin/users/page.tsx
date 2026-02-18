@@ -396,6 +396,9 @@ export default function UsersPage() {
                 <button
                   type="submit"
                   disabled={createUserLoading}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                   style={{
                     padding: "8px 16px",
                     background: createUserLoading ? "#ccc" : "#2271b1",
@@ -405,13 +408,18 @@ export default function UsersPage() {
                     cursor: createUserLoading ? "not-allowed" : "pointer",
                     fontSize: "13px",
                     fontWeight: "500",
+                    position: "relative",
+                    zIndex: 10,
+                    pointerEvents: createUserLoading ? "none" : "auto",
                   }}
                 >
                   {createUserLoading ? t.adminUsers.creating : t.adminUsers.createUser}
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     setShowCreateForm(false);
                     setCreateUserEmail("");
                     setCreateUserRole("user");
@@ -425,6 +433,9 @@ export default function UsersPage() {
                     borderRadius: "3px",
                     cursor: "pointer",
                     fontSize: "13px",
+                    position: "relative",
+                    zIndex: 10,
+                    pointerEvents: "auto",
                   }}
                 >
                   {t.adminUsers.cancel}
