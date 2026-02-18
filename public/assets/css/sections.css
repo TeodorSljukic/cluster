@@ -448,6 +448,16 @@
   line-height: 1.4;
 }
 
+.news-item-title a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.news-item-title a:hover {
+  color: #E23F65;
+}
+
 .news-button {
   display: inline-block;
   background: #E94E77;
@@ -539,6 +549,16 @@
   margin: 0 20px 20px 20px; 
   color: #333; 
   line-height: 1.4;
+}
+
+.event-title a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.event-title a:hover {
+  color: #E23F65;
 }
 
 .event-button {
