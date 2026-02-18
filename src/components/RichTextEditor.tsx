@@ -420,10 +420,12 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         .ProseMirror ul li::before {
           content: "•" !important;
           position: absolute !important;
-          left: -1.5em !important;
+          left: -2em !important;
           color: #333 !important;
           font-weight: bold !important;
           font-size: 1.2em !important;
+          text-align: right !important;
+          min-width: 1.5em !important;
         }
         .ProseMirror ol {
           list-style: none !important;

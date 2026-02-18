@@ -321,11 +321,14 @@ main .post-content ul li::before,
 div.post-content ul li::before {
   content: "•" !important;
   position: absolute !important;
-  left: -1.5em !important;
+  left: -2em !important;
   color: #333 !important;
   font-weight: bold !important;
   font-size: 1.2em !important;
   line-height: 1.6 !important;
+  display: inline-block !important;
+  text-align: right !important;
+  min-width: 1.5em !important;
 }
 
 .post-content ol,
@@ -384,11 +387,15 @@ div.post-content ol ol {
 .post-content ul ul li::before,
 article .post-content ul ul li::before {
   content: "◦" !important;
-  left: -1.5em !important;
+  left: -2em !important;
+  text-align: right !important;
+  min-width: 1.5em !important;
 }
 
 .post-content ul ul ul li::before,
 article .post-content ul ul ul li::before {
   content: "▪" !important;
-  left: -1.5em !important;
+  left: -2em !important;
+  text-align: right !important;
+  min-width: 1.5em !important;
 }

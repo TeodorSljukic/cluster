@@ -104,7 +104,7 @@ export default async function EventPostPage({
                       var bullet = document.createElement('span');
                       bullet.className = 'list-bullet';
                       bullet.textContent = '•';
-                      bullet.style.cssText = 'position: absolute !important; left: -1.5em !important; color: #333 !important; font-weight: bold !important; font-size: 1.2em !important;';
+                      bullet.style.cssText = 'position: absolute !important; left: -2em !important; color: #333 !important; font-weight: bold !important; font-size: 1.2em !important; text-align: right !important; min-width: 1.5em !important;';
                       li.insertBefore(bullet, li.firstChild);
                     }
                   });
