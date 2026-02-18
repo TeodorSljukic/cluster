@@ -40,6 +40,13 @@ export async function NewsSection({ locale = "en" }: NewsSectionProps) {
   const posts = await getLatestNews();
   const t = getTranslations(locale);
 
+  function formatDate(dateValue?: string | Date) {
+    if (!dateValue) return "";
+    const date = typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+  }
+
   // Get first 4 posts
   const displayPosts = posts.slice(0, 4);
 
@@ -66,14 +73,17 @@ export async function NewsSection({ locale = "en" }: NewsSectionProps) {
                     />
                   </Link>
                 )}
-                <h3 className="news-item-title">
-                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
-                </h3>
-                {post.excerpt && (
-                  <p className="news-excerpt">
-                    {post.excerpt.replace(/<[^>]*>/g, '').substring(0, 120)}...
-                  </p>
-                )}
+
+                <div className="news-meta">
+                  <span className="news-date">
+                    {formatDate(post.publishedAt || post.createdAt)}
+                  </span>
+                </div>
+                <h3 className="news-item-title">{post.title}</h3>
+
+                <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
+                  {t.news.readMore}
+                </Link>
               </div>
             ))}
           </div>
