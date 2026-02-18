@@ -223,7 +223,7 @@ export default function UsersPage() {
                 fontSize: "13px",
                 fontWeight: "500",
                 position: "relative",
-                zIndex: 10,
+                zIndex: 10000,
                 pointerEvents: syncingDMS ? "none" : "auto",
               }}
             >
@@ -246,7 +246,7 @@ export default function UsersPage() {
                 fontSize: "13px",
                 fontWeight: "500",
                 position: "relative",
-                zIndex: 10,
+                zIndex: 10000,
                 pointerEvents: "auto",
               }}
             >
@@ -409,7 +409,7 @@ export default function UsersPage() {
                     fontSize: "13px",
                     fontWeight: "500",
                     position: "relative",
-                    zIndex: 10,
+                    zIndex: 10000,
                     pointerEvents: createUserLoading ? "none" : "auto",
                   }}
                 >
@@ -434,7 +434,7 @@ export default function UsersPage() {
                     cursor: "pointer",
                     fontSize: "13px",
                     position: "relative",
-                    zIndex: 10,
+                    zIndex: 10000,
                     pointerEvents: "auto",
                   }}
                 >
@@ -574,7 +574,8 @@ export default function UsersPage() {
                             padding: "4px 8px",
                             borderRadius: "3px",
                             position: "relative",
-                            zIndex: 10,
+                            zIndex: 10000,
+                            pointerEvents: "auto",
                           }}
                         >
                           {expandedUser === user._id ? t.adminUsers.hideDetails : t.adminUsers.viewDetails}
@@ -600,7 +601,7 @@ export default function UsersPage() {
                             borderRadius: "3px",
                             opacity: resetPasswordLoading === user._id ? 0.6 : 1,
                             position: "relative",
-                            zIndex: 10,
+                            zIndex: 10000,
                             pointerEvents: resetPasswordLoading === user._id ? "none" : "auto",
                           }}
                         >
@@ -622,7 +623,8 @@ export default function UsersPage() {
                             padding: "0 5px",
                             textDecoration: "underline",
                             position: "relative",
-                            zIndex: 10,
+                            zIndex: 10000,
+                            pointerEvents: "auto",
                           }}
                         >
                           {t.adminUsers.delete}
