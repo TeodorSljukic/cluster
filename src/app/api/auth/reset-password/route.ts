@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if token is expired
+    // Check if token is expired (10 minutes)
     if (user.resetPasswordExpiry && new Date() > new Date(user.resetPasswordExpiry)) {
       return NextResponse.json(
         { error: "Reset token has expired. Please request a new one." },
@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
     // Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Update password and clear reset token
+    // Update password and clear reset token ONLY after successful password change
+    // This allows the link to be used multiple times until password is successfully changed
     await collection.updateOne(
       { _id: user._id },
       {

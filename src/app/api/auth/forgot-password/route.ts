@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       // Generate reset token
       const resetToken = crypto.randomBytes(32).toString("hex");
       const resetTokenExpiry = new Date();
-      resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // Token valid for 1 hour
+      resetTokenExpiry.setMinutes(resetTokenExpiry.getMinutes() + 10); // Token valid for 10 minutes
 
       // Save reset token to database
       await collection.updateOne(
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
                 Reset Password
               </a>
             </p>
-            <p style="color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
+            <p style="color: #666; font-size: 14px;">This link will expire in 10 minutes.</p>
             <p style="color: #666; font-size: 14px;">If you did not request this password reset, please ignore this email.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="color: #999; font-size: 12px;">Adriatic Blue Growth Cluster (ABGC)</p>
