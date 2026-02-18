@@ -5,6 +5,7 @@ import { type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
 import { PostViewTracker } from "@/components/PostViewTracker";
+import { processPostContent } from "@/lib/processPostContent";
 
 export const dynamic = "force-dynamic";
 
@@ -152,8 +153,64 @@ export default async function PostPage({
 
         <div
           className="post-content"
-          style={{ lineHeight: "1.8", color: "#333" }}
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          style={{ 
+            lineHeight: "1.8", 
+            color: "#333",
+          }}
+          dangerouslySetInnerHTML={{ __html: processPostContent(post.content) }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window === 'undefined') return;
+                setTimeout(function() {
+                  var container = document.querySelector('.post-content');
+                  if (!container) return;
+                  
+                  // Process ul lists
+                  var uls = container.querySelectorAll('ul');
+                  uls.forEach(function(ul) {
+                    ul.style.cssText = 'list-style: none !important; margin: 1em 0 1em 2em !important; padding: 0 !important;';
+                    var lis = ul.querySelectorAll('li');
+                    lis.forEach(function(li) {
+                      if (li.dataset.processed) return;
+                      li.dataset.processed = 'true';
+                      li.style.cssText = 'margin: 0.5em 0 !important; padding: 0 0 0 0.5em !important; position: relative !important; list-style: none !important;';
+                      if (!li.querySelector('.list-bullet')) {
+                        var bullet = document.createElement('span');
+                        bullet.className = 'list-bullet';
+                        bullet.textContent = '•';
+                        bullet.style.cssText = 'position: absolute !important; left: -1.5em !important; color: #333 !important; font-weight: bold !important; font-size: 1.2em !important;';
+                        li.insertBefore(bullet, li.firstChild);
+                      }
+                    });
+                  });
+                  
+                  // Process ol lists
+                  var ols = container.querySelectorAll('ol');
+                  ols.forEach(function(ol) {
+                    ol.style.cssText = 'list-style: none !important; margin: 1em 0 1em 2em !important; padding: 0 !important;';
+                    var lis = ol.querySelectorAll('li');
+                    var counter = 0;
+                    lis.forEach(function(li) {
+                      counter++;
+                      if (li.dataset.processed) return;
+                      li.dataset.processed = 'true';
+                      li.style.cssText = 'margin: 0.5em 0 !important; padding: 0 0 0 0.5em !important; position: relative !important; list-style: none !important;';
+                      if (!li.querySelector('.list-number')) {
+                        var number = document.createElement('span');
+                        number.className = 'list-number';
+                        number.textContent = counter + '.';
+                        number.style.cssText = 'position: absolute !important; left: -2em !important; color: #333 !important; min-width: 1.5em !important; text-align: right !important;';
+                        li.insertBefore(number, li.firstChild);
+                      }
+                    });
+                  });
+                }, 100);
+              })();
+            `,
+          }}
         />
       </article>
     </main>

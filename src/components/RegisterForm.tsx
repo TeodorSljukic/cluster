@@ -41,18 +41,42 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
   const [showCountryOther, setShowCountryOther] = useState(false);
   const [countryQuery, setCountryQuery] = useState("");
   const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
   const [cityError, setCityError] = useState("");
   const router = useRouter();
 
+  // Validate password: minimum 8 characters, at least one letter and one number
+  function validatePassword(password: string): string | null {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long";
+    }
+    if (!/[a-zA-Z]/.test(password)) {
+      return "Password must contain at least one letter";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSuccess("");
     setCityError("");
+    setPasswordError("");
     setLoading(true);
+    
+    // Validate password
+    const passwordValidation = validatePassword(formData.password);
+    if (passwordValidation) {
+      setPasswordError(passwordValidation);
+      setLoading(false);
+      return;
+    }
     
     // Validate city before submission
     const currentCity = cityQuery || formData.city;
@@ -456,20 +480,53 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 <input
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) => {
+                    const newPassword = e.target.value;
+                    setFormData({ ...formData, password: newPassword });
+                    // Clear error when user starts typing
+                    if (passwordError) {
+                      const validation = validatePassword(newPassword);
+                      setPasswordError(validation || "");
+                    }
+                  }}
                   required
+                  minLength={8}
+                  pattern="^(?=.*[a-zA-Z])(?=.*[0-9]).{8,}$"
+                  title="Password must be at least 8 characters long and contain at least one letter and one number"
                   style={{
                     width: "100%",
                     padding: "12px",
                     borderRadius: "6px",
-                    border: "1px solid #ddd",
+                    border: passwordError ? "1px solid #B53251" : "1px solid #ddd",
                     fontSize: "14px",
                     outline: "none",
                     boxSizing: "border-box"
                   }}
                   onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
-                  onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = passwordError ? "#B53251" : "#ddd";
+                    // Validate on blur
+                    const validation = validatePassword(formData.password);
+                    setPasswordError(validation || "");
+                  }}
                 />
+                <div style={{
+                  color: "#666",
+                  fontSize: "12px",
+                  marginTop: "4px",
+                  lineHeight: "1.4"
+                }}>
+                  Password must be at least 8 characters long and contain at least one letter and one number
+                </div>
+                {passwordError && (
+                  <div style={{
+                    color: "#B53251",
+                    fontSize: "12px",
+                    marginTop: "4px"
+                  }}>
+                    {passwordError}
+                  </div>
+                )}
               </div>
 
               <div style={{ 

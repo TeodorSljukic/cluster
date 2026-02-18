@@ -163,6 +163,28 @@ export async function POST(request: NextRequest) {
     });
 
     // Validate required fields
+    // Validate password: minimum 8 characters, at least one letter and one number
+    if (password) {
+      if (password.length < 8) {
+        return NextResponse.json(
+          { error: "Password must be at least 8 characters long" },
+          { status: 400 }
+        );
+      }
+      if (!/[a-zA-Z]/.test(password)) {
+        return NextResponse.json(
+          { error: "Password must contain at least one letter" },
+          { status: 400 }
+        );
+      }
+      if (!/[0-9]/.test(password)) {
+        return NextResponse.json(
+          { error: "Password must contain at least one number" },
+          { status: 400 }
+        );
+      }
+    }
+
     if (!username || !email || !password) {
       console.error("❌ VALIDATION FAILED: Missing required fields", {
         username: !!username,

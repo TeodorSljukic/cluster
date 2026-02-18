@@ -407,10 +407,50 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
           font-weight: bold;
           margin: 0.5em 0;
         }
-        .ProseMirror ul,
+        .ProseMirror ul {
+          list-style: none !important;
+          margin: 0.5em 0 !important;
+          padding: 0.5em 0 0.5em 2em !important;
+        }
+        .ProseMirror ul li {
+          margin: 0.5em 0 !important;
+          padding-left: 0.5em !important;
+          position: relative !important;
+        }
+        .ProseMirror ul li::before {
+          content: "•" !important;
+          position: absolute !important;
+          left: -1.5em !important;
+          color: #333 !important;
+          font-weight: bold !important;
+          font-size: 1.2em !important;
+        }
         .ProseMirror ol {
-          padding-left: 1.5em;
-          margin: 0.5em 0;
+          list-style: none !important;
+          margin: 0.5em 0 !important;
+          padding: 0.5em 0 0.5em 2em !important;
+          counter-reset: item !important;
+        }
+        .ProseMirror ol li {
+          margin: 0.5em 0 !important;
+          padding-left: 0.5em !important;
+          position: relative !important;
+          counter-increment: item !important;
+        }
+        .ProseMirror ol li::before {
+          content: counter(item) "." !important;
+          position: absolute !important;
+          left: -2em !important;
+          color: #333 !important;
+          font-weight: normal !important;
+          text-align: right !important;
+          min-width: 1.5em !important;
+        }
+        .ProseMirror ul ul li::before {
+          content: "◦" !important;
+        }
+        .ProseMirror ul ul ul li::before {
+          content: "▪" !important;
         }
         .ProseMirror blockquote {
           border-left: 3px solid #ccc;

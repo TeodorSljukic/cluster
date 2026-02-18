@@ -53,6 +53,12 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
 
   const platforms = [
     {
+      id: "ecommunication",
+      label: t.platform.ecommunication,
+      image: "/wp-content/uploads/2025/09/viber_image_2026-02-18_19-35-06-493.png",
+      url: "#", // TODO: Add eCommunication URL
+    },
+    {
       id: "dms",
       label: t.platform.documents,
       image: "/wp-content/uploads/2025/09/Frame-10000022262.webp",
@@ -69,12 +75,6 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
       label: t.platform.ecommerce,
       image: "/wp-content/uploads/2025/09/Frame-1000002234.webp",
       url: "https://market.southadriaticskills.org",
-    },
-    {
-      id: "ecommunication",
-      label: t.platform.ecommunication,
-      image: "/wp-content/uploads/2025/09/Frame-1000002234.webp", // TODO: Add eCommunication image
-      url: "#", // TODO: Add eCommunication URL
     },
   ];
 

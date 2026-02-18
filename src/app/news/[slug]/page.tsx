@@ -1,6 +1,7 @@
 import { Post } from "@/models/Post";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { processPostContent } from "@/lib/processPostContent";
 
 async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
@@ -66,8 +67,57 @@ export default async function NewsPostPage({
 
       <div
         className="post-content"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{ __html: processPostContent(post.content) }}
         style={{ lineHeight: "1.8" }}
+      />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              if (typeof window === 'undefined') return;
+              setTimeout(function() {
+                var container = document.querySelector('.post-content');
+                if (!container) return;
+                var uls = container.querySelectorAll('ul');
+                uls.forEach(function(ul) {
+                  ul.style.cssText = 'list-style: none !important; margin: 1em 0 1em 2em !important; padding: 0 !important;';
+                  var lis = ul.querySelectorAll('li');
+                  lis.forEach(function(li) {
+                    if (li.dataset.processed) return;
+                    li.dataset.processed = 'true';
+                    li.style.cssText = 'margin: 0.5em 0 !important; padding: 0 0 0 0.5em !important; position: relative !important; list-style: none !important;';
+                    if (!li.querySelector('.list-bullet')) {
+                      var bullet = document.createElement('span');
+                      bullet.className = 'list-bullet';
+                      bullet.textContent = '•';
+                      bullet.style.cssText = 'position: absolute !important; left: -1.5em !important; color: #333 !important; font-weight: bold !important; font-size: 1.2em !important;';
+                      li.insertBefore(bullet, li.firstChild);
+                    }
+                  });
+                });
+                var ols = container.querySelectorAll('ol');
+                ols.forEach(function(ol) {
+                  ol.style.cssText = 'list-style: none !important; margin: 1em 0 1em 2em !important; padding: 0 !important;';
+                  var lis = ol.querySelectorAll('li');
+                  var counter = 0;
+                  lis.forEach(function(li) {
+                    counter++;
+                    if (li.dataset.processed) return;
+                    li.dataset.processed = 'true';
+                    li.style.cssText = 'margin: 0.5em 0 !important; padding: 0 0 0 0.5em !important; position: relative !important; list-style: none !important;';
+                    if (!li.querySelector('.list-number')) {
+                      var number = document.createElement('span');
+                      number.className = 'list-number';
+                      number.textContent = counter + '.';
+                      number.style.cssText = 'position: absolute !important; left: -2em !important; color: #333 !important; min-width: 1.5em !important; text-align: right !important;';
+                      li.insertBefore(number, li.firstChild);
+                    }
+                  });
+                });
+              }, 100);
+            })();
+          `,
+        }}
       />
     </main>
   );

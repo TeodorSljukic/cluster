@@ -286,40 +286,109 @@ body:not(:has(main[data-chat-page="true"])) {
 }
 
 /* Post content styles - bullet lists */
-.post-content ul {
-  list-style-type: disc;
-  margin: 1em 0;
-  padding-left: 2em;
+.post-content ul,
+article .post-content ul,
+main .post-content ul,
+div.post-content ul,
+main.container .post-content ul,
+main.container article .post-content ul,
+div.post-content ul ul,
+div.post-content ul ol,
+div.post-content ol ul,
+div.post-content ol ol {
+  list-style: none !important;
+  margin: 1em 0 1em 2em !important;
+  padding: 0 !important;
+  display: block !important;
 }
 
-.post-content ul li {
-  margin: 0.5em 0;
-  line-height: 1.6;
+.post-content ul li,
+article .post-content ul li,
+main .post-content ul li,
+div.post-content ul li {
+  margin: 0.5em 0 !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  position: relative !important;
+  line-height: 1.6 !important;
+  display: block !important;
+  list-style: none !important;
 }
 
-.post-content ol {
-  list-style-type: decimal;
-  margin: 1em 0;
-  padding-left: 2em;
+.post-content ul li::before,
+article .post-content ul li::before,
+main .post-content ul li::before,
+div.post-content ul li::before {
+  content: "•" !important;
+  position: absolute !important;
+  left: -1.5em !important;
+  color: #333 !important;
+  font-weight: bold !important;
+  font-size: 1.2em !important;
+  line-height: 1.6 !important;
 }
 
-.post-content ol li {
-  margin: 0.5em 0;
-  line-height: 1.6;
+.post-content ol,
+article .post-content ol,
+main .post-content ol,
+div.post-content ol,
+main.container .post-content ol,
+main.container article .post-content ol {
+  list-style: none !important;
+  margin: 1em 0 1em 2em !important;
+  padding: 0 !important;
+  counter-reset: item !important;
+  display: block !important;
+}
+
+.post-content ol li,
+article .post-content ol li,
+main .post-content ol li,
+div.post-content ol li {
+  margin: 0.5em 0 !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  position: relative !important;
+  line-height: 1.6 !important;
+  display: block !important;
+  list-style: none !important;
+  counter-increment: item !important;
+}
+
+.post-content ol li::before,
+article .post-content ol li::before,
+main .post-content ol li::before,
+div.post-content ol li::before {
+  content: counter(item) "." !important;
+  position: absolute !important;
+  left: -2em !important;
+  color: #333 !important;
+  font-weight: normal !important;
+  line-height: 1.6 !important;
+  text-align: right !important;
+  min-width: 1.5em !important;
 }
 
 .post-content ul ul,
 .post-content ol ol,
 .post-content ul ol,
-.post-content ol ul {
-  margin: 0.5em 0;
-  padding-left: 1.5em;
+.post-content ol ul,
+article .post-content ul ul,
+article .post-content ol ol,
+div.post-content ul ul,
+div.post-content ol ol {
+  margin: 0.5em 0 0.5em 2em !important;
+  padding: 0 !important;
 }
 
-.post-content ul ul {
-  list-style-type: circle;
+.post-content ul ul li::before,
+article .post-content ul ul li::before {
+  content: "◦" !important;
+  left: -1.5em !important;
 }
 
-.post-content ul ul ul {
-  list-style-type: square;
+.post-content ul ul ul li::before,
+article .post-content ul ul ul li::before {
+  content: "▪" !important;
+  left: -1.5em !important;
 }
