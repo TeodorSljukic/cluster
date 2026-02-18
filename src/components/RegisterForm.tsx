@@ -42,13 +42,25 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCountryOther, setShowCountryOther] = useState(false);
+  const [countryQuery, setCountryQuery] = useState("");
+  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false);
+  const [cityError, setCityError] = useState("");
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setCityError("");
     setLoading(true);
+    
+    // Validate city before submission
+    const currentCity = cityQuery || formData.city;
+    if (currentCity && cities.length > 0 && !cities.includes(currentCity)) {
+      setCityError("Please select a valid city from the list or correct the city name.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const selectedPlatforms = formData.platforms.filter(p => p !== "all");
@@ -214,12 +226,18 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   }, []);
 
   useEffect(() => {
-    // Check if country is in the list of countries
+    // Update countryQuery when country changes
     if (formData.country && countries.length > 0) {
       const countryExists = countries.find(c => c.code === formData.country);
       if (countryExists) {
+        setCountryQuery(countryExists.name);
         setShowCountryOther(false);
+      } else if (formData.country && !countries.find(c => c.name.toLowerCase() === formData.country.toLowerCase())) {
+        // Custom country name
+        setCountryQuery(formData.country);
       }
+    } else if (!formData.country) {
+      setCountryQuery("");
     }
   }, [formData.country, countries]);
 
@@ -489,7 +507,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   />
                 </div>
 
-                <div>
+                <div style={{ position: "relative" }}>
                   <label style={{ 
                     display: "block", 
                     marginBottom: "6px", 
@@ -499,63 +517,117 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   }}>
                     {t.join.country}
                   </label>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                    <select
-                      value={showCountryOther ? "other" : (formData.country || "")}
-                      onChange={(e) => {
-                        if (e.target.value === "other") {
-                          setShowCountryOther(true);
-                          setFormData({ ...formData, country: "", city: "" });
-                        } else {
-                          setShowCountryOther(false);
-                          setFormData({ ...formData, country: e.target.value, city: "" });
-                        }
-                      }}
-                      style={{
-                        flex: showCountryOther ? "0 0 120px" : "1",
-                        padding: "12px",
-                        height: "48px",
-                        borderRadius: "6px",
-                        border: "1px solid #ddd",
-                        fontSize: "14px",
-                        outline: "none",
-                        boxSizing: "border-box",
-                        minWidth: showCountryOther ? "120px" : "auto"
-                      }}
-                      onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
-                      onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
-                    >
-                      <option value="">--</option>
-                      {countries.map((c) => (
-                        <option key={c.code} value={c.code}>
-                          {c.name}
-                        </option>
-                      ))}
-                      <option value="other">{t.join.countryOther || "Other"}</option>
-                    </select>
-                    {showCountryOther && (
-                      <input
-                        type="text"
-                        value={formData.country}
-                        onChange={(e) => {
-                          setFormData({ ...formData, country: e.target.value, city: "" });
-                        }}
-                        placeholder={t.join.countryOther || "Enter country name"}
-                        style={{
-                          flex: "1",
-                          padding: "12px",
-                          height: "48px",
-                          borderRadius: "6px",
-                          border: "1px solid #ddd",
-                          fontSize: "14px",
-                          outline: "none",
-                          boxSizing: "border-box"
-                        }}
-                        onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
-                        onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
-                      />
-                    )}
-                  </div>
+                  <input
+                    type="text"
+                    value={countryQuery || (countries.find(c => c.code === formData.country)?.name || formData.country || "")}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setCountryQuery(value);
+                      setShowCountrySuggestions(true);
+                      
+                      // Check if value matches a country
+                      const matchedCountry = countries.find(c => 
+                        c.name.toLowerCase().includes(value.toLowerCase())
+                      );
+                      
+                      if (matchedCountry && value === matchedCountry.name) {
+                        setFormData({ ...formData, country: matchedCountry.code, city: "" });
+                        setCountryQuery(matchedCountry.name);
+                        setShowCountrySuggestions(false);
+                      } else if (!matchedCountry && value) {
+                        // Custom country name
+                        setFormData({ ...formData, country: value, city: "" });
+                      }
+                    }}
+                    onFocus={() => setShowCountrySuggestions(true)}
+                    onBlur={() => {
+                      setTimeout(() => setShowCountrySuggestions(false), 200);
+                    }}
+                    placeholder={t.join.countryOther || "Select or enter country name"}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      height: "48px",
+                      borderRadius: "6px",
+                      border: "1px solid #ddd",
+                      fontSize: "14px",
+                      outline: "none",
+                      boxSizing: "border-box"
+                    }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
+                    onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
+                  />
+                  
+                  {/* Country suggestions dropdown */}
+                  {showCountrySuggestions && (countryQuery || countries.length > 0) && (
+                    <div style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      top: "100%",
+                      marginTop: "4px",
+                      background: "white",
+                      border: "1px solid #e6e6e6",
+                      borderRadius: "6px",
+                      zIndex: 50,
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      boxShadow: "0 6px 18px rgba(0,0,0,0.1)"
+                    }}>
+                      {countries
+                        .filter(c => !countryQuery || c.name.toLowerCase().includes(countryQuery.toLowerCase()))
+                        .map((c) => (
+                          <div
+                            key={c.code}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setFormData({ ...formData, country: c.code, city: "" });
+                              setCountryQuery(c.name);
+                              setShowCountrySuggestions(false);
+                            }}
+                            style={{
+                              padding: "12px",
+                              cursor: "pointer",
+                              borderBottom: "1px solid #f0f0f0",
+                              transition: "background 0.2s"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "#f5f5f5";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "white";
+                            }}
+                          >
+                            {c.name}
+                          </div>
+                        ))}
+                      {countryQuery && !countries.find(c => c.name.toLowerCase() === countryQuery.toLowerCase()) && (
+                        <div
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setFormData({ ...formData, country: countryQuery, city: "" });
+                            setShowCountrySuggestions(false);
+                          }}
+                          style={{
+                            padding: "12px",
+                            cursor: "pointer",
+                            background: "#f9f9f9",
+                            borderTop: "1px solid #e6e6e6",
+                            fontWeight: "500",
+                            color: "#666"
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#f0f0f0";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#f9f9f9";
+                          }}
+                        >
+                          {t.join.countryOther || "Use"} "{countryQuery}"
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -573,17 +645,32 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   type="text"
                   value={cityQuery || formData.city}
                   onChange={(e) => {
-                    setCityQuery(e.target.value);
+                    const value = e.target.value;
+                    setCityQuery(value);
                     setShowSuggestions(true);
+                    setCityError(""); // Clear error when typing
+                    
+                    // If value matches a city exactly, set it
+                    if (cities.includes(value)) {
+                      setFormData({ ...formData, city: value });
+                    }
                   }}
                   onFocus={() => {
                     setShowSuggestions(true);
+                    setCityError(""); // Clear error on focus
                     // preload static cities if any (show full list)
                     if (cities.length > 0 && !cityQuery) {
                       setSuggestions(cities);
                     }
                   }}
                   onBlur={() => {
+                    // Validate city when user leaves the field
+                    const currentValue = cityQuery || formData.city;
+                    if (currentValue && cities.length > 0 && !cities.includes(currentValue)) {
+                      setCityError("City not found. Please select from the list or correct the name.");
+                    } else {
+                      setCityError("");
+                    }
                     // small timeout to allow click selection
                     setTimeout(() => setShowSuggestions(false), 150);
                   }}
@@ -593,12 +680,25 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                     padding: "12px",
                     height: "48px",
                     borderRadius: "6px",
-                    border: "1px solid #ddd",
+                    border: cityError ? "1px solid #d32f2f" : "1px solid #ddd",
                     fontSize: "14px",
                     outline: "none",
                     boxSizing: "border-box"
                   }}
                 />
+                {cityError && (
+                  <div style={{
+                    marginTop: "6px",
+                    fontSize: "13px",
+                    color: "#d32f2f",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}>
+                    <span>⚠️</span>
+                    <span>{cityError}</span>
+                  </div>
+                )}
 
                 {/* Suggestions dropdown */}
                 {showSuggestions && (suggestionLoading || suggestions.length > 0) && (
