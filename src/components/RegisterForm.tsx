@@ -41,6 +41,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showCountryOther, setShowCountryOther] = useState(false);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -213,9 +214,25 @@ export function RegisterForm({ locale }: RegisterFormProps) {
   }, []);
 
   useEffect(() => {
+    // Check if country is in the list of countries
+    if (formData.country && countries.length > 0) {
+      const countryExists = countries.find(c => c.code === formData.country);
+      if (countryExists) {
+        setShowCountryOther(false);
+      }
+    }
+  }, [formData.country, countries]);
+
+  useEffect(() => {
     // Load cities when country changes
     let mounted = true;
     if (!formData.country) {
+      setCities([]);
+      return;
+    }
+    // Only fetch cities if country is a valid country code (not custom text)
+    const countryExists = countries.find(c => c.code === formData.country);
+    if (!countryExists) {
       setCities([]);
       return;
     }
@@ -232,7 +249,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
     return () => {
       mounted = false;
     };
-  }, [formData.country]);
+  }, [formData.country, countries]);
 
   useEffect(() => {
     // Autocomplete suggestions for cityQuery
@@ -482,49 +499,63 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                   }}>
                     {t.join.country}
                   </label>
-                  <select
-                    value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value, city: "" })}
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      height: "48px",
-                      borderRadius: "6px",
-                      border: "1px solid #ddd",
-                      fontSize: "14px",
-                      outline: "none",
-                      boxSizing: "border-box",
-                      marginBottom: "8px"
-                    }}
-                  >
-                    <option value="">--</option>
-                    {countries.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    value={formData.country && !countries.find(c => c.code === formData.country) ? formData.country : ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value && !countries.find(c => c.code === value)) {
-                        setFormData({ ...formData, country: value, city: "" });
-                      }
-                    }}
-                    placeholder={t.join.countryOther || "Or enter country name"}
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      height: "48px",
-                      borderRadius: "6px",
-                      border: "1px solid #ddd",
-                      fontSize: "14px",
-                      outline: "none",
-                      boxSizing: "border-box"
-                    }}
-                  />
+                  <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                    <select
+                      value={showCountryOther ? "other" : (formData.country || "")}
+                      onChange={(e) => {
+                        if (e.target.value === "other") {
+                          setShowCountryOther(true);
+                          setFormData({ ...formData, country: "", city: "" });
+                        } else {
+                          setShowCountryOther(false);
+                          setFormData({ ...formData, country: e.target.value, city: "" });
+                        }
+                      }}
+                      style={{
+                        flex: showCountryOther ? "0 0 120px" : "1",
+                        padding: "12px",
+                        height: "48px",
+                        borderRadius: "6px",
+                        border: "1px solid #ddd",
+                        fontSize: "14px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                        minWidth: showCountryOther ? "120px" : "auto"
+                      }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
+                      onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
+                    >
+                      <option value="">--</option>
+                      {countries.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.name}
+                        </option>
+                      ))}
+                      <option value="other">{t.join.countryOther || "Other"}</option>
+                    </select>
+                    {showCountryOther && (
+                      <input
+                        type="text"
+                        value={formData.country}
+                        onChange={(e) => {
+                          setFormData({ ...formData, country: e.target.value, city: "" });
+                        }}
+                        placeholder={t.join.countryOther || "Enter country name"}
+                        style={{
+                          flex: "1",
+                          padding: "12px",
+                          height: "48px",
+                          borderRadius: "6px",
+                          border: "1px solid #ddd",
+                          fontSize: "14px",
+                          outline: "none",
+                          boxSizing: "border-box"
+                        }}
+                        onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
+                        onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
 
