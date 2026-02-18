@@ -503,7 +503,22 @@
     "user": "Përdorues",
     "editor": "Redaktor",
     "moderator": "Moderator",
-    "admin": "Administrator"
+    "admin": "Administrator",
+    "createUser": "Krijo Përdorues",
+    "cancelCreate": "Anulo",
+    "createNewUser": "Krijo Përdorues të Ri",
+    "emailRequired": "Email është i detyrueshëm",
+    "userCreatedSuccess": "Përdoruesi u krijua me sukses",
+    "credentialsSentTo": "Kredencialet u dërguan në",
+    "emailFailed": "Dërgimi i email-it dështoi",
+    "credentialsBelow": "Kredencialet janë treguar më poshtë",
+    "errorCreatingUser": "Gabim në krijimin e përdoruesit",
+    "userCredentials": "Kredencialet e Përdoruesit",
+    "password": "Fjalëkalimi",
+    "credentialsCopied": "Kredencialet u kopjuan në clipboard",
+    "copyCredentials": "Kopjo Kredencialet",
+    "creating": "Duke krijuar...",
+    "cancel": "Anulo"
   },
   "resetPassword": {
     "title": "Rivendos Fjalëkalimin Tënd",

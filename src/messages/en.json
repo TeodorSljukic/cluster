@@ -503,7 +503,22 @@
     "user": "User",
     "editor": "Editor",
     "moderator": "Moderator",
-    "admin": "Admin"
+    "admin": "Admin",
+    "createUser": "Create User",
+    "cancelCreate": "Cancel",
+    "createNewUser": "Create New User",
+    "emailRequired": "Email is required",
+    "userCreatedSuccess": "User created successfully",
+    "credentialsSentTo": "Credentials have been sent to",
+    "emailFailed": "Email sending failed",
+    "credentialsBelow": "Credentials are shown below",
+    "errorCreatingUser": "Error creating user",
+    "userCredentials": "User Credentials",
+    "password": "Password",
+    "credentialsCopied": "Credentials copied to clipboard",
+    "copyCredentials": "Copy Credentials",
+    "creating": "Creating...",
+    "cancel": "Cancel"
   },
   "resetPassword": {
     "title": "Reset Your Password",

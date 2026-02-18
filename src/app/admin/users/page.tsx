@@ -38,6 +38,11 @@ export default function UsersPage() {
   const [resetPasswordLoading, setResetPasswordLoading] = useState<string | null>(null);
   const [resetPasswordResult, setResetPasswordResult] = useState<{ userId: string; link: string } | null>(null);
   const [cmsLocale, setCmsLocale] = useState<Locale>(defaultLocale);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createUserEmail, setCreateUserEmail] = useState("");
+  const [createUserRole, setCreateUserRole] = useState("user");
+  const [createUserLoading, setCreateUserLoading] = useState(false);
+  const [createdUserCredentials, setCreatedUserCredentials] = useState<{ username: string; password: string } | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -177,9 +182,206 @@ export default function UsersPage() {
     <AdminGuard>
       <CMSLayout>
       <div className="cms-form-container" style={{ background: "white", padding: "20px", borderRadius: "4px" }}>
-        <h1 style={{ margin: "0 0 20px 0", fontSize: "23px", fontWeight: "400" }}>
-          {t.adminUsers.title}
-        </h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <h1 style={{ margin: 0, fontSize: "23px", fontWeight: "400" }}>
+            {t.adminUsers.title}
+          </h1>
+          <button
+            type="button"
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            style={{
+              padding: "8px 16px",
+              background: "#2271b1",
+              color: "white",
+              border: "none",
+              borderRadius: "3px",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: "500",
+            }}
+          >
+            {showCreateForm ? t.adminUsers.cancelCreate : t.adminUsers.createUser}
+          </button>
+        </div>
+
+        {showCreateForm && (
+          <div style={{
+            background: "#f6f7f7",
+            padding: "20px",
+            borderRadius: "4px",
+            marginBottom: "20px",
+            border: "1px solid #c3c4c7"
+          }}>
+            <h2 style={{ margin: "0 0 15px 0", fontSize: "18px", fontWeight: "600" }}>
+              {t.adminUsers.createNewUser}
+            </h2>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!createUserEmail) {
+                  alert(t.adminUsers.emailRequired);
+                  return;
+                }
+
+                setCreateUserLoading(true);
+                setCreatedUserCredentials(null);
+
+                try {
+                  const res = await fetch("/api/admin/users", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: createUserEmail,
+                      role: createUserRole,
+                      sendPasswordEmail: true,
+                    }),
+                  });
+
+                  const data = await res.json();
+
+                  if (res.ok && data.success) {
+                    if (data.emailSent) {
+                      alert(`${t.adminUsers.userCreatedSuccess}\n\n${t.adminUsers.credentialsSentTo} ${createUserEmail}`);
+                    } else {
+                      // Email failed, show credentials
+                      setCreatedUserCredentials({
+                        username: data.user.username,
+                        password: data.password,
+                      });
+                      alert(`${t.adminUsers.userCreatedSuccess}\n\n${t.adminUsers.emailFailed}: ${data.emailError || "Unknown error"}\n\n${t.adminUsers.credentialsBelow}`);
+                    }
+                    setCreateUserEmail("");
+                    setCreateUserRole("user");
+                    loadUsers();
+                  } else {
+                    alert(`${t.adminUsers.errorCreatingUser}: ${data.error || "Unknown error"}`);
+                  }
+                } catch (error: any) {
+                  alert(`${t.adminUsers.errorCreatingUser}: ${error.message || "Unknown error"}`);
+                } finally {
+                  setCreateUserLoading(false);
+                }
+              }}
+            >
+              <div style={{ marginBottom: "15px" }}>
+                <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "500" }}>
+                  {t.adminUsers.email} *
+                </label>
+                <input
+                  type="email"
+                  value={createUserEmail}
+                  onChange={(e) => setCreateUserEmail(e.target.value)}
+                  required
+                  placeholder="user@example.com"
+                  style={{
+                    width: "100%",
+                    maxWidth: "400px",
+                    padding: "8px 12px",
+                    border: "1px solid #8c8f94",
+                    borderRadius: "3px",
+                    fontSize: "14px",
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: "15px" }}>
+                <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "500" }}>
+                  {t.adminUsers.role}
+                </label>
+                <select
+                  value={createUserRole}
+                  onChange={(e) => setCreateUserRole(e.target.value)}
+                  style={{
+                    padding: "8px 12px",
+                    border: "1px solid #8c8f94",
+                    borderRadius: "3px",
+                    fontSize: "14px",
+                  }}
+                >
+                  <option value="user">{t.adminUsers.user}</option>
+                  <option value="editor">{t.adminUsers.editor}</option>
+                  <option value="moderator">{t.adminUsers.moderator}</option>
+                  <option value="admin">{t.adminUsers.admin}</option>
+                </select>
+              </div>
+              {createdUserCredentials && (
+                <div style={{
+                  background: "#fff3cd",
+                  border: "1px solid #ffc107",
+                  borderRadius: "4px",
+                  padding: "15px",
+                  marginBottom: "15px",
+                }}>
+                  <strong style={{ display: "block", marginBottom: "10px" }}>
+                    {t.adminUsers.userCredentials}:
+                  </strong>
+                  <div style={{ marginBottom: "5px" }}>
+                    <strong>{t.adminUsers.username}:</strong> {createdUserCredentials.username}
+                  </div>
+                  <div style={{ marginBottom: "10px" }}>
+                    <strong>{t.adminUsers.password}:</strong> {createdUserCredentials.password}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = `${t.adminUsers.username}: ${createdUserCredentials.username}\n${t.adminUsers.password}: ${createdUserCredentials.password}`;
+                      navigator.clipboard.writeText(text);
+                      alert(t.adminUsers.credentialsCopied);
+                    }}
+                    style={{
+                      padding: "6px 12px",
+                      background: "#2271b1",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {t.adminUsers.copyCredentials}
+                  </button>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  type="submit"
+                  disabled={createUserLoading}
+                  style={{
+                    padding: "8px 16px",
+                    background: createUserLoading ? "#ccc" : "#2271b1",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: createUserLoading ? "not-allowed" : "pointer",
+                    fontSize: "13px",
+                    fontWeight: "500",
+                  }}
+                >
+                  {createUserLoading ? t.adminUsers.creating : t.adminUsers.createUser}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setCreateUserEmail("");
+                    setCreateUserRole("user");
+                    setCreatedUserCredentials(null);
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    background: "white",
+                    color: "#50575e",
+                    border: "1px solid #8c8f94",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  {t.adminUsers.cancel}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {loading ? (
           <p>{t.adminUsers.loading}</p>

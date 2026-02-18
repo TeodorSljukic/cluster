@@ -503,7 +503,22 @@
     "user": "Utente",
     "editor": "Editore",
     "moderator": "Moderatore",
-    "admin": "Amministratore"
+    "admin": "Amministratore",
+    "createUser": "Crea Utente",
+    "cancelCreate": "Annulla",
+    "createNewUser": "Crea Nuovo Utente",
+    "emailRequired": "Email è obbligatoria",
+    "userCreatedSuccess": "Utente creato con successo",
+    "credentialsSentTo": "Credenziali sono state inviate a",
+    "emailFailed": "Invio email fallito",
+    "credentialsBelow": "Credenziali sono mostrate sotto",
+    "errorCreatingUser": "Errore nella creazione dell'utente",
+    "userCredentials": "Credenziali Utente",
+    "password": "Password",
+    "credentialsCopied": "Credenziali copiate negli appunti",
+    "copyCredentials": "Copia Credenziali",
+    "creating": "Creazione...",
+    "cancel": "Annulla"
   },
   "resetPassword": {
     "title": "Reimposta la Tua Password",

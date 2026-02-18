@@ -503,7 +503,22 @@
     "user": "Korisnik",
     "editor": "Urednik",
     "moderator": "Moderator",
-    "admin": "Administrator"
+    "admin": "Administrator",
+    "createUser": "Kreiraj korisnika",
+    "cancelCreate": "Otkaži",
+    "createNewUser": "Kreiraj novog korisnika",
+    "emailRequired": "Email je obavezan",
+    "userCreatedSuccess": "Korisnik je uspješno kreiran",
+    "credentialsSentTo": "Kredencijali su poslati na",
+    "emailFailed": "Slanje emaila nije uspješno",
+    "credentialsBelow": "Kredencijali su prikazani ispod",
+    "errorCreatingUser": "Greška pri kreiranju korisnika",
+    "userCredentials": "Kredencijali korisnika",
+    "password": "Lozinka",
+    "credentialsCopied": "Kredencijali su kopirani u clipboard",
+    "copyCredentials": "Kopiraj kredencijale",
+    "creating": "Kreiranje...",
+    "cancel": "Otkaži"
   },
   "resetPassword": {
     "title": "Resetuj svoju lozinku",
