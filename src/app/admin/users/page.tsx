@@ -82,7 +82,16 @@ export default function UsersPage() {
     try {
       const res = await fetch(`/api/admin/users/${userId}/reset-password`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
       if (res.ok) {
         setResetPasswordResult({ userId, link: data.resetLink });
@@ -283,7 +292,12 @@ export default function UsersPage() {
                           {expandedUser === user._id ? t.adminUsers.hideDetails : t.adminUsers.viewDetails}
                         </button>
                         <button
-                          onClick={() => handleResetPassword(user._id, user.email)}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleResetPassword(user._id, user.email);
+                          }}
                           disabled={resetPasswordLoading === user._id}
                           style={{
                             background: "transparent",
@@ -294,6 +308,8 @@ export default function UsersPage() {
                             padding: "4px 8px",
                             borderRadius: "3px",
                             opacity: resetPasswordLoading === user._id ? 0.6 : 1,
+                            position: "relative",
+                            zIndex: 10,
                           }}
                         >
                           {resetPasswordLoading === user._id ? t.adminUsers.sending : t.adminUsers.resetPassword}
