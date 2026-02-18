@@ -15,6 +15,11 @@ export interface Post {
   eventLocation?: string;
   // Language/locale
   locale?: string;
+  // View tracking
+  viewCount?: number;
+  // Publisher info
+  publishedBy?: string; // User ID who published the post
+  publishedByName?: string; // Display name of publisher
   // Additional metadata (includes translations)
   metadata?: {
     titleTranslations?: Record<string, string>;

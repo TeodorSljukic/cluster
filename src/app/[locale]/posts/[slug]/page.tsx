@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
+import { PostViewTracker } from "@/components/PostViewTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,7 @@ export default async function PostPage({
 
   return (
     <main className="container" style={{ padding: "40px 20px" }}>
+      {post._id && <PostViewTracker postId={post._id} />}
       <Link href={backLink.href} style={{ display: "inline-block", marginBottom: "20px", color: "#B53251", textDecoration: "none" }}>
         ← {backLink.label}
       </Link>
@@ -101,9 +103,15 @@ export default async function PostPage({
           <h1 style={{ fontSize: "2.5rem", marginBottom: "10px", color: "#333" }}>
             {post.title}
           </h1>
-          <div style={{ display: "flex", gap: "20px", color: "#666", fontSize: "0.9rem" }}>
+          <div style={{ display: "flex", gap: "20px", color: "#666", fontSize: "0.9rem", flexWrap: "wrap", alignItems: "center" }}>
             <span>{formatDate(post.publishedAt || post.createdAt)}</span>
             {post.type && <span style={{ textTransform: "capitalize" }}>{post.type}</span>}
+            {post.viewCount !== undefined && (
+              <span>👁️ {post.viewCount} {post.viewCount === 1 ? "view" : "views"}</span>
+            )}
+            {post.publishedByName && (
+              <span>Published by: <strong>{post.publishedByName}</strong></span>
+            )}
           </div>
         </header>
 

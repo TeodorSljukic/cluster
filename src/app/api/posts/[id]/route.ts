@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { Post } from "@/models/Post";
 import { autoTranslate } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
+import { getCurrentUser } from "@/lib/auth";
 
 // GET - Fetch single post by ID
 export async function GET(
@@ -211,10 +212,30 @@ export async function PUT(
       excerptTranslations,
     };
 
-    // If status changed to published, set publishedAt
+    // If status changed to published, set publishedAt and publishedBy
     const now = new Date();
     if (body.status === "published" && existing.status !== "published") {
       update.publishedAt = now;
+      
+      // Get current user for publishedBy
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        update.publishedBy = currentUser.userId;
+        // Get user display name
+        try {
+          const usersCollection = await getCollection("users");
+          const userId = new ObjectId(currentUser.userId);
+          const user = await usersCollection.findOne({ _id: userId });
+          update.publishedByName = user?.displayName || user?.username || undefined;
+        } catch (error) {
+          console.error("Error fetching user name:", error);
+        }
+      }
+    }
+    
+    // Initialize viewCount if it doesn't exist
+    if (existing.viewCount === undefined) {
+      update.viewCount = 0;
     }
 
     // Update the current post
@@ -242,6 +263,11 @@ export async function PUT(
     if (body.eventLocation !== undefined) updatesForAllLocales.eventLocation = body.eventLocation || "";
     if (body.status === "published") {
       updatesForAllLocales.publishedAt = now;
+      // Set publishedBy for all locales when publishing
+      if (update.publishedBy) {
+        updatesForAllLocales.publishedBy = update.publishedBy;
+        updatesForAllLocales.publishedByName = update.publishedByName;
+      }
     }
 
     // Update metadata with translations for all related posts

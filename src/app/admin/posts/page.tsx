@@ -271,6 +271,28 @@ function PostsPageInner() {
                     color: "#50575e",
                   }}
                 >
+                  Views
+                </th>
+                <th
+                  style={{
+                    padding: "8px 10px",
+                    textAlign: "left",
+                    fontWeight: "400",
+                    fontSize: "15px",
+                    color: "#50575e",
+                  }}
+                >
+                  Published By
+                </th>
+                <th
+                  style={{
+                    padding: "8px 10px",
+                    textAlign: "left",
+                    fontWeight: "400",
+                    fontSize: "15px",
+                    color: "#50575e",
+                  }}
+                >
                   {t.cms.actions}
                 </th>
               </tr>
@@ -320,6 +342,12 @@ function PostsPageInner() {
                     {post.createdAt
                       ? new Date(post.createdAt).toLocaleDateString()
                       : "-"}
+                  </td>
+                  <td style={{ padding: "10px", fontSize: "14px", color: "#50575e", textAlign: "center" }}>
+                    {post.viewCount !== undefined ? post.viewCount : 0}
+                  </td>
+                  <td style={{ padding: "10px", fontSize: "14px", color: "#50575e" }}>
+                    {post.publishedByName || "-"}
                   </td>
                   <td style={{ padding: "10px" }}>
                     <button

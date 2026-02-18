@@ -3,6 +3,8 @@ import { getCollection } from "@/lib/db";
 import { Post } from "@/models/Post";
 import { autoTranslate } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
+import { getCurrentUser } from "@/lib/auth";
+import { ObjectId } from "mongodb";
 
 // GET - Fetch all posts (with optional filtering by type)
 export async function GET(request: NextRequest) {
@@ -104,6 +106,24 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     
+    // Get current user for publishedBy
+    const currentUser = await getCurrentUser();
+    let publishedBy: string | undefined;
+    let publishedByName: string | undefined;
+    
+    if (currentUser) {
+      publishedBy = currentUser.userId;
+      // Get user display name
+      try {
+        const usersCollection = await getCollection("users");
+        const userId = new ObjectId(currentUser.userId);
+        const user = await usersCollection.findOne({ _id: userId });
+        publishedByName = user?.displayName || user?.username || undefined;
+      } catch (error) {
+        console.error("Error fetching user name:", error);
+      }
+    }
+    
     // Convert eventDate from string to Date if provided
     let eventDate: Date | undefined;
     if (body.eventDate) {
@@ -187,6 +207,9 @@ export async function POST(request: NextRequest) {
         publishedAt: body.status === "published" ? now : undefined,
         eventDate: eventDate,
         eventLocation: body.eventLocation || "",
+        viewCount: 0,
+        publishedBy: body.status === "published" ? publishedBy : undefined,
+        publishedByName: body.status === "published" ? publishedByName : undefined,
         // Store translations in metadata for reference
         metadata: {
           titleTranslations,
