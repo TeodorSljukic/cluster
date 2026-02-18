@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
       success: true,
       synced: syncedUsers.length,
       skipped: skippedUsers.length,
-      errors: errors.length,
+      errorCount: errors.length,
       syncedUsers,
       skippedUsers,
       errors: errors.length > 0 ? errors : undefined,
