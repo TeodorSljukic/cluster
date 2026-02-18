@@ -326,7 +326,7 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete post
+// DELETE - Delete post (and all its locale versions)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
@@ -348,15 +348,26 @@ export async function DELETE(
       return NextResponse.json({ error: `Invalid post ID: ${postIdString}` }, { status: 400 });
     }
 
-    const result = await collection.deleteOne({
-      _id: postId,
+    // First, find the post to get its slug
+    const post = await collection.findOne({ _id: postId });
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    // Delete all posts with the same slug (all locale versions)
+    const result = await collection.deleteMany({
+      slug: post.slug,
     });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true, 
+      deletedCount: result.deletedCount,
+      message: `Deleted ${result.deletedCount} post(s) with slug: ${post.slug}`
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message },
