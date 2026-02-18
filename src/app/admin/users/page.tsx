@@ -190,7 +190,9 @@ export default function UsersPage() {
           <div style={{ display: "flex", gap: "10px" }}>
             <button
               type="button"
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 if (!confirm(t.adminUsers.syncDMSConfirm || "Sync users from DMS? This will create local accounts for DMS users who don't exist yet.")) {
                   return;
                 }
@@ -220,13 +222,20 @@ export default function UsersPage() {
                 cursor: syncingDMS ? "not-allowed" : "pointer",
                 fontSize: "13px",
                 fontWeight: "500",
+                position: "relative",
+                zIndex: 10,
+                pointerEvents: syncingDMS ? "none" : "auto",
               }}
             >
               {syncingDMS ? (t.adminUsers.syncingDMS || "Syncing...") : (t.adminUsers.syncDMS || "Sync DMS Users")}
             </button>
             <button
               type="button"
-              onClick={() => setShowCreateForm(!showCreateForm)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowCreateForm(!showCreateForm);
+              }}
               style={{
                 padding: "8px 16px",
                 background: "#2271b1",
@@ -236,6 +245,9 @@ export default function UsersPage() {
                 cursor: "pointer",
                 fontSize: "13px",
                 fontWeight: "500",
+                position: "relative",
+                zIndex: 10,
+                pointerEvents: "auto",
               }}
             >
               {showCreateForm ? t.adminUsers.cancelCreate : t.adminUsers.createUser}
