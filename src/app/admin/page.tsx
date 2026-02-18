@@ -20,9 +20,13 @@ export default function AdminDashboardPage() {
         fetch("/api/admin/users").then((r) => r.json()),
       ]);
 
+      // Count unique posts by slug (not all locale versions)
+      const uniqueNewsSlugs = new Set((news.posts || []).map((p: Post) => p.slug));
+      const uniqueEventSlugs = new Set((events.posts || []).map((p: Post) => p.slug));
+
       setStats({
-        news: news.posts?.length || 0,
-        events: events.posts?.length || 0,
+        news: uniqueNewsSlugs.size,
+        events: uniqueEventSlugs.size,
         resources: 0,
         users: users.users?.length || 0,
       });
