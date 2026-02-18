@@ -478,6 +478,27 @@ export async function POST(request: NextRequest) {
             console.log(`   Groups: ${JSON.stringify(dmsGroups)} (DMS) - mapped from global role`);
           }
           
+          // Prepare DMS user payload - using exact format that works
+          // Based on tested payload: username, email, password, first_name, last_name, is_active, groups
+          const dmsUserPayload = {
+            username: dmsUsername,
+            email: email,
+            password: password,
+            first_name: first_name,
+            last_name: last_name,
+            is_active: true,
+            groups: dmsGroups, // DMS groups: [1]=viewer, [2]=editor, [3]=admin
+          };
+          
+          console.log("   📤 DMS payload:", {
+            username: dmsUserPayload.username,
+            email: dmsUserPayload.email,
+            password: "***hidden***",
+            first_name: dmsUserPayload.first_name,
+            last_name: dmsUserPayload.last_name,
+            groups: dmsUserPayload.groups,
+          });
+          
           const dmsResponse = await fetchWithTimeout(
             DMS_USERS_URL,
             {
@@ -486,62 +507,59 @@ export async function POST(request: NextRequest) {
                 "Content-Type": "application/json",
                 Authorization: `Token ${TOKEN}`,
               },
-              body: JSON.stringify({
-                username: dmsUsername,
-                email: email,
-                password: password,
-                first_name: first_name,
-                last_name: last_name,
-                is_active: true,
-                is_staff: false,
-                is_superuser: false,
-                groups: dmsGroups, // DMS groups: [1]=viewer, [2]=editor, [3]=admin
-                user_permissions: [
-                  "add_document",
-                  "view_document",
-                  "change_document",
-                  "delete_document",
-                  "add_documenttype",
-                  "view_documenttype",
-                  "change_documenttype",
-                  "delete_documenttype",
-                  "add_storagepath",
-                  "view_storagepath",
-                  "change_storagepath",
-                  "delete_storagepath",
-                  "add_savedview",
-                  "view_savedview",
-                  "change_savedview",
-                  "delete_savedview",
-                ],
-              }),
+              body: JSON.stringify(dmsUserPayload),
             },
             REQUEST_TIMEOUT
           );
 
           console.log("   Response status:", dmsResponse.status, dmsResponse.statusText);
+          
+          // Get response body for debugging
+          const responseText = await dmsResponse.text();
+          console.log("   📥 DMS response body (first 500 chars):", responseText.substring(0, 500));
 
           if (dmsResponse.ok) {
-            const dmsData = await dmsResponse.json();
-            dmsSuccess = true;
-            registrationResults.dms = {
-              success: true,
-              data: dmsData,
-            };
-            console.log("   ✅ DMS registration SUCCESS");
+            try {
+              const dmsData = JSON.parse(responseText);
+              dmsSuccess = true;
+              registrationResults.dms = {
+                success: true,
+                data: dmsData,
+              };
+              console.log("   ✅ DMS registration SUCCESS:", {
+                userId: dmsData.id || dmsData.pk || "unknown",
+                username: dmsData.username || "unknown",
+              });
+            } catch (parseError) {
+              // Response was ok but couldn't parse JSON
+              dmsSuccess = true;
+              registrationResults.dms = {
+                success: true,
+                data: { raw: responseText },
+              };
+              console.log("   ✅ DMS registration SUCCESS (non-JSON response)");
+            }
           } else {
             try {
-              const errorData = await dmsResponse.json();
-              dmsError = errorData.message || errorData.error || JSON.stringify(errorData);
+              const errorData = JSON.parse(responseText);
+              dmsError = errorData.password?.[0] || errorData.username?.[0] || errorData.email?.[0] || errorData.message || errorData.error || JSON.stringify(errorData);
+              console.error("   ❌ DMS registration FAILED - Error details:", {
+                status: dmsResponse.status,
+                error: dmsError,
+                fullError: errorData,
+              });
             } catch {
-              dmsError = await dmsResponse.text();
+              dmsError = responseText || `HTTP ${dmsResponse.status}`;
+              console.error("   ❌ DMS registration FAILED - Raw error:", {
+                status: dmsResponse.status,
+                error: dmsError,
+              });
             }
             registrationResults.dms = {
               success: false,
               error: dmsError,
               status: dmsResponse.status,
             };
-            console.error("   ❌ DMS registration FAILED:", { status: dmsResponse.status, error: dmsError });
           }
         } else {
           dmsError = "Failed to get DMS token";
