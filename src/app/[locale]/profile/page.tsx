@@ -1763,6 +1763,44 @@ export default function ProfilePage({
               )}
             </div>
 
+            {/* Search */}
+            <div
+              style={{
+                ...getCardStyle(),
+                borderRadius: "8px",
+                padding: "24px",
+                marginBottom: "16px",
+              }}
+            >
+              <h2 style={{ fontSize: "20px", fontWeight: "600", margin: "0 0 16px 0" }}>
+                {t.profile.search || "Search"}
+              </h2>
+              <Link
+                href={localeLink("/search", locale)}
+                style={{
+                  display: "inline-block",
+                  fontSize: "14px",
+                  color: "#0a66c2",
+                  textDecoration: "none",
+                  fontWeight: "500",
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  border: "1px solid #0a66c2",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#0a66c2";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "#0a66c2";
+                }}
+              >
+                {t.profile.searchUsers || "Search users"}
+              </Link>
+            </div>
+
             {/* Connection Requests */}
             <div
               style={{
@@ -1772,31 +1810,9 @@ export default function ProfilePage({
                 marginBottom: "16px",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <h2 style={{ fontSize: "20px", fontWeight: "600", margin: 0 }}>
-                  {t.profile.connectionRequests} {pendingRequests.length > 0 && `(${pendingRequests.length})`}
-                </h2>
-                <Link
-                  href={localeLink("/search", locale)}
-                  style={{
-                    fontSize: "14px",
-                    color: "#0a66c2",
-                    textDecoration: "none",
-                    fontWeight: "500",
-                    padding: "6px 12px",
-                    borderRadius: "4px",
-                    transition: "background 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#f0f0f0";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  {t.profile.searchRequest || "Search request"}
-                </Link>
-              </div>
+              <h2 style={{ fontSize: "20px", fontWeight: "600", margin: "0 0 16px 0" }}>
+                {t.profile.connectionRequests} {pendingRequests.length > 0 && `(${pendingRequests.length})`}
+              </h2>
               {loadingConnections ? (
                 <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.loading}</p>
               ) : pendingRequests.length > 0 ? (
