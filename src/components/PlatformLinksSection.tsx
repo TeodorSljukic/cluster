@@ -57,6 +57,12 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
       image: "/wp-content/uploads/2025/09/Frame-1000002234.webp",
       url: "https://market.southadriaticskills.org",
     },
+    {
+      id: "ecommunication",
+      label: t.platform.ecommunication,
+      image: "/wp-content/uploads/2025/09/Frame-1000002234.webp", // TODO: Add eCommunication image
+      url: "#", // TODO: Add eCommunication URL
+    },
   ];
 
   if (loading) {
@@ -66,7 +72,19 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
+        .platform-grid {
+          grid-template-columns: repeat(4, 1fr) !important;
+        }
+        @media (max-width: 1200px) {
+          .platform-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
         @media (max-width: 768px) {
+          .platform-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+          }
           .platform-card {
             padding: 30px 20px !important;
           }
@@ -75,6 +93,10 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
           }
         }
         @media (max-width: 480px) {
+          .platform-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+          }
           .platform-section {
             padding: 60px 15px !important;
           }
@@ -101,11 +123,13 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
 
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "40px",
-          maxWidth: "1200px",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "30px",
+          maxWidth: "1400px",
           margin: "0 auto"
-        }}>
+        }}
+        className="platform-grid"
+        >
           {platforms.map((platform, index) => (
             <div
               key={platform.id}
