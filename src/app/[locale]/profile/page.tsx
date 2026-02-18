@@ -3155,9 +3155,29 @@ function ExperienceModal({
               {t.profile.startDate} *
             </label>
             <input
-              type="date"
+              type="text"
               value={formData.startDate}
-              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+              onChange={(e) => {
+                const formatted = formatDateInput(e.target.value);
+                setFormData({ ...formData, startDate: formatted });
+              }}
+              onBlur={(e) => {
+                if (e.target.value && !isValidDate(e.target.value)) {
+                  // If invalid, try to fix or clear
+                  const parts = e.target.value.split("/");
+                  if (parts.length === 3) {
+                    const [day, month, year] = parts.map(Number);
+                    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                      const date = new Date(year, month - 1, day);
+                      if (!isNaN(date.getTime())) {
+                        const fixed = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                        setFormData({ ...formData, startDate: fixed });
+                      }
+                    }
+                  }
+                }
+              }}
+              placeholder="dd/mm/yyyy"
               required
               style={{
                 width: "100%",
@@ -3174,9 +3194,29 @@ function ExperienceModal({
               {t.profile.endDate}
             </label>
             <input
-              type="date"
+              type="text"
               value={formData.endDate}
-              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              onChange={(e) => {
+                const formatted = formatDateInput(e.target.value);
+                setFormData({ ...formData, endDate: formatted });
+              }}
+              onBlur={(e) => {
+                if (e.target.value && !isValidDate(e.target.value)) {
+                  // If invalid, try to fix or clear
+                  const parts = e.target.value.split("/");
+                  if (parts.length === 3) {
+                    const [day, month, year] = parts.map(Number);
+                    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                      const date = new Date(year, month - 1, day);
+                      if (!isNaN(date.getTime())) {
+                        const fixed = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                        setFormData({ ...formData, endDate: fixed });
+                      }
+                    }
+                  }
+                }
+              }}
+              placeholder="dd/mm/yyyy"
               disabled={formData.current}
               style={{
                 width: "100%",
@@ -3399,9 +3439,29 @@ function EducationModal({
                 {t.profile.startDate} *
               </label>
               <input
-                type="date"
+                type="text"
                 value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                onChange={(e) => {
+                  const formatted = formatDateInput(e.target.value);
+                  setFormData({ ...formData, startDate: formatted });
+                }}
+                onBlur={(e) => {
+                  if (e.target.value && !isValidDate(e.target.value)) {
+                    // If invalid, try to fix or clear
+                    const parts = e.target.value.split("/");
+                    if (parts.length === 3) {
+                      const [day, month, year] = parts.map(Number);
+                      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                        const date = new Date(year, month - 1, day);
+                        if (!isNaN(date.getTime())) {
+                          const fixed = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                          setFormData({ ...formData, startDate: fixed });
+                        }
+                      }
+                    }
+                  }
+                }}
+                placeholder="dd/mm/yyyy"
                 required
                 style={{
                   width: "100%",
@@ -3418,9 +3478,29 @@ function EducationModal({
                 {t.profile.endDate}
               </label>
               <input
-                type="date"
+                type="text"
                 value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                onChange={(e) => {
+                  const formatted = formatDateInput(e.target.value);
+                  setFormData({ ...formData, endDate: formatted });
+                }}
+                onBlur={(e) => {
+                  if (e.target.value && !isValidDate(e.target.value)) {
+                    // If invalid, try to fix or clear
+                    const parts = e.target.value.split("/");
+                    if (parts.length === 3) {
+                      const [day, month, year] = parts.map(Number);
+                      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                        const date = new Date(year, month - 1, day);
+                        if (!isNaN(date.getTime())) {
+                          const fixed = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                          setFormData({ ...formData, endDate: fixed });
+                        }
+                      }
+                    }
+                  }
+                }}
+                placeholder="dd/mm/yyyy"
                 disabled={formData.current}
                 style={{
                   width: "100%",
