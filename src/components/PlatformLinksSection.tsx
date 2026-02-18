@@ -33,9 +33,22 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
     }
   }
 
-  const handlePlatformClick = (url: string) => {
-    // Simply open the platform link in a new tab
-    window.open(url, "_blank", "noopener,noreferrer");
+  const handlePlatformClick = (platform: { id: string; url: string }) => {
+    // Special handling for eCommunication
+    if (platform.id === "ecommunication") {
+      if (user) {
+        // User is logged in - go to search page
+        router.push(localeLink("/search", locale));
+      } else {
+        // User is not logged in - go to registration page
+        router.push(localeLink("/register", locale));
+      }
+      return;
+    }
+    // For other platforms, open in new tab
+    if (platform.url && platform.url !== "#") {
+      window.open(platform.url, "_blank", "noopener,noreferrer");
+    }
   };
 
   const platforms = [
@@ -136,7 +149,7 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
               className="platform-card"
               data-aos="zoom-in"
               data-aos-delay={(index + 1) * 100}
-              onClick={() => handlePlatformClick(platform.url)}
+              onClick={() => handlePlatformClick(platform)}
               style={{
                 background: "white",
                 borderRadius: "16px",
