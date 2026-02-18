@@ -65,6 +65,7 @@ export default async function NewsPostPage({
       )}
 
       <div
+        className="post-content"
         dangerouslySetInnerHTML={{ __html: post.content }}
         style={{ lineHeight: "1.8" }}
       />

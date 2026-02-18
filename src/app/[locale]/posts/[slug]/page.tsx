@@ -151,6 +151,7 @@ export default async function PostPage({
         )}
 
         <div
+          className="post-content"
           style={{ lineHeight: "1.8", color: "#333" }}
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
