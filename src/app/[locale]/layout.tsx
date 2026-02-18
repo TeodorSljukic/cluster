@@ -3,6 +3,7 @@ import { AdminBar } from "@/components/AdminBar";
 import { AOSInit } from "@/components/AOSInit";
 import { ConditionalHeaderFooter } from "@/components/ConditionalHeaderFooter";
 import { ActivityTracker } from "@/components/ActivityTracker";
+import { VisitorTracker } from "@/components/VisitorTracker";
 import { locales, defaultLocale, type Locale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default async function LocaleLayout({
   return (
     <>
       <ActivityTracker />
+      <VisitorTracker />
       <AdminBar />
       <div id="main-content">
         <ConditionalHeaderFooter>
