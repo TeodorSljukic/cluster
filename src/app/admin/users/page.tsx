@@ -86,12 +86,26 @@ export default function UsersPage() {
       const data = await res.json();
       if (res.ok) {
         setResetPasswordResult({ userId, link: data.resetLink });
-        // Copy to clipboard
-        try {
-          await navigator.clipboard.writeText(data.resetLink);
-          alert(`${t.adminUsers.resetLinkGenerated}\n\n${t.adminUsers.copyLink}`);
-        } catch (err) {
-          alert(`${t.adminUsers.resetLinkGeneratedNoCopy}\n\n${t.adminUsers.copyLink}`);
+        
+        // Show message based on email sending status
+        if (data.emailSent) {
+          alert(`${t.adminUsers.resetLinkGenerated}\n\nEmail has been sent to ${data.email}.`);
+        } else if (data.emailSent === false) {
+          // Email failed, show link to copy
+          try {
+            await navigator.clipboard.writeText(data.resetLink);
+            alert(`${t.adminUsers.resetLinkGenerated}\n\nEmail sending failed. Link copied to clipboard:\n${data.resetLink}`);
+          } catch (err) {
+            alert(`${t.adminUsers.resetLinkGenerated}\n\nEmail sending failed. Please copy this link manually:\n${data.resetLink}`);
+          }
+        } else {
+          // Fallback for old API responses
+          try {
+            await navigator.clipboard.writeText(data.resetLink);
+            alert(`${t.adminUsers.resetLinkGenerated}\n\n${t.adminUsers.copyLink}`);
+          } catch (err) {
+            alert(`${t.adminUsers.resetLinkGeneratedNoCopy}\n\n${t.adminUsers.copyLink}`);
+          }
         }
       } else {
         alert(`${t.adminUsers.errorGeneratingLink}: ${data.error || t.adminUsers.failedToGenerate}`);

@@ -37,7 +37,31 @@ export async function POST(request: NextRequest) {
       );
 
       // Send email with reset link
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      // Try to get base URL from environment variable, request headers, or fallback
+      let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      
+      if (!baseUrl || baseUrl.includes("localhost")) {
+        // Try to get from request URL
+        try {
+          const url = new URL(request.url);
+          if (url.host && !url.host.includes("localhost")) {
+            baseUrl = `${url.protocol}//${url.host}`;
+          }
+        } catch (e) {
+          // If URL parsing fails, try headers
+          const host = request.headers.get("host");
+          const protocol = request.headers.get("x-forwarded-proto") || "https";
+          
+          if (host && !host.includes("localhost")) {
+            baseUrl = `${protocol}://${host}`;
+          } else if (process.env.VERCEL_URL) {
+            baseUrl = `https://${process.env.VERCEL_URL}`;
+          } else {
+            baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+          }
+        }
+      }
+      
       const resetLink = `${baseUrl}/me/reset-password?token=${resetToken}`;
       
       const emailResult = await sendEmail({
