@@ -72,18 +72,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
         dms: "1" as "1" | "2" // Fixed: always basic user (viewer)
       };
       
-      console.log("📤 Sending registration request:", {
-        username: formData.username,
-        email: formData.email,
-        selectedPlatforms: selectedPlatforms,
-        platformsCount: selectedPlatforms.length,
-        willRegisterOn: {
-          lms: selectedPlatforms.includes("lms") || selectedPlatforms.length === 0,
-          ecommerce: selectedPlatforms.includes("ecommerce") || selectedPlatforms.length === 0,
-          dms: selectedPlatforms.includes("dms") || selectedPlatforms.length === 0,
-        }
-      });
-      
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,25 +85,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
       });
 
       const data = await res.json();
-      
-      console.log("📥 Registration response:", {
-        ok: res.ok,
-        status: res.status,
-        registrations: data.registrations,
-        warnings: data.warnings,
-        partialSuccess: data.partialSuccess,
-      });
 
       if (res.ok && data.user) {
-        // Log registration results
-        if (data.registrations) {
-          console.log("📊 Registration results:", {
-            lms: data.registrations.lms?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.lms?.error || "Unknown"}`,
-            ecommerce: data.registrations.ecommerce?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.ecommerce?.error || "Unknown"}`,
-            dms: data.registrations.dms?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.dms?.error || "Unknown"}`,
-          });
-        }
-        
         // Cookie should be set by the server, but clear cache to force refresh
         sessionStorage.removeItem("header-current-user");
         
