@@ -163,6 +163,9 @@ export function Header() {
             <li>
               <Link href={`/${currentLocale}/news`} prefetch={true}>{t.common.news}</Link>
             </li>
+            <li>
+              <Link href={`/${currentLocale}/events`} prefetch={true}>{t.common.events || "Events"}</Link>
+            </li>
             {user && (
               <>
                 <li>
@@ -317,6 +320,15 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {t.common.news}
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href={`/${currentLocale}/events`}
+                prefetch={true}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {t.common.events || "Events"}
               </Link>
             </li>
             {user && (

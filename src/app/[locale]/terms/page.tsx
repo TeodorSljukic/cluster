@@ -257,10 +257,10 @@ export default function TermsPage() {
             <p style={{ marginBottom: "10px", color: "#333" }}>
               <strong>{t.terms.section9.emailLabel}:</strong>{" "}
               <a 
-                href="mailto:info@southadriaticskills.org" 
+                href="mailto:info@adriaticbgc.org" 
                 style={{ color: "#E23F65", textDecoration: "none" }}
               >
-                info@southadriaticskills.org
+                info@adriaticbgc.org
               </a>
             </p>
             <p style={{ color: "#333" }}>

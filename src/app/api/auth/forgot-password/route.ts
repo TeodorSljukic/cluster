@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import crypto from "crypto";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,22 +36,37 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      // In production, send email with reset link
-      // For now, we'll just log it (in development)
-      console.log(`[FORGOT PASSWORD] Reset token for ${email}: ${resetToken}`);
-      console.log(`[FORGOT PASSWORD] Reset link: /reset-password?token=${resetToken}`);
+      // Send email with reset link
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      const resetLink = `${baseUrl}/me/reset-password?token=${resetToken}`;
       
-      // TODO: Send email with reset link
-      // await sendEmail({
-      //   to: email,
-      //   subject: "Reset Your Password",
-      //   html: `
-      //     <p>You requested to reset your password.</p>
-      //     <p>Click the link below to reset your password:</p>
-      //     <a href="${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${resetToken}">Reset Password</a>
-      //     <p>This link will expire in 1 hour.</p>
-      //   `,
-      // });
+      const emailResult = await sendEmail({
+        to: email,
+        subject: "Reset Your Password - ABGC",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #E23F65;">Password Reset Request</h2>
+            <p>You requested to reset your password for your ABGC account.</p>
+            <p>Click the link below to reset your password:</p>
+            <p style="margin: 30px 0;">
+              <a href="${resetLink}" style="background-color: #E23F65; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: 600;">
+                Reset Password
+              </a>
+            </p>
+            <p style="color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
+            <p style="color: #666; font-size: 14px;">If you did not request this password reset, please ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="color: #999; font-size: 12px;">Adriatic Blue Growth Cluster (ABGC)</p>
+          </div>
+        `,
+      });
+
+      if (!emailResult.success) {
+        console.error(`[FORGOT PASSWORD] Failed to send email to ${email}:`, emailResult.error);
+        // Still return success to prevent email enumeration
+      } else {
+        console.log(`[FORGOT PASSWORD] Password reset email sent to ${email}`);
+      }
     }
 
     // Always return success (security best practice)

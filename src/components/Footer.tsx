@@ -99,30 +99,21 @@ export function Footer() {
                 style={{ height: "80px", width: "auto", objectFit: "contain", marginBottom: "16px" }}
               />
             </Link>
-            {/* EU Disclaimer ispod logotipa SKILLS */}
-            <div style={{
-              fontSize: "12px",
-              lineHeight: "1.5",
-              color: "#666",
-              maxWidth: "300px",
-              marginTop: "16px"
-            }}>
-              <p style={{ margin: 0 }}>
-                {t.contact.euDisclaimer}
-              </p>
-            </div>
           </div>
 
           <div className="footer-center" style={{
             flex: "1",
-            maxWidth: "800px",
+            maxWidth: "600px",
             margin: "0 40px",
-            fontSize: "14px",
-            lineHeight: "1.6",
-            color: "#555",
+            fontSize: "12px",
+            lineHeight: "1.5",
+            color: "#666",
             textAlign: "left"
           }}>
-            {/* Može se dodati dodatni sadržaj ovde ako je potrebno */}
+            {/* EU Disclaimer */}
+            <p style={{ margin: 0 }}>
+              {t.contact.euDisclaimer}
+            </p>
           </div>
 
           <div className="footer-right">

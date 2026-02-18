@@ -493,7 +493,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                       border: "1px solid #ddd",
                       fontSize: "14px",
                       outline: "none",
-                      boxSizing: "border-box"
+                      boxSizing: "border-box",
+                      marginBottom: "8px"
                     }}
                   >
                     <option value="">--</option>
@@ -503,6 +504,27 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                       </option>
                     ))}
                   </select>
+                  <input
+                    type="text"
+                    value={formData.country && !countries.find(c => c.code === formData.country) ? formData.country : ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value && !countries.find(c => c.code === value)) {
+                        setFormData({ ...formData, country: value, city: "" });
+                      }
+                    }}
+                    placeholder={t.join.countryOther || "Or enter country name"}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      height: "48px",
+                      borderRadius: "6px",
+                      border: "1px solid #ddd",
+                      fontSize: "14px",
+                      outline: "none",
+                      boxSizing: "border-box"
+                    }}
+                  />
                 </div>
               </div>
 
@@ -871,23 +893,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                 {loading ? t.join.registering : t.join.register}
               </button>
 
-              <p style={{ 
-                textAlign: "center", 
-                fontSize: "14px", 
-                color: "#666" 
-              }}>
-                {t.login.noAccount}{" "}
-                <a 
-                  href={localeLink("/login", locale)} 
-                  style={{ 
-                    color: "#0073e6", 
-                    textDecoration: "none",
-                    fontWeight: "600"
-                  }}
-                >
-                  {t.login.registerHere}
-                </a>
-              </p>
             </form>
           </div>
 

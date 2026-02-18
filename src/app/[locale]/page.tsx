@@ -55,7 +55,11 @@ export default async function Home({
           <section className="about">
             <div className="container about-inner">
               <div className="about-content" data-aos="fade-right">
-                <h2 className="about-title">{t.about.title}</h2>
+                <h2 className="about-title">
+                  <Link href="https://southadriaticskills.org/en/about" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>
+                    {t.about.title}
+                  </Link>
+                </h2>
                 <p>{t.about.text1}</p>
                 <p>{t.about.text2}</p>
                 <p>{t.about.text3}</p>

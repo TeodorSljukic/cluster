@@ -64,7 +64,7 @@
   },
   "platform": {
     "title": "Alati platforme",
-    "documents": "Dokumenti",
+    "documents": "eDokumenti",
     "elearning": "eUčenje",
     "ecommerce": "eTrgovina",
     "lms": "LMS",
@@ -89,13 +89,13 @@
     "blueconnect": "BLUECONNECT"
   },
   "news": {
-    "title": "Vijesti i obavještenja",
-    "subtitle": "Uskoro: vijesti, publikacije i priče iz sektora plave ekonomije.",
+    "title": "Vijesti",
+    "subtitle": "Vijesti i obavještenja iz plave ekonomije Južnog Jadrana",
     "readMore": "Pročitaj više"
   },
   "events": {
-    "title": "Predstojeći događaji",
-    "subtitle": "Budite informisani o našim predstojećim događajima i registrujte se da budete među prvima",
+    "title": "Događaji",
+    "subtitle": "Budite informisani o našim predstojećim događajima i budite među prvima koji će se registrovati",
     "readMore": "Pročitaj više"
   },
   "stats": {
@@ -129,6 +129,7 @@
     "password": "Lozinka",
     "organization": "Naziv organizacije",
     "country": "Država",
+    "countryOther": "Ili unesite naziv države",
     "city": "Grad",
     "cityPlaceholder": "Unesite grad...",
     "sector": "Sektor",
@@ -139,7 +140,9 @@
     "register": "Registruj se",
     "registering": "Registrujem...",
     "viewer": "Gledalac",
-    "editor": "Urednik"
+    "editor": "Urednik",
+    "alreadyHaveAccount": "Već imaš nalog?",
+    "logInHere": "Uloguj se ovdje"
   },
   "cms": {
     "dashboard": "Kontrolna tabla",
@@ -217,6 +220,7 @@
     "addSkillPlaceholder": "Dodaj vještinu",
     "noSkills": "Nema dodanih vještina.",
     "connectionRequests": "Zahtjevi za povezivanje",
+    "searchRequest": "Pretraga zahtjeva",
     "myConnections": "Moje veze",
     "noPendingRequests": "Nema zahtjeva za povezivanje na čekanju.",
     "noConnections": "Nema veza.",
@@ -230,8 +234,8 @@
     "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
     "linkedinPlaceholder": "https://linkedin.com/in/username",
-    "twitter": "Twitter",
-    "twitterPlaceholder": "https://twitter.com/username",
+    "twitter": "X",
+    "twitterPlaceholder": "https://x.com/username",
     "noContactInfo": "Nema dodanih kontakt informacija.",
     "changeCover": "Promijeni naslovnu",
     "uploading": "Učitavanje...",
@@ -368,9 +372,14 @@
     "backToLogin": "Nazad na prijavu"
   },
   "newsPage": {
-    "title": "Vijesti i Događaji",
+    "title": "Vijesti",
     "readMore": "Pročitaj više",
     "noPostsFound": "Nema pronađenih vijesti."
+  },
+  "eventsPage": {
+    "title": "Događaji",
+    "readMore": "Pročitaj više",
+    "noPostsFound": "Nema pronađenih događaja."
   },
   "chat": {
     "title": "Chat",
@@ -508,7 +517,7 @@
     "errorOccurred": "Došlo je do greške. Molimo pokušajte ponovo kasnije."
   },
   "search": {
-    "title": "Pretraga korisnika",
+    "title": "Pretraga korisnika, vijesti i događaja",
     "placeholder": "Unesite ime ili email...",
     "searchUsersPlaceholder": "Pretraži korisnike...",
     "loading": "Učitavanje...",

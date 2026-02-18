@@ -64,7 +64,7 @@
   },
   "platform": {
     "title": "Strumenti della piattaforma",
-    "documents": "Documenti",
+    "documents": "eDocumenti",
     "elearning": "eLearning",
     "ecommerce": "eCommerce",
     "lms": "LMS",
@@ -89,13 +89,13 @@
     "blueconnect": "BLUECONNECT"
   },
   "news": {
-    "title": "Notizie e Aggiornamenti",
-    "subtitle": "Prossimamente: notizie, pubblicazioni e storie dal settore dell'economia blu.",
+    "title": "Notizie",
+    "subtitle": "Notizie e aggiornamenti dall'economia blu dell'Adriatico meridionale",
     "readMore": "Leggi di più"
   },
   "events": {
-    "title": "Prossimi Eventi",
-    "subtitle": "Resta informato sui nostri prossimi eventi e registrati per essere tra i primi",
+    "title": "Eventi",
+    "subtitle": "Resta informato sui nostri prossimi eventi e sii tra i primi a registrarti",
     "readMore": "Leggi di più"
   },
   "stats": {
@@ -129,6 +129,7 @@
     "password": "Password",
     "organization": "Nome organizzazione",
     "country": "Paese",
+    "countryOther": "Oppure inserisci il nome del paese",
     "city": "Città",
     "cityPlaceholder": "Digita città...",
     "sector": "Settore",
@@ -139,7 +140,9 @@
     "register": "Registrati",
     "registering": "Registrazione in corso...",
     "viewer": "Visualizzatore",
-    "editor": "Editore"
+    "editor": "Editore",
+    "alreadyHaveAccount": "Hai già un account?",
+    "logInHere": "Accedi qui"
   },
   "cms": {
     "dashboard": "Dashboard",
@@ -217,6 +220,7 @@
     "addSkillPlaceholder": "Aggiungi competenza",
     "noSkills": "Nessuna competenza aggiunta.",
     "connectionRequests": "Richieste di connessione",
+    "searchRequest": "Cerca richiesta",
     "myConnections": "Le mie connessioni",
     "noPendingRequests": "Nessuna richiesta di connessione in sospeso.",
     "noConnections": "Nessuna connessione ancora.",
@@ -230,8 +234,8 @@
     "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
     "linkedinPlaceholder": "https://linkedin.com/in/username",
-    "twitter": "Twitter",
-    "twitterPlaceholder": "https://twitter.com/username",
+    "twitter": "X",
+    "twitterPlaceholder": "https://x.com/username",
     "noContactInfo": "Nessuna informazione di contatto aggiunta.",
     "changeCover": "Cambia copertina",
     "uploading": "Caricamento...",
@@ -368,9 +372,14 @@
     "backToLogin": "Torna al Login"
   },
   "newsPage": {
-    "title": "Notizie e Eventi",
+    "title": "Notizie",
     "readMore": "Leggi di più",
     "noPostsFound": "Nessuna notizia trovata."
+  },
+  "eventsPage": {
+    "title": "Eventi",
+    "readMore": "Leggi di più",
+    "noPostsFound": "Nessun evento trovato."
   },
   "chat": {
     "title": "Chat",
@@ -508,7 +517,7 @@
     "errorOccurred": "Si è verificato un errore. Riprova più tardi."
   },
   "search": {
-    "title": "Cerca Utenti",
+    "title": "Cerca utenti, notizie e eventi",
     "placeholder": "Inserisci nome o email...",
     "searchUsersPlaceholder": "Cerca utenti...",
     "loading": "Caricamento...",

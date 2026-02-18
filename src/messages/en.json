@@ -64,7 +64,7 @@
   },
   "platform": {
     "title": "Platform tools",
-    "documents": "Documents",
+    "documents": "eDocuments",
     "elearning": "eLearning",
     "ecommerce": "eCommerce",
     "lms": "LMS",
@@ -89,13 +89,13 @@
     "blueconnect": "BLUECONNECT"
   },
   "news": {
-    "title": "News and Updates",
-    "subtitle": "Coming soon: news, publications, and stories from the blue economy sector.",
+    "title": "News",
+    "subtitle": "News and updates from the South Adriatic blue economy",
     "readMore": "Read more"
   },
   "events": {
-    "title": "Upcoming Events",
-    "subtitle": "Keep yourself informed about our upcoming events and register to be amongst the early",
+    "title": "Events",
+    "subtitle": "Stay informed about our upcoming events and be among the first to register",
     "readMore": "Read more"
   },
   "stats": {
@@ -129,6 +129,7 @@
     "password": "Password",
     "organization": "Organization Name",
     "country": "Country",
+    "countryOther": "Or enter country name",
     "city": "City",
     "cityPlaceholder": "Type city...",
     "sector": "Sector",
@@ -139,7 +140,9 @@
     "register": "Register",
     "registering": "Registering...",
     "viewer": "Viewer",
-    "editor": "Editor"
+    "editor": "Editor",
+    "alreadyHaveAccount": "Already have an account?",
+    "logInHere": "Log in here"
   },
   "cms": {
     "dashboard": "Dashboard",
@@ -217,6 +220,7 @@
     "addSkillPlaceholder": "Add skill",
     "noSkills": "No skills added yet.",
     "connectionRequests": "Connection Requests",
+    "searchRequest": "Search request",
     "myConnections": "My Connections",
     "noPendingRequests": "No pending connection requests.",
     "noConnections": "No connections yet.",
@@ -230,8 +234,8 @@
     "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
     "linkedinPlaceholder": "https://linkedin.com/in/username",
-    "twitter": "Twitter",
-    "twitterPlaceholder": "https://twitter.com/username",
+    "twitter": "X",
+    "twitterPlaceholder": "https://x.com/username",
     "noContactInfo": "No contact info added yet.",
     "changeCover": "Change cover",
     "uploading": "Uploading...",
@@ -368,9 +372,14 @@
     "backToLogin": "Back to Login"
   },
   "newsPage": {
-    "title": "News & Events",
+    "title": "News",
     "readMore": "Read more",
     "noPostsFound": "No news posts found."
+  },
+  "eventsPage": {
+    "title": "Events",
+    "readMore": "Read more",
+    "noPostsFound": "No events found."
   },
   "chat": {
     "title": "Chat",
@@ -508,7 +517,7 @@
     "errorOccurred": "An error occurred. Please try again later."
   },
   "search": {
-    "title": "Search Users",
+    "title": "Search users, news and events",
     "placeholder": "Enter name or email...",
     "searchUsersPlaceholder": "Search users...",
     "loading": "Loading...",

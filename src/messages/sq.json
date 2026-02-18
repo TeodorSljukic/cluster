@@ -64,7 +64,7 @@
   },
   "platform": {
     "title": "Mjetet e platformës",
-    "documents": "Dokumente",
+    "documents": "eDokumente",
     "elearning": "eMësimi",
     "ecommerce": "eTregtia",
     "lms": "LMS",
@@ -89,13 +89,13 @@
     "blueconnect": "BLUECONNECT"
   },
   "news": {
-    "title": "Lajme dhe Përditësime",
-    "subtitle": "Së shpejti: lajme, publikime dhe historie nga sektori i ekonomisë blu.",
+    "title": "Lajme",
+    "subtitle": "Lajme dhe përditësime nga ekonomia blu e Adriatikut Jugor",
     "readMore": "Lexo më shumë"
   },
   "events": {
-    "title": "Ngjarjet e Ardhshme",
-    "subtitle": "Mbani veten të informuar për ngjarjet tona të ardhshme dhe regjistrohuni për të qenë ndër të parët",
+    "title": "Ngjarje",
+    "subtitle": "Mbani veten të informuar për ngjarjet tona të ardhshme dhe jini ndër të parët që do të regjistroheni",
     "readMore": "Lexo më shumë"
   },
   "stats": {
@@ -129,6 +129,7 @@
     "password": "Fjalëkalimi",
     "organization": "Emri i organizatës",
     "country": "Shteti",
+    "countryOther": "Ose shkruani emrin e shtetit",
     "city": "Qyteti",
     "cityPlaceholder": "Shkruani qytet...",
     "sector": "Sektori",
@@ -139,7 +140,9 @@
     "register": "Regjistrohu",
     "registering": "Duke u regjistruar...",
     "viewer": "Shikues",
-    "editor": "Redaktor"
+    "editor": "Redaktor",
+    "alreadyHaveAccount": "Keni tashmë një llogari?",
+    "logInHere": "Hyni këtu"
   },
   "cms": {
     "dashboard": "Paneli",
@@ -217,6 +220,7 @@
     "addSkillPlaceholder": "Shto aftësi",
     "noSkills": "Nuk ka aftësi të shtuara.",
     "connectionRequests": "Kërkesat për lidhje",
+    "searchRequest": "Kërko kërkesë",
     "myConnections": "Lidhjet e mia",
     "noPendingRequests": "Nuk ka kërkesa për lidhje në pritje.",
     "noConnections": "Nuk ka lidhje ende.",
@@ -230,8 +234,8 @@
     "websitePlaceholder": "https://example.com",
     "linkedin": "LinkedIn",
     "linkedinPlaceholder": "https://linkedin.com/in/username",
-    "twitter": "Twitter",
-    "twitterPlaceholder": "https://twitter.com/username",
+    "twitter": "X",
+    "twitterPlaceholder": "https://x.com/username",
     "noContactInfo": "Nuk ka informacion kontakti të shtuar.",
     "changeCover": "Ndrysho kopertinën",
     "uploading": "Duke ngarkuar...",
@@ -368,9 +372,14 @@
     "backToLogin": "Kthehu te Hyrja"
   },
   "newsPage": {
-    "title": "Lajme dhe Ngjarje",
+    "title": "Lajme",
     "readMore": "Lexo më shumë",
     "noPostsFound": "Nuk u gjetën lajme."
+  },
+  "eventsPage": {
+    "title": "Ngjarje",
+    "readMore": "Lexo më shumë",
+    "noPostsFound": "Nuk u gjetën ngjarje."
   },
   "chat": {
     "title": "Chat",
@@ -508,7 +517,7 @@
     "errorOccurred": "Ndodhi një gabim. Ju lutem provoni përsëri më vonë."
   },
   "search": {
-    "title": "Kërko Përdorues",
+    "title": "Kërko përdorues, lajme dhe ngjarje",
     "placeholder": "Shkruani emër ose email...",
     "searchUsersPlaceholder": "Kërko përdorues...",
     "loading": "Duke ngarkuar...",

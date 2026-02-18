@@ -283,9 +283,23 @@ export default function ProfilePage({
 
   function formatDate(dateValue?: string | Date) {
     if (!dateValue) return "";
-    const date = typeof dateValue === "string" ? new Date(dateValue) : dateValue;
+    let date: Date;
+    if (typeof dateValue === "string") {
+      // Handle YYYY-MM format (month only)
+      if (dateValue.match(/^\d{4}-\d{2}$/)) {
+        date = new Date(dateValue + '-01');
+      } else {
+        date = new Date(dateValue);
+      }
+    } else {
+      date = dateValue;
+    }
     if (isNaN(date.getTime())) return "";
-    return date.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+    // Format as dd/mm/yyyy
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   async function loadConnections() {
@@ -1758,9 +1772,31 @@ export default function ProfilePage({
                 marginBottom: "16px",
               }}
             >
-              <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
-                {t.profile.connectionRequests} {pendingRequests.length > 0 && `(${pendingRequests.length})`}
-              </h2>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <h2 style={{ fontSize: "20px", fontWeight: "600", margin: 0 }}>
+                  {t.profile.connectionRequests} {pendingRequests.length > 0 && `(${pendingRequests.length})`}
+                </h2>
+                <Link
+                  href={localeLink("/search", locale)}
+                  style={{
+                    fontSize: "14px",
+                    color: "#0a66c2",
+                    textDecoration: "none",
+                    fontWeight: "500",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    transition: "background 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#f0f0f0";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {t.profile.searchRequest || "Search request"}
+                </Link>
+              </div>
               {loadingConnections ? (
                 <p style={{ fontSize: "14px", color: "#666" }}>{t.profile.loading}</p>
               ) : pendingRequests.length > 0 ? (

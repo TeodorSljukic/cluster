@@ -22,7 +22,6 @@ export default function AboutPage() {
             src="/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp"
             alt="ABGC Logo"
           />
-          <h2>{t.about.pageTitle}</h2>
         </div>
         <div className="about-text" data-aos="fade-left" data-aos-delay="200">
           <h3>{t.about.pageTitle}</h3>
@@ -48,7 +47,17 @@ export default function AboutPage() {
           <p>{t.about.ourStructureText}</p>
           <ul>
             <li>
-              <strong>{t.about.ourStructureItem1}</strong>
+              <strong>
+                {t.about.ourStructureItem1.split("—")[0]}—{" "}
+                <a 
+                  href="https://adriaticbgc.org/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: "#E23F65", textDecoration: "none" }}
+                >
+                  {t.about.ourStructureItem1.split("—")[1]}
+                </a>
+              </strong>
             </li>
             <li>
               <strong>{t.about.ourStructureItem2}</strong>

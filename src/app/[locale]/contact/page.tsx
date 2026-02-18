@@ -60,7 +60,7 @@ export default function ContactPage() {
           </div>
           <div className="card" data-aos="zoom-in" data-aos-delay="200">
             <h4>✉️ {t.contact.email}</h4>
-            <p>info@bluegrowth-adriatic.org</p>
+            <p>info@adriaticbgc.org</p>
           </div>
           <div className="card" data-aos="zoom-in" data-aos-delay="300">
             <h4>🏢 {t.contact.companyInfo}</h4>
