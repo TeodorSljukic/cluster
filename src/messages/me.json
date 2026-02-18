@@ -518,7 +518,12 @@
     "credentialsCopied": "Kredencijali su kopirani u clipboard",
     "copyCredentials": "Kopiraj kredencijale",
     "creating": "Kreiranje...",
-    "cancel": "Otkaži"
+    "cancel": "Otkaži",
+    "syncDMS": "Sinhronizuj DMS korisnike",
+    "syncingDMS": "Sinhronizovanje...",
+    "syncDMSConfirm": "Sinhronizovati korisnike iz DMS-a? Ovo će kreirati lokalne naloge za DMS korisnike koji još ne postoje.",
+    "syncDMSSuccess": "Sinhronizacija završena",
+    "syncDMSError": "Greška pri sinhronizaciji"
   },
   "resetPassword": {
     "title": "Resetuj svoju lozinku",

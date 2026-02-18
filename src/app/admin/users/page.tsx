@@ -43,6 +43,7 @@ export default function UsersPage() {
   const [createUserRole, setCreateUserRole] = useState("user");
   const [createUserLoading, setCreateUserLoading] = useState(false);
   const [createdUserCredentials, setCreatedUserCredentials] = useState<{ username: string; password: string } | null>(null);
+  const [syncingDMS, setSyncingDMS] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -186,22 +187,60 @@ export default function UsersPage() {
           <h1 style={{ margin: 0, fontSize: "23px", fontWeight: "400" }}>
             {t.adminUsers.title}
           </h1>
-          <button
-            type="button"
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            style={{
-              padding: "8px 16px",
-              background: "#2271b1",
-              color: "white",
-              border: "none",
-              borderRadius: "3px",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: "500",
-            }}
-          >
-            {showCreateForm ? t.adminUsers.cancelCreate : t.adminUsers.createUser}
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!confirm(t.adminUsers.syncDMSConfirm || "Sync users from DMS? This will create local accounts for DMS users who don't exist yet.")) {
+                  return;
+                }
+                setSyncingDMS(true);
+                try {
+                  const res = await fetch("/api/admin/sync-dms-users");
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`${t.adminUsers.syncDMSSuccess || "Sync completed"}\n\n${data.message || `Synced ${data.synced || 0} users`}`);
+                    loadUsers();
+                  } else {
+                    alert(`${t.adminUsers.syncDMSError || "Sync failed"}: ${data.error || "Unknown error"}`);
+                  }
+                } catch (error: any) {
+                  alert(`${t.adminUsers.syncDMSError || "Sync failed"}: ${error.message || "Unknown error"}`);
+                } finally {
+                  setSyncingDMS(false);
+                }
+              }}
+              disabled={syncingDMS}
+              style={{
+                padding: "8px 16px",
+                background: syncingDMS ? "#ccc" : "#00a32a",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor: syncingDMS ? "not-allowed" : "pointer",
+                fontSize: "13px",
+                fontWeight: "500",
+              }}
+            >
+              {syncingDMS ? (t.adminUsers.syncingDMS || "Syncing...") : (t.adminUsers.syncDMS || "Sync DMS Users")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              style={{
+                padding: "8px 16px",
+                background: "#2271b1",
+                color: "white",
+                border: "none",
+                borderRadius: "3px",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: "500",
+              }}
+            >
+              {showCreateForm ? t.adminUsers.cancelCreate : t.adminUsers.createUser}
+            </button>
+          </div>
         </div>
 
         {showCreateForm && (

@@ -518,7 +518,12 @@
     "credentialsCopied": "Credentials copied to clipboard",
     "copyCredentials": "Copy Credentials",
     "creating": "Creating...",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "syncDMS": "Sync DMS Users",
+    "syncingDMS": "Syncing...",
+    "syncDMSConfirm": "Sync users from DMS? This will create local accounts for DMS users who don't exist yet.",
+    "syncDMSSuccess": "Sync completed",
+    "syncDMSError": "Sync failed"
   },
   "resetPassword": {
     "title": "Reset Your Password",
