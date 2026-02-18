@@ -71,8 +71,26 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const dmsUsers = await dmsUsersResponse.json();
-    console.log(`📊 Found ${dmsUsers.length || 0} users in DMS`);
+    const dmsUsersRaw = await dmsUsersResponse.json();
+
+    // The DMS API might return either a plain array or an object wrapper
+    // (e.g. { results: [...] } or { users: [...] }). Normalize it so that
+    // we always work with an array and avoid "is not iterable" runtime errors.
+    const dmsUsers: any[] = Array.isArray(dmsUsersRaw)
+      ? dmsUsersRaw
+      : Array.isArray((dmsUsersRaw as any)?.results)
+        ? (dmsUsersRaw as any).results
+        : Array.isArray((dmsUsersRaw as any)?.users)
+          ? (dmsUsersRaw as any).users
+          : [];
+
+    console.log("📊 Raw DMS users payload shape:", {
+      isArray: Array.isArray(dmsUsersRaw),
+      hasResultsArray: Array.isArray((dmsUsersRaw as any)?.results),
+      hasUsersArray: Array.isArray((dmsUsersRaw as any)?.users),
+      totalUsers: dmsUsers.length,
+    });
+    console.log(`📊 Normalized DMS users count: ${dmsUsers.length}`);
 
     const collection = await getCollection("users");
     const syncedUsers: string[] = [];
@@ -80,7 +98,7 @@ export async function GET(request: NextRequest) {
     const errors: string[] = [];
 
     // Process each DMS user
-    for (const dmsUser of dmsUsers || []) {
+    for (const dmsUser of dmsUsers) {
       try {
         // Check if user already exists in our database
         const existing = await collection.findOne({
