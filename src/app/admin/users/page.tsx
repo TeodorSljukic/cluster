@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
 import { getTranslations } from "@/lib/getTranslations";
@@ -75,24 +75,37 @@ export default function UsersPage() {
   }
 
   async function handleResetPassword(userId: string, email: string) {
-    if (!confirm(`${t.adminUsers.generateResetLink} ${email}?`)) return;
+    console.log("[RESET PASSWORD] Starting reset password for user:", userId, email);
+    
+    if (!confirm(`${t.adminUsers.generateResetLink} ${email}?`)) {
+      console.log("[RESET PASSWORD] User cancelled");
+      return;
+    }
 
     setResetPasswordLoading(userId);
     setResetPasswordResult(null);
+    
     try {
+      console.log("[RESET PASSWORD] Making API request to:", `/api/admin/users/${userId}/reset-password`);
+      
       const res = await fetch(`/api/admin/users/${userId}/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
+      
+      console.log("[RESET PASSWORD] Response status:", res.status, res.statusText);
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+        console.error("[RESET PASSWORD] Error response:", errorData);
         throw new Error(errorData.error || `HTTP ${res.status}`);
       }
       
       const data = await res.json();
+      console.log("[RESET PASSWORD] Success response:", data);
       if (res.ok) {
         setResetPasswordResult({ userId, link: data.resetLink });
         
@@ -119,9 +132,14 @@ export default function UsersPage() {
       } else {
         alert(`${t.adminUsers.errorGeneratingLink}: ${data.error || t.adminUsers.failedToGenerate}`);
       }
-    } catch (error) {
-      console.error("Error sending reset password:", error);
-      alert(t.adminUsers.failedToGenerate);
+    } catch (error: any) {
+      console.error("[RESET PASSWORD] Error sending reset password:", error);
+      console.error("[RESET PASSWORD] Error details:", {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+      });
+      alert(`${t.adminUsers.failedToGenerate}\n\nError: ${error?.message || "Unknown error"}`);
     } finally {
       setResetPasswordLoading(null);
     }
@@ -235,9 +253,8 @@ export default function UsersPage() {
             </thead>
             <tbody>
               {users.map((user) => (
-                <>
+                <React.Fragment key={user._id}>
                   <tr
-                    key={user._id}
                     style={{
                       borderBottom: "1px solid #f0f0f1",
                       transition: "background 0.1s",
@@ -278,7 +295,12 @@ export default function UsersPage() {
                     <td style={{ padding: "10px" }}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                         <button
-                          onClick={() => setExpandedUser(expandedUser === user._id ? null : user._id)}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setExpandedUser(expandedUser === user._id ? null : user._id);
+                          }}
                           style={{
                             background: expandedUser === user._id ? "#2271b1" : "transparent",
                             border: "1px solid #2271b1",
@@ -287,6 +309,8 @@ export default function UsersPage() {
                             fontSize: "13px",
                             padding: "4px 8px",
                             borderRadius: "3px",
+                            position: "relative",
+                            zIndex: 10,
                           }}
                         >
                           {expandedUser === user._id ? t.adminUsers.hideDetails : t.adminUsers.viewDetails}
@@ -296,7 +320,10 @@ export default function UsersPage() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleResetPassword(user._id, user.email);
+                            console.log("[RESET PASSWORD BUTTON] Clicked for user:", user._id, user.email);
+                            handleResetPassword(user._id, user.email).catch((err) => {
+                              console.error("[RESET PASSWORD BUTTON] Unhandled error:", err);
+                            });
                           }}
                           disabled={resetPasswordLoading === user._id}
                           style={{
@@ -310,12 +337,18 @@ export default function UsersPage() {
                             opacity: resetPasswordLoading === user._id ? 0.6 : 1,
                             position: "relative",
                             zIndex: 10,
+                            pointerEvents: resetPasswordLoading === user._id ? "none" : "auto",
                           }}
                         >
                           {resetPasswordLoading === user._id ? t.adminUsers.sending : t.adminUsers.resetPassword}
                         </button>
                         <button
-                          onClick={() => handleDelete(user._id)}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDelete(user._id);
+                          }}
                           style={{
                             background: "transparent",
                             border: "none",
@@ -324,6 +357,8 @@ export default function UsersPage() {
                             fontSize: "13px",
                             padding: "0 5px",
                             textDecoration: "underline",
+                            position: "relative",
+                            zIndex: 10,
                           }}
                         >
                           {t.adminUsers.delete}
@@ -521,7 +556,7 @@ export default function UsersPage() {
                     </td>
                   </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
