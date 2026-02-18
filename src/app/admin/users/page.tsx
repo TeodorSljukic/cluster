@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
 import { getTranslations } from "@/lib/getTranslations";
@@ -45,6 +45,21 @@ export default function UsersPage() {
   const [createdUserCredentials, setCreatedUserCredentials] = useState<{ username: string; password: string } | null>(null);
   const [syncingDMS, setSyncingDMS] = useState(false);
 
+  const t = getTranslations(cmsLocale);
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      const data = await res.json();
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error("Error loading users:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadUsers();
     // Load CMS locale from localStorage
@@ -63,24 +78,9 @@ export default function UsersPage() {
     return () => {
       window.removeEventListener("cms-locale-changed", handleLocaleChange);
     };
-  }, []);
+  }, [loadUsers]);
 
-  const t = getTranslations(cmsLocale);
-
-  async function loadUsers() {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/admin/users");
-      const data = await res.json();
-      setUsers(data.users || []);
-    } catch (error) {
-      console.error("Error loading users:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleResetPassword(userId: string, email: string) {
+  const handleResetPassword = useCallback(async (userId: string, email: string) => {
     console.log("[RESET PASSWORD] Starting reset password for user:", userId, email);
     
     if (!confirm(`${t.adminUsers.generateResetLink} ${email}?`)) {
@@ -149,9 +149,9 @@ export default function UsersPage() {
     } finally {
       setResetPasswordLoading(null);
     }
-  }
+  }, [t.adminUsers.generateResetLink, t.adminUsers.resetLinkGenerated, t.adminUsers.copyLink, t.adminUsers.resetLinkGeneratedNoCopy, t.adminUsers.errorGeneratingLink, t.adminUsers.failedToGenerate]);
 
-  async function handleDelete(id: string) {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm(t.adminUsers.confirmDelete)) return;
 
     try {
@@ -162,7 +162,7 @@ export default function UsersPage() {
     } catch (error) {
       console.error("Error deleting user:", error);
     }
-  }
+  }, [t.adminUsers.confirmDelete, loadUsers]);
 
   async function handleRoleChange(userId: string, newRole: string) {
     try {
@@ -179,6 +179,63 @@ export default function UsersPage() {
     }
   }
 
+  // Use useCallback for button handlers to ensure they work in production
+  const handleSyncDMSClick = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm(t.adminUsers.syncDMSConfirm || "Sync users from DMS? This will create local accounts for DMS users who don't exist yet.")) {
+      return;
+    }
+    setSyncingDMS(true);
+    try {
+      const res = await fetch("/api/admin/sync-dms-users");
+      const data = await res.json();
+      if (res.ok) {
+        alert(`${t.adminUsers.syncDMSSuccess || "Sync completed"}\n\n${data.message || `Synced ${data.synced || 0} users`}`);
+        loadUsers();
+      } else {
+        alert(`${t.adminUsers.syncDMSError || "Sync failed"}: ${data.error || "Unknown error"}`);
+      }
+    } catch (error: any) {
+      alert(`${t.adminUsers.syncDMSError || "Sync failed"}: ${error.message || "Unknown error"}`);
+    } finally {
+      setSyncingDMS(false);
+    }
+  }, [t.adminUsers.syncDMSConfirm, t.adminUsers.syncDMSSuccess, t.adminUsers.syncDMSError, loadUsers]);
+
+  const handleToggleCreateForm = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowCreateForm(!showCreateForm);
+  }, [showCreateForm]);
+
+  const handleViewDetailsClick = useCallback((userId: string) => {
+    return (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setExpandedUser(prev => prev === userId ? null : userId);
+    };
+  }, []);
+
+  const handleResetPasswordClick = useCallback((userId: string, email: string) => {
+    return (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("[RESET PASSWORD BUTTON] Clicked for user:", userId, email);
+      handleResetPassword(userId, email).catch((err) => {
+        console.error("[RESET PASSWORD BUTTON] Unhandled error:", err);
+      });
+    };
+  }, [handleResetPassword]);
+
+  const handleDeleteClick = useCallback((userId: string) => {
+    return (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDelete(userId);
+    };
+  }, [handleDelete]);
+
   return (
     <AdminGuard>
       <CMSLayout>
@@ -190,28 +247,7 @@ export default function UsersPage() {
           <div style={{ display: "flex", gap: "10px" }}>
             <button
               type="button"
-              onClick={async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (!confirm(t.adminUsers.syncDMSConfirm || "Sync users from DMS? This will create local accounts for DMS users who don't exist yet.")) {
-                  return;
-                }
-                setSyncingDMS(true);
-                try {
-                  const res = await fetch("/api/admin/sync-dms-users");
-                  const data = await res.json();
-                  if (res.ok) {
-                    alert(`${t.adminUsers.syncDMSSuccess || "Sync completed"}\n\n${data.message || `Synced ${data.synced || 0} users`}`);
-                    loadUsers();
-                  } else {
-                    alert(`${t.adminUsers.syncDMSError || "Sync failed"}: ${data.error || "Unknown error"}`);
-                  }
-                } catch (error: any) {
-                  alert(`${t.adminUsers.syncDMSError || "Sync failed"}: ${error.message || "Unknown error"}`);
-                } finally {
-                  setSyncingDMS(false);
-                }
-              }}
+              onClick={handleSyncDMSClick}
               disabled={syncingDMS}
               style={{
                 padding: "8px 16px",
@@ -231,11 +267,7 @@ export default function UsersPage() {
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowCreateForm(!showCreateForm);
-              }}
+              onClick={handleToggleCreateForm}
               style={{
                 padding: "8px 16px",
                 background: "#2271b1",
@@ -560,11 +592,7 @@ export default function UsersPage() {
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setExpandedUser(expandedUser === user._id ? null : user._id);
-                          }}
+                          onClick={handleViewDetailsClick(user._id)}
                           style={{
                             background: expandedUser === user._id ? "#2271b1" : "transparent",
                             border: "1px solid #2271b1",
@@ -582,14 +610,7 @@ export default function UsersPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log("[RESET PASSWORD BUTTON] Clicked for user:", user._id, user.email);
-                            handleResetPassword(user._id, user.email).catch((err) => {
-                              console.error("[RESET PASSWORD BUTTON] Unhandled error:", err);
-                            });
-                          }}
+                          onClick={handleResetPasswordClick(user._id, user.email)}
                           disabled={resetPasswordLoading === user._id}
                           style={{
                             background: "transparent",
@@ -609,11 +630,7 @@ export default function UsersPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDelete(user._id);
-                          }}
+                          onClick={handleDeleteClick(user._id)}
                           style={{
                             background: "transparent",
                             border: "none",
