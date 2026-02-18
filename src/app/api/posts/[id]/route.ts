@@ -151,6 +151,7 @@ export async function PUT(
 
     // Auto-translate if title, content, or excerpt is being updated
     const sourceLocale = (body.locale || existing.locale || "me") as Locale;
+    const allLocales: Locale[] = ["me", "en", "it", "sq"];
     
     // Only update fields that are provided
     if (body.title !== undefined) {
@@ -211,10 +212,12 @@ export async function PUT(
     };
 
     // If status changed to published, set publishedAt
+    const now = new Date();
     if (body.status === "published" && existing.status !== "published") {
-      update.publishedAt = new Date();
+      update.publishedAt = now;
     }
 
+    // Update the current post
     const result = await collection.updateOne(
       { _id: postId },
       { $set: update }
@@ -222,6 +225,53 @@ export async function PUT(
 
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    // Find and update all related posts with the same slug (different locales)
+    // This ensures all language versions are updated when one is updated
+    const slugToUpdate = body.slug !== undefined ? body.slug : existing.slug;
+    const updatesForAllLocales: any = {
+      updatedAt: now,
+    };
+
+    // Update shared fields that should be the same across all locales
+    if (body.featuredImage !== undefined) updatesForAllLocales.featuredImage = body.featuredImage || "";
+    if (body.status !== undefined) updatesForAllLocales.status = body.status;
+    if (body.type !== undefined) updatesForAllLocales.type = body.type;
+    if (eventDate !== undefined) updatesForAllLocales.eventDate = eventDate;
+    if (body.eventLocation !== undefined) updatesForAllLocales.eventLocation = body.eventLocation || "";
+    if (body.status === "published") {
+      updatesForAllLocales.publishedAt = now;
+    }
+
+    // Update metadata with translations for all related posts
+    updatesForAllLocales.metadata = {
+      titleTranslations,
+      contentTranslations,
+      excerptTranslations,
+    };
+
+    // Update all posts with the same slug (different locales)
+    await collection.updateMany(
+      { slug: slugToUpdate, _id: { $ne: postId } },
+      { $set: updatesForAllLocales }
+    );
+
+    // Update each locale-specific post with its translated content
+    for (const targetLocale of allLocales) {
+      if (targetLocale === sourceLocale) continue; // Already updated above
+
+      const localeUpdate: any = {
+        title: titleTranslations[targetLocale] || existing.title,
+        content: contentTranslations[targetLocale] || existing.content,
+        excerpt: excerptTranslations[targetLocale] || existing.excerpt || "",
+        updatedAt: now,
+      };
+
+      await collection.updateOne(
+        { slug: slugToUpdate, locale: targetLocale },
+        { $set: localeUpdate }
+      );
     }
 
     const updated = await collection.findOne({
@@ -235,6 +285,7 @@ export async function PUT(
       updatedAt: updated!.updatedAt?.toISOString(),
       publishedAt: updated!.publishedAt?.toISOString(),
       eventDate: updated!.eventDate?.toISOString(),
+      updatedForAllLocales: true,
     });
   } catch (error: any) {
     console.error("Error updating post:", error);

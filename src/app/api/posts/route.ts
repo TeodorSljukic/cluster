@@ -114,6 +114,8 @@ export async function POST(request: NextRequest) {
 
     // Auto-translate title, content, and excerpt to all languages
     const sourceLocale = locale as Locale;
+    const allLocales: Locale[] = ["me", "en", "it", "sq"];
+    
     let titleTranslations: Record<Locale, string> = {
       me: body.title,
       en: body.title,
@@ -159,37 +161,63 @@ export async function POST(request: NextRequest) {
       // Continue with original text if translation fails
     }
 
-    const post: Omit<Post, "_id"> = {
-      title: body.title,
-      slug: body.slug,
-      content: body.content,
-      excerpt: body.excerpt || "",
-      featuredImage: body.featuredImage || "",
-      type: body.type,
-      status: body.status || "draft",
-      locale,
-      createdAt: now,
-      updatedAt: now,
-      publishedAt: body.status === "published" ? now : undefined,
-      eventDate: eventDate,
-      eventLocation: body.eventLocation || "",
-      // Store translations in metadata
-      metadata: {
-        titleTranslations,
-        contentTranslations,
-        excerptTranslations,
-      },
-    };
+    // Create posts for all locales
+    const postsToInsert: Omit<Post, "_id">[] = [];
+    const insertedIds: string[] = [];
 
-    const result = await collection.insertOne(post);
+    for (const targetLocale of allLocales) {
+      // Check if slug already exists for this locale
+      const existing = await collection.findOne({ slug: body.slug, locale: targetLocale });
+      if (existing) {
+        console.warn(`Slug ${body.slug} already exists for locale ${targetLocale}, skipping`);
+        continue;
+      }
+
+      const post: Omit<Post, "_id"> = {
+        title: titleTranslations[targetLocale] || body.title,
+        slug: body.slug,
+        content: contentTranslations[targetLocale] || body.content,
+        excerpt: excerptTranslations[targetLocale] || body.excerpt || "",
+        featuredImage: body.featuredImage || "",
+        type: body.type,
+        status: body.status || "draft",
+        locale: targetLocale,
+        createdAt: now,
+        updatedAt: now,
+        publishedAt: body.status === "published" ? now : undefined,
+        eventDate: eventDate,
+        eventLocation: body.eventLocation || "",
+        // Store translations in metadata for reference
+        metadata: {
+          titleTranslations,
+          contentTranslations,
+          excerptTranslations,
+        },
+      };
+
+      postsToInsert.push(post);
+    }
+
+    // Insert all posts
+    if (postsToInsert.length > 0) {
+      const result = await collection.insertMany(postsToInsert);
+      // insertMany returns insertedIds as an object with numeric keys
+      insertedIds.push(...Object.values(result.insertedIds).map((id: any) => id.toString()));
+    }
+
+    // Return the first inserted post (source locale)
+    const firstPost = postsToInsert.find(p => p.locale === sourceLocale) || postsToInsert[0];
+    const firstId = insertedIds[0] || "";
 
     return NextResponse.json({
-      _id: result.insertedId.toString(),
-      ...post,
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
-      publishedAt: post.publishedAt?.toISOString(),
-      eventDate: post.eventDate?.toISOString(),
+      _id: firstId,
+      ...firstPost,
+      createdAt: firstPost.createdAt.toISOString(),
+      updatedAt: firstPost.updatedAt.toISOString(),
+      publishedAt: firstPost.publishedAt?.toISOString(),
+      eventDate: firstPost.eventDate?.toISOString(),
+      createdForAllLocales: true,
+      insertedCount: insertedIds.length,
     });
   } catch (error: any) {
     console.error("Error creating post:", error);
