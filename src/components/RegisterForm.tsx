@@ -539,9 +539,13 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                         setFormData({ ...formData, country: value, city: "" });
                       }
                     }}
-                    onFocus={() => setShowCountrySuggestions(true)}
-                    onBlur={() => {
+                    onFocus={(e) => {
+                      setShowCountrySuggestions(true);
+                      e.currentTarget.style.borderColor = "#B53251";
+                    }}
+                    onBlur={(e) => {
                       setTimeout(() => setShowCountrySuggestions(false), 200);
+                      e.currentTarget.style.borderColor = "#ddd";
                     }}
                     placeholder={t.join.countryOther || "Select or enter country name"}
                     style={{
@@ -554,8 +558,6 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                       outline: "none",
                       boxSizing: "border-box"
                     }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
-                    onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
                   />
                   
                   {/* Country suggestions dropdown */}
