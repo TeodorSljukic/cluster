@@ -3369,22 +3369,65 @@ function EducationModal({
   onClose: () => void;
   onSave: (edu: any) => void;
 }) {
-  // Helper function to convert month format (YYYY-MM) to date format (YYYY-MM-DD)
+  // Helper function to convert YYYY-MM to dd/mm/yyyy format
   const monthToDate = (monthStr: string) => {
     if (!monthStr) return "";
     if (monthStr.includes("-") && monthStr.split("-").length === 2) {
-      return `${monthStr}-01`; // Add day 01 to make it a valid date
+      const [year, month] = monthStr.split("-");
+      return `01/${month}/${year}`; // Convert to dd/mm/yyyy format
+    }
+    // If already in dd/mm/yyyy format, return as is
+    if (monthStr.includes("/") && monthStr.split("/").length === 3) {
+      return monthStr;
+    }
+    // If in YYYY-MM-DD format, convert to dd/mm/yyyy
+    if (monthStr.includes("-") && monthStr.split("-").length === 3) {
+      const [year, month, day] = monthStr.split("-");
+      return `${day}/${month}/${year}`;
     }
     return monthStr;
   };
 
-  // Helper function to convert date format (YYYY-MM-DD) to month format (YYYY-MM) for storage
+  // Helper function to convert dd/mm/yyyy to YYYY-MM format for storage
   const dateToMonth = (dateStr: string) => {
     if (!dateStr) return "";
+    // If in dd/mm/yyyy format, convert to YYYY-MM
+    if (dateStr.includes("/") && dateStr.split("/").length === 3) {
+      const [day, month, year] = dateStr.split("/");
+      return `${year}-${month}`; // Extract YYYY-MM from dd/mm/yyyy
+    }
+    // If in YYYY-MM-DD format, extract YYYY-MM
     if (dateStr.includes("-") && dateStr.split("-").length === 3) {
       return dateStr.substring(0, 7); // Extract YYYY-MM from YYYY-MM-DD
     }
     return dateStr;
+  };
+
+  // Helper function to format date input as user types (dd/mm/yyyy)
+  const formatDateInput = (value: string) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, "");
+    
+    // Format as dd/mm/yyyy
+    if (digits.length <= 2) {
+      return digits;
+    } else if (digits.length <= 4) {
+      return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    } else {
+      return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    }
+  };
+
+  // Helper function to validate dd/mm/yyyy date
+  const isValidDate = (dateStr: string): boolean => {
+    if (!dateStr || !dateStr.includes("/")) return false;
+    const parts = dateStr.split("/");
+    if (parts.length !== 3) return false;
+    const [day, month, year] = parts.map(Number);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) return false;
+    const date = new Date(year, month - 1, day);
+    return date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year;
   };
 
   const [formData, setFormData] = useState({
