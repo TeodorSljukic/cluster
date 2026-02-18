@@ -67,7 +67,7 @@ export default async function Home({
 
               <div className="about-image" data-aos="fade-left">
                 <Image
-                  src="/wp-content/uploads/2025/09/Frame-10000022261.webp"
+                  src="/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp"
                   alt="ABGC logo"
                   width={800}
                   height={600}
