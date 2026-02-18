@@ -64,6 +64,14 @@ export function RegisterForm({ locale }: RegisterFormProps) {
 
     try {
       const selectedPlatforms = formData.platforms.filter(p => p !== "all");
+      
+      // Ensure LMS and DMS are always set to fixed values (basic user)
+      const finalPlatformRoles = {
+        ...formData.platformRoles,
+        lms: "user" as "user" | "instructor", // Fixed: always basic user
+        dms: "1" as "1" | "2" // Fixed: always basic user (viewer)
+      };
+      
       console.log("📤 Sending registration request:", {
         username: formData.username,
         email: formData.email,
@@ -84,7 +92,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           location: formData.city ? `${formData.city}, ${formData.region}, ${countries.find(c => c.code === formData.country)?.name || formData.country}` : undefined,
           selectedPlatforms: selectedPlatforms,
           role: formData.role, // Local system role
-          platformRoles: formData.platformRoles, // Platform-specific roles
+          platformRoles: finalPlatformRoles, // Platform-specific roles (LMS and DMS fixed to basic user)
         }),
       });
 
@@ -798,16 +806,30 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               if (e.target.checked) {
                                 setFormData({ 
                                   ...formData, 
-                                  platforms: ["lms", "ecommerce", "dms"] 
+                                  platforms: ["lms", "ecommerce", "dms"],
+                                  platformRoles: {
+                                    ...formData.platformRoles,
+                                    lms: "user", // Fixed: always basic user
+                                    dms: "1" // Fixed: always basic user (viewer)
+                                  }
                                 });
                               } else {
                                 setFormData({ ...formData, platforms: [] });
                               }
                             } else {
                               if (e.target.checked) {
+                                const newPlatforms = [...formData.platforms, platform.id];
+                                // Ensure LMS and DMS are set to fixed values
+                                const newPlatformRoles = { ...formData.platformRoles };
+                                if (platform.id === "lms") {
+                                  newPlatformRoles.lms = "user"; // Fixed: always basic user
+                                } else if (platform.id === "dms") {
+                                  newPlatformRoles.dms = "1"; // Fixed: always basic user (viewer)
+                                }
                                 setFormData({ 
                                   ...formData, 
-                                  platforms: [...formData.platforms, platform.id] 
+                                  platforms: newPlatforms,
+                                  platformRoles: newPlatformRoles
                                 });
                               } else {
                                 setFormData({ 
@@ -870,7 +892,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                       fontSize: "14px",
                       color: "#333"
                     }}>
-                      Nivo korisnika po platformama:
+                      {t.join.userLevelByPlatform || "Nivo korisnika po platformama"}:
                     </label>
                     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                       {formData.platforms.filter(p => p !== "all").map((platformId) => {
@@ -878,29 +900,17 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                           return (
                             <div key="lms" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                               <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>LMS:</span>
-                              <select
-                                value={formData.platformRoles.lms}
-                                onChange={(e) => {
-                                  const newRole = e.target.value;
-                                  if (newRole !== "admin") {
-                                    setFormData({
-                                      ...formData,
-                                      platformRoles: { ...formData.platformRoles, lms: newRole as "user" | "instructor" }
-                                    });
-                                  }
-                                }}
-                                style={{
-                                  flex: 1,
-                                  padding: "8px",
-                                  borderRadius: "6px",
-                                  border: "1px solid #ddd",
-                                  fontSize: "13px",
-                                  outline: "none"
-                                }}
-                              >
-                                <option value="user">User - Regular student</option>
-                                <option value="instructor">Instructor - Course instructor</option>
-                              </select>
+                              <div style={{
+                                flex: 1,
+                                padding: "8px 12px",
+                                borderRadius: "6px",
+                                border: "1px solid #ddd",
+                                fontSize: "13px",
+                                background: "#f5f5f5",
+                                color: "#666"
+                              }}>
+                                {t.join.basicUser || "Osnovni korisnik"} ({t.join.approvalRequired || "Zahtijeva odobrenje"})
+                              </div>
                             </div>
                           );
                         }
@@ -928,8 +938,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                                   outline: "none"
                                 }}
                               >
-                                <option value="buyer">Buyer - Default role</option>
-                                <option value="seller">Seller - Seller account</option>
+                                <option value="buyer">{t.join.buyer || "Buyer"} - {t.join.buyerDescription || "Default role"}</option>
+                                <option value="seller">{t.join.seller || "Seller"} - {t.join.sellerDescription || "Seller account"} ({t.join.approvalRequired || "Zahtijeva odobrenje"})</option>
                               </select>
                             </div>
                           );
@@ -938,34 +948,33 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                           return (
                             <div key="dms" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                               <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>DMS:</span>
-                              <select
-                                value={formData.platformRoles.dms}
-                                onChange={(e) => {
-                                  const newGroup = e.target.value;
-                                  if (newGroup !== "3") {
-                                    setFormData({
-                                      ...formData,
-                                      platformRoles: { ...formData.platformRoles, dms: newGroup as "1" | "2" }
-                                    });
-                                  }
-                                }}
-                                style={{
-                                  flex: 1,
-                                  padding: "8px",
-                                  borderRadius: "6px",
-                                  border: "1px solid #ddd",
-                                  fontSize: "13px",
-                                  outline: "none"
-                                }}
-                              >
-                                <option value="1">{t.join.viewer}</option>
-                                <option value="2">{t.join.editor}</option>
-                              </select>
+                              <div style={{
+                                flex: 1,
+                                padding: "8px 12px",
+                                borderRadius: "6px",
+                                border: "1px solid #ddd",
+                                fontSize: "13px",
+                                background: "#f5f5f5",
+                                color: "#666"
+                              }}>
+                                {t.join.basicUser || "Osnovni korisnik"} ({t.join.approvalRequired || "Zahtijeva odobrenje"})
+                              </div>
                             </div>
                           );
                         }
                         return null;
                       })}
+                    </div>
+                    <div style={{
+                      marginTop: "12px",
+                      padding: "10px",
+                      background: "#fff3cd",
+                      borderRadius: "6px",
+                      fontSize: "12px",
+                      color: "#856404",
+                      border: "1px solid #ffeaa7"
+                    }}>
+                      {t.join.approvalNote || "Napomena: Određeni nivoi korisnika zahtijevaju odobrenje administratora. Vaš zahtjev će biti pregledan i odobren u najkraćem mogućem roku."}
                     </div>
                   </div>
                 )}

@@ -142,7 +142,15 @@
     "viewer": "Visualizzatore",
     "editor": "Editore",
     "alreadyHaveAccount": "Hai già un account?",
-    "logInHere": "Accedi qui"
+    "logInHere": "Accedi qui",
+    "userLevelByPlatform": "Livello utente per piattaforma",
+    "basicUser": "Utente base",
+    "approvalRequired": "Richiede approvazione",
+    "approvalNote": "Nota: Alcuni livelli utente richiedono l'approvazione dell'amministratore. La tua richiesta sarà esaminata e approvata il prima possibile.",
+    "buyer": "Acquirente",
+    "buyerDescription": "Ruolo predefinito",
+    "seller": "Venditore",
+    "sellerDescription": "Account venditore"
   },
   "cms": {
     "dashboard": "Dashboard",

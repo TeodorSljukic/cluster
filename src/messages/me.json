@@ -142,7 +142,15 @@
     "viewer": "Gledalac",
     "editor": "Urednik",
     "alreadyHaveAccount": "Već imaš nalog?",
-    "logInHere": "Uloguj se ovdje"
+    "logInHere": "Uloguj se ovdje",
+    "userLevelByPlatform": "Nivo korisnika po platformama",
+    "basicUser": "Osnovni korisnik",
+    "approvalRequired": "Zahtijeva odobrenje",
+    "approvalNote": "Napomena: Određeni nivoi korisnika zahtijevaju odobrenje administratora. Vaš zahtjev će biti pregledan i odobren u najkraćem mogućem roku.",
+    "buyer": "Kupac",
+    "buyerDescription": "Osnovna uloga",
+    "seller": "Prodavac",
+    "sellerDescription": "Nalog prodavca"
   },
   "cms": {
     "dashboard": "Kontrolna tabla",

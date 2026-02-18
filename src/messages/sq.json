@@ -142,7 +142,15 @@
     "viewer": "Shikues",
     "editor": "Redaktor",
     "alreadyHaveAccount": "Keni tashmë një llogari?",
-    "logInHere": "Hyni këtu"
+    "logInHere": "Hyni këtu",
+    "userLevelByPlatform": "Niveli i përdoruesit sipas platformës",
+    "basicUser": "Përdorues bazë",
+    "approvalRequired": "Kërkon miratim",
+    "approvalNote": "Shënim: Disa nivele përdoruesish kërkojnë miratimin e administratorit. Kërkesa juaj do të shqyrohet dhe miratohet sa më shpejt që të jetë e mundur.",
+    "buyer": "Blerës",
+    "buyerDescription": "Roli parazgjedhur",
+    "seller": "Shitës",
+    "sellerDescription": "Llogaria e shitësit"
   },
   "cms": {
     "dashboard": "Paneli",

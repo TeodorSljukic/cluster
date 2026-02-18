@@ -142,7 +142,15 @@
     "viewer": "Viewer",
     "editor": "Editor",
     "alreadyHaveAccount": "Already have an account?",
-    "logInHere": "Log in here"
+    "logInHere": "Log in here",
+    "userLevelByPlatform": "User Level by Platform",
+    "basicUser": "Basic User",
+    "approvalRequired": "Requires approval",
+    "approvalNote": "Note: Certain user levels require administrator approval. Your request will be reviewed and approved as soon as possible.",
+    "buyer": "Buyer",
+    "buyerDescription": "Default role",
+    "seller": "Seller",
+    "sellerDescription": "Seller account"
   },
   "cms": {
     "dashboard": "Dashboard",
