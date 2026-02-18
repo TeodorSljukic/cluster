@@ -147,10 +147,10 @@ export function RegisterForm({ locale }: RegisterFormProps) {
             setError(warningMessage);
           }
           
-          // Redirect immediately to dashboard
-          setTimeout(() => {
-            window.location.href = localeLink("/dashboard", locale);
-          }, 2000);
+            // Redirect immediately to homepage
+            setTimeout(() => {
+              window.location.href = localeLink("/", locale);
+            }, 2000);
         } else {
           const successMessage = `✅ ${t.register.success}\n\n${t.register.userCreatedOn}\n${
             data.registrations?.lms?.success ? `✅ ${t.platform.lms}\n` : ""
@@ -161,10 +161,10 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           }`;
           setSuccess(successMessage);
           
-          // Redirect immediately to dashboard
-          setTimeout(() => {
-            window.location.href = localeLink("/dashboard", locale);
-          }, 1000);
+            // Redirect immediately to homepage
+            setTimeout(() => {
+              window.location.href = localeLink("/", locale);
+            }, 1000);
         }
       } else {
         setError(`❌ ${t.register.error} ${data.error || data.message || t.register.somethingWentWrong}`);
