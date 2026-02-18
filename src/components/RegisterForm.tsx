@@ -64,13 +64,17 @@ export function RegisterForm({ locale }: RegisterFormProps) {
 
     try {
       const selectedPlatforms = formData.platforms.filter(p => p !== "all");
-      
-      // Ensure LMS and DMS are always set to fixed values (basic user)
-      const finalPlatformRoles = {
-        ...formData.platformRoles,
-        lms: "user" as "user" | "instructor", // Fixed: always basic user
-        dms: "1" as "1" | "2" // Fixed: always basic user (viewer)
-      };
+      console.log("📤 Sending registration request:", {
+        username: formData.username,
+        email: formData.email,
+        selectedPlatforms: selectedPlatforms,
+        platformsCount: selectedPlatforms.length,
+        willRegisterOn: {
+          lms: selectedPlatforms.includes("lms") || selectedPlatforms.length === 0,
+          ecommerce: selectedPlatforms.includes("ecommerce") || selectedPlatforms.length === 0,
+          dms: selectedPlatforms.includes("dms") || selectedPlatforms.length === 0,
+        }
+      });
       
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -80,13 +84,30 @@ export function RegisterForm({ locale }: RegisterFormProps) {
           location: formData.city ? `${formData.city}, ${formData.region}, ${countries.find(c => c.code === formData.country)?.name || formData.country}` : undefined,
           selectedPlatforms: selectedPlatforms,
           role: formData.role, // Local system role
-          platformRoles: finalPlatformRoles, // Platform-specific roles (LMS and DMS fixed to basic user)
+          platformRoles: formData.platformRoles, // Platform-specific roles
         }),
       });
 
       const data = await res.json();
+      
+      console.log("📥 Registration response:", {
+        ok: res.ok,
+        status: res.status,
+        registrations: data.registrations,
+        warnings: data.warnings,
+        partialSuccess: data.partialSuccess,
+      });
 
       if (res.ok && data.user) {
+        // Log registration results
+        if (data.registrations) {
+          console.log("📊 Registration results:", {
+            lms: data.registrations.lms?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.lms?.error || "Unknown"}`,
+            ecommerce: data.registrations.ecommerce?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.ecommerce?.error || "Unknown"}`,
+            dms: data.registrations.dms?.success ? "✅ CREATED" : `❌ FAILED: ${data.registrations.dms?.error || "Unknown"}`,
+          });
+        }
+        
         // Cookie should be set by the server, but clear cache to force refresh
         sessionStorage.removeItem("header-current-user");
         
@@ -518,12 +539,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                         setFormData({ ...formData, country: value, city: "" });
                       }
                     }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#B53251";
-                      setShowCountrySuggestions(true);
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#ddd";
+                    onFocus={() => setShowCountrySuggestions(true)}
+                    onBlur={() => {
                       setTimeout(() => setShowCountrySuggestions(false), 200);
                     }}
                     placeholder={t.join.countryOther || "Select or enter country name"}
@@ -537,6 +554,8 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                       outline: "none",
                       boxSizing: "border-box"
                     }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = "#B53251"}
+                    onBlur={(e) => e.currentTarget.style.borderColor = "#ddd"}
                   />
                   
                   {/* Country suggestions dropdown */}
@@ -779,30 +798,16 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                               if (e.target.checked) {
                                 setFormData({ 
                                   ...formData, 
-                                  platforms: ["lms", "ecommerce", "dms"],
-                                  platformRoles: {
-                                    ...formData.platformRoles,
-                                    lms: "user", // Fixed: always basic user
-                                    dms: "1" // Fixed: always basic user (viewer)
-                                  }
+                                  platforms: ["lms", "ecommerce", "dms"] 
                                 });
                               } else {
                                 setFormData({ ...formData, platforms: [] });
                               }
                             } else {
                               if (e.target.checked) {
-                                const newPlatforms = [...formData.platforms, platform.id];
-                                // Ensure LMS and DMS are set to fixed values
-                                const newPlatformRoles = { ...formData.platformRoles };
-                                if (platform.id === "lms") {
-                                  newPlatformRoles.lms = "user"; // Fixed: always basic user
-                                } else if (platform.id === "dms") {
-                                  newPlatformRoles.dms = "1"; // Fixed: always basic user (viewer)
-                                }
                                 setFormData({ 
                                   ...formData, 
-                                  platforms: newPlatforms,
-                                  platformRoles: newPlatformRoles
+                                  platforms: [...formData.platforms, platform.id] 
                                 });
                               } else {
                                 setFormData({ 
@@ -854,6 +859,116 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                     );
                   })}
                 </div>
+                
+                {/* Platform-specific role selection */}
+                {formData.platforms.length > 0 && formData.platforms.filter(p => p !== "all").length > 0 && (
+                  <div style={{ marginTop: "20px", padding: "15px", background: "#f9f9f9", borderRadius: "8px" }}>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "12px", 
+                      fontWeight: "500",
+                      fontSize: "14px",
+                      color: "#333"
+                    }}>
+                      Nivo korisnika po platformama:
+                    </label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {formData.platforms.filter(p => p !== "all").map((platformId) => {
+                        if (platformId === "lms") {
+                          return (
+                            <div key="lms" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>LMS:</span>
+                              <select
+                                value={formData.platformRoles.lms}
+                                onChange={(e) => {
+                                  const newRole = e.target.value;
+                                  if (newRole !== "admin") {
+                                    setFormData({
+                                      ...formData,
+                                      platformRoles: { ...formData.platformRoles, lms: newRole as "user" | "instructor" }
+                                    });
+                                  }
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #ddd",
+                                  fontSize: "13px",
+                                  outline: "none"
+                                }}
+                              >
+                                <option value="user">User - Regular student</option>
+                                <option value="instructor">Instructor - Course instructor</option>
+                              </select>
+                            </div>
+                          );
+                        }
+                        if (platformId === "ecommerce") {
+                          return (
+                            <div key="ecommerce" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>Ecommerce:</span>
+                              <select
+                                value={formData.platformRoles.ecommerce}
+                                onChange={(e) => {
+                                  const newRole = e.target.value;
+                                  if (newRole !== "admin") {
+                                    setFormData({
+                                      ...formData,
+                                      platformRoles: { ...formData.platformRoles, ecommerce: newRole as "buyer" | "seller" }
+                                    });
+                                  }
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #ddd",
+                                  fontSize: "13px",
+                                  outline: "none"
+                                }}
+                              >
+                                <option value="buyer">Buyer - Default role</option>
+                                <option value="seller">Seller - Seller account</option>
+                              </select>
+                            </div>
+                          );
+                        }
+                        if (platformId === "dms") {
+                          return (
+                            <div key="dms" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <span style={{ minWidth: "100px", fontSize: "13px", fontWeight: "500" }}>DMS:</span>
+                              <select
+                                value={formData.platformRoles.dms}
+                                onChange={(e) => {
+                                  const newGroup = e.target.value;
+                                  if (newGroup !== "3") {
+                                    setFormData({
+                                      ...formData,
+                                      platformRoles: { ...formData.platformRoles, dms: newGroup as "1" | "2" }
+                                    });
+                                  }
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #ddd",
+                                  fontSize: "13px",
+                                  outline: "none"
+                                }}
+                              >
+                                <option value="1">{t.join.viewer}</option>
+                                <option value="2">{t.join.editor}</option>
+                              </select>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Terms */}
