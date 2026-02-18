@@ -911,7 +911,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                                 background: "#f5f5f5",
                                 color: "#666"
                               }}>
-                                {t.join.basicUser || "Osnovni korisnik"} ({t.join.approvalRequired || "Zahtijeva odobrenje"})
+                                {t.join.basicUser || "Osnovni korisnik"}
                               </div>
                             </div>
                           );
@@ -941,7 +941,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                                 }}
                               >
                                 <option value="buyer">{t.join.buyer || "Buyer"} - {t.join.buyerDescription || "Default role"}</option>
-                                <option value="seller">{t.join.seller || "Seller"} - {t.join.sellerDescription || "Seller account"} ({t.join.approvalRequired || "Zahtijeva odobrenje"})</option>
+                                <option value="seller">{t.join.seller || "Seller"} - {t.join.sellerDescription || "Seller account"}</option>
                               </select>
                             </div>
                           );
@@ -959,7 +959,7 @@ export function RegisterForm({ locale }: RegisterFormProps) {
                                 background: "#f5f5f5",
                                 color: "#666"
                               }}>
-                                {t.join.basicUser || "Osnovni korisnik"} ({t.join.approvalRequired || "Zahtijeva odobrenje"})
+                                {t.join.basicUser || "Osnovni korisnik"}
                               </div>
                             </div>
                           );
