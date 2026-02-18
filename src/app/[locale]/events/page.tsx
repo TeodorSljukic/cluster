@@ -108,7 +108,7 @@ export default async function EventsPage({
                 </Link>
               )}
 
-              <div className="event-meta" style={{ padding: "15px 20px 0 20px" }}>
+              <div className="event-meta">
                 <span className="event-date">
                   {formatDate(post.eventDate || post.publishedAt || post.createdAt)}
                 </span>
@@ -118,7 +118,7 @@ export default async function EventsPage({
                 <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
               </h3>
 
-              <div style={{ padding: "0 20px 20px 20px", marginTop: "auto" }}>
+              <div className="event-button-wrapper">
                 <Link href={localeLink(`/posts/${post.slug}`, locale)} className="event-button">
                   {t.eventsPage.readMore}
                 </Link>

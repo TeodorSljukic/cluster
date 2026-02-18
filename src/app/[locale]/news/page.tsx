@@ -108,7 +108,7 @@ export default async function NewsPage({
                 </Link>
               )}
 
-              <div className="news-meta" style={{ padding: "15px 20px 0 20px" }}>
+              <div className="news-meta">
                 <span className="news-date">
                   {formatDate(post.publishedAt || post.createdAt)}
                 </span>
@@ -118,7 +118,7 @@ export default async function NewsPage({
                 <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
               </h3>
 
-              <div style={{ padding: "0 20px 20px 20px", marginTop: "auto" }}>
+              <div className="news-button-wrapper">
                 <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
                   {t.newsPage.readMore}
                 </Link>
