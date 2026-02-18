@@ -40,8 +40,8 @@ export function PlatformLinksSection({ locale }: PlatformLinksSectionProps) {
         // User is logged in - go to search page
         router.push(localeLink("/search", locale));
       } else {
-        // User is not logged in - go to registration page
-        router.push(localeLink("/register", locale));
+        // User is not logged in - go to landing page (homepage)
+        router.push(localeLink("/", locale));
       }
       return;
     }
