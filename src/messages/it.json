@@ -518,7 +518,12 @@
     "credentialsCopied": "Credenziali copiate negli appunti",
     "copyCredentials": "Copia Credenziali",
     "creating": "Creazione...",
-    "cancel": "Annulla"
+    "cancel": "Annulla",
+    "syncDMS": "Sincronizza Utenti DMS",
+    "syncingDMS": "Sincronizzazione...",
+    "syncDMSConfirm": "Sincronizzare gli utenti da DMS? Questo creerà account locali per gli utenti DMS che non esistono ancora.",
+    "syncDMSSuccess": "Sincronizzazione completata",
+    "syncDMSError": "Sincronizzazione fallita"
   },
   "resetPassword": {
     "title": "Reimposta la Tua Password",

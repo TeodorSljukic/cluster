@@ -518,7 +518,12 @@
     "credentialsCopied": "Kredencialet u kopjuan në clipboard",
     "copyCredentials": "Kopjo Kredencialet",
     "creating": "Duke krijuar...",
-    "cancel": "Anulo"
+    "cancel": "Anulo",
+    "syncDMS": "Sinkronizo Përdoruesit DMS",
+    "syncingDMS": "Duke sinkronizuar...",
+    "syncDMSConfirm": "Sinkronizo përdoruesit nga DMS? Kjo do të krijojë llogari lokale për përdoruesit DMS që nuk ekzistojnë ende.",
+    "syncDMSSuccess": "Sinkronizimi u përfundua",
+    "syncDMSError": "Sinkronizimi dështoi"
   },
   "resetPassword": {
     "title": "Rivendos Fjalëkalimin Tënd",
