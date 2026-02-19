@@ -486,6 +486,15 @@ export default function ProfilePage({
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 1024px) {
+          .profile-page-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .profile-page-grid > div:last-child {
+            position: static !important;
+          }
+        }
         @media (max-width: 768px) {
           .profile-page-container {
             padding: 0 12px !important;
@@ -519,6 +528,10 @@ export default function ProfilePage({
           }
           .profile-page-grid {
             grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .profile-page-grid > div:last-child {
+            position: static !important;
           }
           .profile-page-section {
             padding: 16px !important;
@@ -552,8 +565,8 @@ export default function ProfilePage({
           }
         }
       `}} />
-    <main style={{ background: "#f3f2ef", minHeight: "100vh", paddingTop: "20px", paddingBottom: "60px" }}>
-      <div className="profile-page-container" style={{ maxWidth: "1128px", margin: "0 auto", padding: "0 24px" }}>
+    <main style={{ background: "#f5f5f5", minHeight: "100vh", paddingTop: "24px", paddingBottom: "60px" }}>
+      <div className="profile-page-container" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
         {/* Profile Header */}
         <div
           style={{
@@ -941,18 +954,27 @@ export default function ProfilePage({
           </div>
         </div>
 
-        <div className="profile-page-grid" style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "16px" }}>
+        <div className="profile-page-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "24px", alignItems: "start" }}>
           {/* Main Content */}
-          <div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {/* About */}
             <div
               className="profile-page-section"
               style={{
                 background: "white",
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
+                marginBottom: "0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
@@ -986,10 +1008,20 @@ export default function ProfilePage({
               className="profile-page-section"
               style={{
                 ...getCardStyle(),
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
+                marginBottom: "0",
                 animation: "fadeIn 0.3s ease-out",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -1186,9 +1218,19 @@ export default function ProfilePage({
               className="profile-page-section"
               style={{
                 ...getCardStyle(),
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
+                marginBottom: "0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -1375,14 +1417,24 @@ export default function ProfilePage({
           </div>
 
           {/* Sidebar */}
-          <div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px", position: "sticky", top: "100px" }}>
             {/* Contact Info */}
             <div
               style={{
                 ...getCardStyle(),
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
+                marginBottom: "0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
@@ -1518,11 +1570,21 @@ export default function ProfilePage({
             <div
               style={{
                 ...getCardStyle(),
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
+                marginBottom: "0",
                 overflow: "hidden",
                 boxSizing: "border-box",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -1767,9 +1829,19 @@ export default function ProfilePage({
             <div
               style={{
                 ...getCardStyle(),
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
+                marginBottom: "0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", margin: "0 0 16px 0" }}>
@@ -1805,9 +1877,19 @@ export default function ProfilePage({
             <div
               style={{
                 ...getCardStyle(),
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
+                marginBottom: "0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", margin: "0 0 16px 0" }}>
@@ -1921,9 +2003,19 @@ export default function ProfilePage({
               <div
                 style={{
                   ...getCardStyle(),
-                  borderRadius: "8px",
+                  borderRadius: "12px",
                   padding: "24px",
-                  marginBottom: "16px",
+                  marginBottom: "0",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  transition: "box-shadow 0.3s ease, transform 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                  e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -2065,10 +2157,19 @@ export default function ProfilePage({
             <div
               style={{
                 background: "white",
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.08)",
+                marginBottom: "0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>
@@ -2115,9 +2216,19 @@ export default function ProfilePage({
             <div
               style={{
                 ...getCardStyle(),
-                borderRadius: "8px",
+                borderRadius: "12px",
                 padding: "24px",
-                marginBottom: "16px",
+                marginBottom: "0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                transition: "box-shadow 0.3s ease, transform 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
+                e.currentTarget.style.transform = "translateY(0)";
               }}
             >
               <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "16px" }}>

@@ -130,7 +130,7 @@ export function Header() {
         <div className="site-branding">
           <Link href={localeLink("/", currentLocale)} className="site-title">
             <img 
-              src="/wp-content/uploads/2025/09/cropped-Frame-1000002133.webp" 
+              src="/wp-content/uploads/2025/09/logo header.png" 
               alt="Adriatic Blue Growth Cluster"
               style={{ height: "60px", width: "auto", objectFit: "contain" }}
             />
@@ -278,7 +278,7 @@ export function Header() {
         <div className="mobile-overlay-header">
           <div className="mobile-overlay-logo">
             <img 
-              src="/wp-content/uploads/2025/09/cropped-Frame-1000002133.webp" 
+              src="/wp-content/uploads/2025/09/logo header.png" 
               alt="Adriatic Blue Growth Cluster"
               style={{ height: "50px", width: "auto", objectFit: "contain" }}
             />
