@@ -39,7 +39,7 @@ body:has([data-admin-bar="true"]) .site-header {
   width: 400px;
 }
 .site-branding img {
-  height: 80px;
+  height: 70px;
   object-fit: contain;
   width: 100%;
 }

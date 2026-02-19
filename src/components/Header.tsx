@@ -132,7 +132,7 @@ export function Header() {
             <img 
               src="/wp-content/uploads/2025/09/logo header.png" 
               alt="Adriatic Blue Growth Cluster"
-              style={{ height: "60px", width: "auto", objectFit: "contain" }}
+              style={{ height: "70px", width: "auto", objectFit: "contain" }}
             />
           </Link>
         </div>
