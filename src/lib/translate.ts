@@ -17,6 +17,22 @@ const libreTranslateCodes: Record<Locale, string> = {
 };
 
 /**
+ * Check if translated text contains an error message
+ */
+function containsErrorMessage(text: string): boolean {
+  if (!text || typeof text !== "string") return false;
+  const errorPatterns = [
+    "QUERY LENGTH LIMIT",
+    "MAX ALLOWED QUERY",
+    "500 CHARS",
+    "MYMEMORY WARNING",
+    "Error:",
+    "error:",
+  ];
+  return errorPatterns.some(pattern => text.includes(pattern));
+}
+
+/**
  * Automatically translate text to all supported languages
  * Uses a free translation API (LibreTranslate or similar)
  */
@@ -50,8 +66,12 @@ export async function autoTranslate(
           sourceLang,
           languageCodes[targetLocale]
         );
-        if (translated && translated !== text) {
+        // Check if translation contains error message
+        if (translated && translated !== text && !containsErrorMessage(translated)) {
           translations[targetLocale] = translated;
+        } else if (containsErrorMessage(translated)) {
+          console.warn(`[TRANSLATE] Translation for ${targetLocale} contains error message, using original text`);
+          translations[targetLocale] = text;
         }
       } catch (error) {
         console.error(`Translation error for ${targetLocale}:`, error);
@@ -120,14 +140,24 @@ async function translateText(
       if (response.ok) {
         const data = await response.json();
         const translated = data.translatedText || textToTranslate;
-        if (translated && translated !== textToTranslate) {
+        // Check if response contains error message
+        if (translated && typeof translated === "string" && 
+            (translated.includes("QUERY LENGTH LIMIT") || 
+             translated.includes("MAX ALLOWED QUERY") ||
+             translated.includes("500 CHARS"))) {
+          console.warn(`[TRANSLATE] Response contains error message, using original text`);
+          return text; // Return original if error in response
+        }
+        if (translated && translated !== textToTranslate && translated !== text) {
           console.log(`[TRANSLATE] LibreTranslate result: "${translated.substring(0, 30)}..."`);
           // If text was truncated, append original remaining text
           return isTruncated ? translated + text.substring(MAX_LENGTH) : translated;
         }
       } else {
         const errorText = await response.text();
-        if (errorText.includes("QUERY LENGTH LIMIT") || errorText.includes("500")) {
+        if (errorText.includes("QUERY LENGTH LIMIT") || 
+            errorText.includes("500") ||
+            errorText.includes("MAX ALLOWED QUERY")) {
           console.warn(`[TRANSLATE] Query length limit exceeded, skipping translation`);
           return text; // Return original if limit exceeded
         }
@@ -155,7 +185,16 @@ async function translateText(
       if (response.ok) {
         const data = await response.json();
         const translated = data.responseData?.translatedText || textToTranslate;
-        if (translated && translated !== textToTranslate && translated !== "MYMEMORY WARNING") {
+        // Check if response contains error message
+        if (translated && typeof translated === "string" && 
+            (translated.includes("QUERY LENGTH LIMIT") || 
+             translated.includes("MAX ALLOWED QUERY") ||
+             translated.includes("500 CHARS") ||
+             translated === "MYMEMORY WARNING")) {
+          console.warn(`[TRANSLATE] Response contains error message, using original text`);
+          return text; // Return original if error in response
+        }
+        if (translated && translated !== textToTranslate && translated !== text) {
           console.log(`[TRANSLATE] MyMemory result: "${translated.substring(0, 30)}..."`);
           // If text was truncated, append original remaining text
           return isTruncated ? translated + text.substring(MAX_LENGTH) : translated;
@@ -250,7 +289,12 @@ export async function translateHTML(
   // Replace text content in HTML with translated versions
   // This is a simplified approach - in production you'd want better HTML parsing
   for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
-    const translatedText = translations[locale] + (remainingText || "");
+    let translatedText = translations[locale] + (remainingText || "");
+    // Check if translation contains error message
+    if (containsErrorMessage(translatedText)) {
+      console.warn(`[TRANSLATE] HTML translation for ${locale} contains error message, using original HTML`);
+      translatedText = textContent; // Use original text if error found
+    }
     // Simple replacement: replace the extracted text with translated text
     // This works if the HTML structure is simple
     result[locale] = html.replace(textContent, translatedText);

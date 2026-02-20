@@ -198,6 +198,30 @@ export async function POST(request: NextRequest) {
         console.log(`[POST CREATE] Excerpt translations:`, Object.keys(excerptTranslations));
       }
       
+      // Clean any error messages from translations
+      const cleanTranslation = (translation: string): string => {
+        if (!translation || typeof translation !== "string") return translation;
+        if (translation.includes("QUERY LENGTH LIMIT") || 
+            translation.includes("MAX ALLOWED QUERY") ||
+            translation.includes("500 CHARS")) {
+          return ""; // Return empty string if error found
+        }
+        return translation;
+      };
+
+      // Clean translations
+      for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+        if (titleTranslations[locale]) {
+          titleTranslations[locale] = cleanTranslation(titleTranslations[locale]);
+        }
+        if (contentTranslations[locale]) {
+          contentTranslations[locale] = cleanTranslation(contentTranslations[locale]);
+        }
+        if (excerptTranslations[locale]) {
+          excerptTranslations[locale] = cleanTranslation(excerptTranslations[locale]);
+        }
+      }
+
       console.log(`[POST CREATE] Translation completed successfully`);
       console.log(`[POST CREATE] Title translations sample:`, {
         me: titleTranslations.me?.substring(0, 30),

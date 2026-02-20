@@ -7,7 +7,7 @@ import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageUpload } from "@/components/ImageUpload";
-import { locales, localeNames, localeFlags, type Locale, defaultLocale } from "@/lib/i18n";
+import { locales, localeNames, localeFlags, localeFlagEmojis, type Locale, defaultLocale } from "@/lib/i18n";
 import { getTranslations } from "@/lib/getTranslations";
 
 function PostsPageInner() {
@@ -808,7 +808,7 @@ function PostForm({
               <option value="" disabled>Please select language</option>
               {locales.map((locale) => (
                 <option key={locale} value={locale}>
-                  {localeFlags[locale]} {localeNames[locale]} ({locale.toUpperCase()})
+                  {localeNames[locale]} ({locale.toUpperCase()})
                 </option>
               ))}
             </select>

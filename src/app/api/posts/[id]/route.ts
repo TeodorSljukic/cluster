@@ -187,6 +187,17 @@ export async function PUT(
           contentTranslations[sourceLocale] = body.content;
         }
       }
+      
+      // Clean any error messages from content translations
+      for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+        if (contentTranslations[locale] && 
+            (contentTranslations[locale].includes("QUERY LENGTH LIMIT") ||
+             contentTranslations[locale].includes("MAX ALLOWED QUERY") ||
+             contentTranslations[locale].includes("500 CHARS"))) {
+          console.warn(`[POST UPDATE] Content translation for ${locale} contains error, using original`);
+          contentTranslations[locale] = body.content || existing.content || "";
+        }
+      }
     }
     
     if (body.excerpt !== undefined) {
@@ -205,6 +216,17 @@ export async function PUT(
         } catch (error) {
           console.error("Error translating excerpt:", error);
           excerptTranslations[sourceLocale] = body.excerpt;
+        }
+        
+        // Clean any error messages from excerpt translations
+        for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+          if (excerptTranslations[locale] && 
+              (excerptTranslations[locale].includes("QUERY LENGTH LIMIT") ||
+               excerptTranslations[locale].includes("MAX ALLOWED QUERY") ||
+               excerptTranslations[locale].includes("500 CHARS"))) {
+            console.warn(`[POST UPDATE] Excerpt translation for ${locale} contains error, using original`);
+            excerptTranslations[locale] = body.excerpt || existing.excerpt || "";
+          }
         }
       }
     }

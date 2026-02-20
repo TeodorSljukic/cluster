@@ -7,7 +7,7 @@ import { AdminGuard } from "@/components/AdminGuard";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Post } from "@/models/Post";
-import { locales, localeNames, localeFlags, type Locale, defaultLocale } from "@/lib/i18n";
+import { locales, localeNames, localeFlags, localeFlagEmojis, type Locale, defaultLocale } from "@/lib/i18n";
 
 function NewPostPageInner() {
   const router = useRouter();
@@ -182,7 +182,7 @@ function NewPostPageInner() {
               <option value="" disabled>Please select language</option>
               {locales.map((locale) => (
                 <option key={locale} value={locale}>
-                  {localeFlags[locale]} {localeNames[locale]} ({locale.toUpperCase()})
+                  {localeNames[locale]} ({locale.toUpperCase()})
                 </option>
               ))}
             </select>
