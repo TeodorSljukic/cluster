@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { autoTranslate } from "@/lib/translate";
+import { autoTranslate, translateHTML } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
 import { Post } from "@/models/Post";
 
@@ -30,168 +30,144 @@ export async function POST(request: NextRequest) {
       postsBySlug.get(slug)!.push(post);
     }
 
-    // Process each unique post (by slug)
-    for (const [slug, posts] of postsBySlug.entries()) {
-      // Find the source post (prefer one with locale, or first one)
-      const sourcePost = posts.find(p => p.locale) || posts[0];
-      const existingLocales = new Set(posts.map((p: any) => p.locale || "me"));
-      
-      // Ensure source post has required fields
-      const updates: any = {};
-      if (!sourcePost.type) {
-        const title = (sourcePost.title || "").toLowerCase();
-        if (title.includes("event") || title.includes("dogadjaj")) {
-          updates.type = "event";
-        } else {
-          updates.type = "news";
-        }
-        migrated++;
-      }
-      if (!sourcePost.status) {
-        updates.status = "draft";
-        migrated++;
-      }
-      if (!sourcePost.createdAt) {
-        updates.createdAt = new Date();
-        migrated++;
-      }
-      if (!sourcePost.updatedAt) {
-        updates.updatedAt = sourcePost.createdAt || new Date();
-        migrated++;
-      }
-      if (sourcePost.status === "published" && !sourcePost.publishedAt) {
-        updates.publishedAt = sourcePost.createdAt || new Date();
-        migrated++;
-      }
-      if (!sourcePost.locale) {
-        updates.locale = "me"; // Default locale
-        migrated++;
-      }
-
-      if (Object.keys(updates).length > 0) {
-        await collection.updateOne(
-          { _id: sourcePost._id },
-          { $set: updates }
-        );
-      }
-
-      // Determine source locale
-      const sourceLocale = (sourcePost.locale || "me") as Locale;
-      const sourceTitle = sourcePost.title || "";
-      const sourceContent = sourcePost.content || "";
-      const sourceExcerpt = sourcePost.excerpt || "";
-
-      // Translate content
-      let titleTranslations: Record<Locale, string> = {
-        me: sourceTitle,
-        en: sourceTitle,
-        it: sourceTitle,
-        sq: sourceTitle,
-      };
-      let contentTranslations: Record<Locale, string> = {
-        me: sourceContent,
-        en: sourceContent,
-        it: sourceContent,
-        sq: sourceContent,
-      };
-      let excerptTranslations: Record<Locale, string> = {
-        me: sourceExcerpt,
-        en: sourceExcerpt,
-        it: sourceExcerpt,
-        sq: sourceExcerpt,
-      };
-
+    // Process each post individually to add translations to metadata
+    // We'll update each post with translations, not create new ones
+    for (const post of allPosts) {
       try {
-        // Translate title
-        if (sourceTitle) {
-          titleTranslations = await autoTranslate(sourceTitle, sourceLocale);
-        }
-        
-        // Translate content (HTML)
-        if (sourceContent) {
-          const textContent = sourceContent.replace(/<[^>]*>/g, " ").trim();
-          if (textContent) {
-            contentTranslations = await autoTranslate(textContent, sourceLocale);
+        // Ensure post has required fields
+        const updates: any = {};
+        if (!post.type) {
+          const title = ((post.title || "") as string).toLowerCase();
+          if (title.includes("event") || title.includes("dogadjaj")) {
+            updates.type = "event";
+          } else {
+            updates.type = "news";
           }
+          migrated++;
         }
-        
-        // Translate excerpt
-        if (sourceExcerpt) {
-          excerptTranslations = await autoTranslate(sourceExcerpt, sourceLocale);
+        if (!post.status) {
+          updates.status = "draft";
+          migrated++;
+        }
+        if (!post.createdAt) {
+          updates.createdAt = new Date();
+          migrated++;
+        }
+        if (!post.updatedAt) {
+          updates.updatedAt = post.createdAt || new Date();
+          migrated++;
+        }
+        if (post.status === "published" && !post.publishedAt) {
+          updates.publishedAt = post.createdAt || new Date();
+          migrated++;
+        }
+        if (!post.locale) {
+          updates.locale = "me"; // Default locale
+          migrated++;
+        }
+
+        // Determine source locale
+        const sourceLocale = ((post.locale || "me") as Locale);
+        const sourceTitle = post.title || "";
+        const sourceContent = post.content || "";
+        const sourceExcerpt = post.excerpt || "";
+
+        // Check if post already has translations in metadata
+        const hasTranslations = post.metadata?.titleTranslations && 
+                                Object.keys(post.metadata.titleTranslations).length === 4;
+
+        // Only translate if translations don't exist or are incomplete
+        if (!hasTranslations) {
+          // Translate content
+          let titleTranslations: Record<Locale, string> = {
+            me: sourceTitle,
+            en: sourceTitle,
+            it: sourceTitle,
+            sq: sourceTitle,
+          };
+          let contentTranslations: Record<Locale, string> = {
+            me: sourceContent,
+            en: sourceContent,
+            it: sourceContent,
+            sq: sourceContent,
+          };
+          let excerptTranslations: Record<Locale, string> = {
+            me: sourceExcerpt,
+            en: sourceExcerpt,
+            it: sourceExcerpt,
+            sq: sourceExcerpt,
+          };
+
+          try {
+            console.log(`[MIGRATE] Translating post ${post.slug || post._id} (locale: ${sourceLocale})`);
+            
+            // Translate title
+            if (sourceTitle && sourceTitle.trim()) {
+              titleTranslations = await autoTranslate(sourceTitle.trim(), sourceLocale);
+            }
+            
+            // Translate content (HTML) - use translateHTML to preserve structure
+            if (sourceContent && sourceContent.trim()) {
+              const contentHTML = sourceContent.trim();
+              // Check if content is HTML or plain text
+              if (contentHTML.includes("<") && contentHTML.includes(">")) {
+                // It's HTML, use translateHTML
+                contentTranslations = await translateHTML(contentHTML, sourceLocale);
+              } else {
+                // Plain text, use autoTranslate
+                contentTranslations = await autoTranslate(contentHTML, sourceLocale);
+              }
+            }
+            
+            // Translate excerpt - check if HTML or plain text
+            if (sourceExcerpt && sourceExcerpt.trim()) {
+              const excerptText = sourceExcerpt.trim();
+              if (excerptText.includes("<") && excerptText.includes(">")) {
+                // HTML excerpt
+                excerptTranslations = await translateHTML(excerptText, sourceLocale);
+              } else {
+                // Plain text excerpt
+                excerptTranslations = await autoTranslate(excerptText, sourceLocale);
+              }
+            }
+
+            // Add translations to metadata
+            updates.metadata = {
+              titleTranslations,
+              contentTranslations,
+              excerptTranslations,
+            };
+            
+            translated++;
+            console.log(`[MIGRATE] Successfully translated post ${post.slug || post._id}`);
+          } catch (error) {
+            console.error(`[MIGRATE] Translation error for post ${post.slug || post._id}:`, error);
+            // Continue with original text if translation fails
+          }
+        } else {
+          console.log(`[MIGRATE] Post ${post.slug || post._id} already has translations, skipping`);
+          skipped++;
+        }
+
+        // Update post with all changes
+        if (Object.keys(updates).length > 0) {
+          await collection.updateOne(
+            { _id: post._id },
+            { $set: updates }
+          );
         }
       } catch (error) {
-        console.error(`Translation error for post ${slug}:`, error);
-        // Continue with original text if translation fails
-      }
-
-      // Create missing locale versions
-      const postsToInsert: Omit<Post, "_id">[] = [];
-      
-      for (const targetLocale of allLocales) {
-        // Skip if this locale already exists
-        if (existingLocales.has(targetLocale)) {
-          // Update existing post with translations in metadata
-          await collection.updateOne(
-            { slug, locale: targetLocale },
-            {
-              $set: {
-                metadata: {
-                  titleTranslations,
-                  contentTranslations,
-                  excerptTranslations,
-                },
-              },
-            }
-          );
-          continue;
-        }
-
-        // Check if post already exists for this locale
-        const existing = await collection.findOne({ slug, locale: targetLocale });
-        if (existing) {
-          continue;
-        }
-
-        // Create new post for this locale
-        const newPost: Omit<Post, "_id"> = {
-          title: titleTranslations[targetLocale] || sourceTitle,
-          slug: slug,
-          content: contentTranslations[targetLocale] || sourceContent,
-          excerpt: excerptTranslations[targetLocale] || sourceExcerpt,
-          featuredImage: sourcePost.featuredImage || "",
-          type: sourcePost.type || "news",
-          status: sourcePost.status || "draft",
-          locale: targetLocale,
-          createdAt: sourcePost.createdAt || new Date(),
-          updatedAt: new Date(),
-          publishedAt: sourcePost.publishedAt,
-          eventDate: sourcePost.eventDate,
-          eventLocation: sourcePost.eventLocation || "",
-          metadata: {
-            titleTranslations,
-            contentTranslations,
-            excerptTranslations,
-          },
-        };
-
-        postsToInsert.push(newPost);
-      }
-
-      // Insert new posts
-      if (postsToInsert.length > 0) {
-        await collection.insertMany(postsToInsert);
-        translated += postsToInsert.length;
+        console.error(`[MIGRATE] Error processing post ${post._id}:`, error);
       }
     }
 
     return NextResponse.json({
       success: true,
       total: allPosts.length,
-      uniquePosts: postsBySlug.size,
       migrated,
       skipped,
       translated,
-      message: `Migrated ${migrated} fields, created ${translated} translated posts across ${postsBySlug.size} unique posts`,
+      message: `Updated ${migrated} fields and added translations to ${translated} posts. ${skipped} posts already had translations.`,
     });
   } catch (error: any) {
     console.error("Migration error:", error);

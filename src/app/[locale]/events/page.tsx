@@ -12,6 +12,8 @@ async function getEvents(locale: Locale, page: number = 1, limit: number = 50) {
   try {
     const collection = await getCollection("posts");
     
+    // Get all published event posts (regardless of locale)
+    // We'll use translations from metadata to display in current locale
     const query: any = {
       type: "event",
       status: "published",
@@ -32,14 +34,38 @@ async function getEvents(locale: Locale, page: number = 1, limit: number = 50) {
     console.log(`[Events] Found ${posts.length} published event posts (page ${page}, total: ${total})`);
 
     return {
-      posts: posts.map((post) => ({
-        ...post,
-        _id: post._id.toString(),
-        createdAt: post.createdAt?.toISOString(),
-        updatedAt: post.updatedAt?.toISOString(),
-        publishedAt: post.publishedAt?.toISOString(),
-        eventDate: post.eventDate?.toISOString(),
-      })) as Post[],
+      posts: posts.map((post) => {
+        const postData: Post = {
+          ...post,
+          _id: post._id.toString(),
+          createdAt: post.createdAt?.toISOString(),
+          updatedAt: post.updatedAt?.toISOString(),
+          publishedAt: post.publishedAt?.toISOString(),
+          eventDate: post.eventDate?.toISOString(),
+        };
+
+        // Use translations from metadata if available for current locale
+        // If post locale matches current locale, use original text
+        // Otherwise, use translation from metadata
+        if (post.metadata) {
+          if (post.locale === locale) {
+            // Post is in current locale, use original text (already set)
+          } else {
+            // Post is in different locale, use translation from metadata
+            if (post.metadata.titleTranslations?.[locale]) {
+              postData.title = post.metadata.titleTranslations[locale];
+            }
+            if (post.metadata.contentTranslations?.[locale]) {
+              postData.content = post.metadata.contentTranslations[locale];
+            }
+            if (post.metadata.excerptTranslations?.[locale]) {
+              postData.excerpt = post.metadata.excerptTranslations[locale];
+            }
+          }
+        }
+
+        return postData;
+      }) as Post[],
       pagination: {
         total,
         page,
@@ -89,12 +115,12 @@ export default async function EventsPage({
         {t.eventsPage.title}
       </h2>
 
-      <div className="events-grid" style={{ marginBottom: "40px" }}>
+      <div className="news-grid" style={{ marginBottom: "40px" }}>
         {posts.length > 0 ? (
           posts.map((post: Post, index: number) => (
             <div
               key={post._id}
-              className="event-card"
+              className="news-item"
               data-aos="fade-up"
               data-aos-delay={(index % 4) * 100 + 100}
             >
@@ -103,23 +129,23 @@ export default async function EventsPage({
                   <img
                     src={post.featuredImage}
                     alt={post.title}
-                    className="event-thumb"
+                    className="news-thumb"
                   />
                 </Link>
               )}
 
-              <div className="event-meta">
-                <span className="event-date">
+              <div className="news-meta">
+                <span className="news-date">
                   {formatDate(post.eventDate || post.publishedAt || post.createdAt)}
                 </span>
               </div>
               
-              <h3 className="event-title">
+              <h3 className="news-item-title">
                 <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
               </h3>
 
-              <div className="event-button-wrapper">
-                <Link href={localeLink(`/posts/${post.slug}`, locale)} className="event-button">
+              <div className="news-button-wrapper">
+                <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
                   {t.eventsPage.readMore}
                 </Link>
               </div>

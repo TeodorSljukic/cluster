@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import { Post } from "@/models/Post";
-import { autoTranslate } from "@/lib/translate";
+import { autoTranslate, translateHTML } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
 import { ObjectId } from "mongodb";
@@ -156,91 +156,109 @@ export async function POST(request: NextRequest) {
     };
 
     try {
+      console.log(`[POST CREATE] Starting translation for locale ${sourceLocale}`);
+      
       // Translate title
-      if (body.title) {
-        titleTranslations = await autoTranslate(body.title, sourceLocale);
+      if (body.title && body.title.trim()) {
+        console.log(`[POST CREATE] Translating title: "${body.title.substring(0, 50)}..."`);
+        titleTranslations = await autoTranslate(body.title.trim(), sourceLocale);
+        console.log(`[POST CREATE] Title translations:`, Object.keys(titleTranslations));
       }
       
-      // Translate content (HTML)
-      if (body.content) {
-        // Extract text from HTML for translation
-        const textContent = body.content.replace(/<[^>]*>/g, " ").trim();
-        if (textContent) {
-          const contentTextTranslations = await autoTranslate(textContent, sourceLocale);
-          // For now, we'll store the translated text (in production, you'd want to preserve HTML structure)
-          contentTranslations = contentTextTranslations;
+      // Translate content (HTML) - use translateHTML to preserve structure
+      if (body.content && body.content.trim()) {
+        const contentHTML = body.content.trim();
+        console.log(`[POST CREATE] Translating content (length: ${contentHTML.length})`);
+        // Check if content is HTML or plain text
+        if (contentHTML.includes("<") && contentHTML.includes(">")) {
+          // It's HTML, use translateHTML
+          console.log(`[POST CREATE] Content is HTML, using translateHTML`);
+          contentTranslations = await translateHTML(contentHTML, sourceLocale);
+        } else {
+          // Plain text, use autoTranslate
+          console.log(`[POST CREATE] Content is plain text, using autoTranslate`);
+          contentTranslations = await autoTranslate(contentHTML, sourceLocale);
         }
+        console.log(`[POST CREATE] Content translations:`, Object.keys(contentTranslations));
       }
       
-      // Translate excerpt
-      if (body.excerpt) {
-        excerptTranslations = await autoTranslate(body.excerpt, sourceLocale);
+      // Translate excerpt - check if it's HTML or plain text
+      if (body.excerpt && body.excerpt.trim()) {
+        const excerptText = body.excerpt.trim();
+        console.log(`[POST CREATE] Translating excerpt: "${excerptText.substring(0, 50)}..."`);
+        if (excerptText.includes("<") && excerptText.includes(">")) {
+          // HTML excerpt
+          console.log(`[POST CREATE] Excerpt is HTML, using translateHTML`);
+          excerptTranslations = await translateHTML(excerptText, sourceLocale);
+        } else {
+          // Plain text excerpt
+          console.log(`[POST CREATE] Excerpt is plain text, using autoTranslate`);
+          excerptTranslations = await autoTranslate(excerptText, sourceLocale);
+        }
+        console.log(`[POST CREATE] Excerpt translations:`, Object.keys(excerptTranslations));
       }
+      
+      console.log(`[POST CREATE] Translation completed successfully`);
+      console.log(`[POST CREATE] Title translations sample:`, {
+        me: titleTranslations.me?.substring(0, 30),
+        en: titleTranslations.en?.substring(0, 30),
+        it: titleTranslations.it?.substring(0, 30),
+        sq: titleTranslations.sq?.substring(0, 30),
+      });
     } catch (error) {
-      console.error("Auto-translation error:", error);
+      console.error("[POST CREATE] Auto-translation error:", error);
       // Continue with original text if translation fails
     }
 
-    // Create posts for all locales
-    const postsToInsert: Omit<Post, "_id">[] = [];
-    const insertedIds: string[] = [];
+    // Create only one post for the current locale, but store translations in metadata
+    // Translations can be used to create other locale versions later if needed
+    const post: Omit<Post, "_id"> = {
+      title: body.title,
+      slug: body.slug,
+      content: body.content,
+      excerpt: body.excerpt || "",
+      featuredImage: body.featuredImage || "",
+      type: body.type,
+      status: body.status || "draft",
+      locale: sourceLocale,
+      createdAt: now,
+      updatedAt: now,
+      publishedAt: body.status === "published" ? now : undefined,
+      eventDate: eventDate,
+      eventLocation: body.eventLocation || "",
+      viewCount: 0,
+      publishedBy: body.status === "published" ? publishedBy : undefined,
+      publishedByName: body.status === "published" ? publishedByName : undefined,
+      // Store translations in metadata - these are automatically generated and can be used later
+      metadata: {
+        titleTranslations,
+        contentTranslations,
+        excerptTranslations,
+      },
+    };
 
-    for (const targetLocale of allLocales) {
-      // Check if slug already exists for this locale
-      const existing = await collection.findOne({ slug: body.slug, locale: targetLocale });
-      if (existing) {
-        console.warn(`Slug ${body.slug} already exists for locale ${targetLocale}, skipping`);
-        continue;
-      }
+    // Insert the post
+    const result = await collection.insertOne(post);
+    const insertedId = result.insertedId.toString();
 
-      const post: Omit<Post, "_id"> = {
-        title: titleTranslations[targetLocale] || body.title,
-        slug: body.slug,
-        content: contentTranslations[targetLocale] || body.content,
-        excerpt: excerptTranslations[targetLocale] || body.excerpt || "",
-        featuredImage: body.featuredImage || "",
-        type: body.type,
-        status: body.status || "draft",
-        locale: targetLocale,
-        createdAt: now,
-        updatedAt: now,
-        publishedAt: body.status === "published" ? now : undefined,
-        eventDate: eventDate,
-        eventLocation: body.eventLocation || "",
-        viewCount: 0,
-        publishedBy: body.status === "published" ? publishedBy : undefined,
-        publishedByName: body.status === "published" ? publishedByName : undefined,
-        // Store translations in metadata for reference
-        metadata: {
-          titleTranslations,
-          contentTranslations,
-          excerptTranslations,
-        },
-      };
-
-      postsToInsert.push(post);
-    }
-
-    // Insert all posts
-    if (postsToInsert.length > 0) {
-      const result = await collection.insertMany(postsToInsert);
-      // insertMany returns insertedIds as an object with numeric keys
-      insertedIds.push(...Object.values(result.insertedIds).map((id: any) => id.toString()));
-    }
-
-    // Return the first inserted post (source locale)
-    const firstPost = postsToInsert.find(p => p.locale === sourceLocale) || postsToInsert[0];
-    const firstId = insertedIds[0] || "";
+    console.log(`[POST CREATE] Created post ${insertedId} for locale ${sourceLocale} with translations:`, {
+      hasTitleTranslations: !!titleTranslations,
+      hasContentTranslations: !!contentTranslations,
+      hasExcerptTranslations: !!excerptTranslations,
+      titleTranslationKeys: Object.keys(titleTranslations || {}),
+      contentTranslationKeys: Object.keys(contentTranslations || {}),
+      excerptTranslationKeys: Object.keys(excerptTranslations || {}),
+    });
 
     return NextResponse.json({
-      _id: firstId,
-      ...firstPost,
-      createdAt: firstPost.createdAt.toISOString(),
-      updatedAt: firstPost.updatedAt.toISOString(),
-      publishedAt: firstPost.publishedAt?.toISOString(),
-      eventDate: firstPost.eventDate?.toISOString(),
-      createdForAllLocales: true,
-      insertedCount: insertedIds.length,
+      _id: insertedId,
+      ...post,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+      publishedAt: post.publishedAt?.toISOString(),
+      eventDate: post.eventDate?.toISOString(),
+      createdForAllLocales: false,
+      insertedCount: 1,
     });
   } catch (error: any) {
     console.error("Error creating post:", error);

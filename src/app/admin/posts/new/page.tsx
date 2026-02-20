@@ -1,17 +1,27 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Post } from "@/models/Post";
+import { locales, localeNames, localeFlags, type Locale, defaultLocale } from "@/lib/i18n";
 
 function NewPostPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = (searchParams.get("type") || "news") as "news" | "event";
+  const [selectedLocale, setSelectedLocale] = useState<Locale | "">("");
+
+  // Load CMS locale from localStorage
+  useEffect(() => {
+    const savedLocale = localStorage.getItem("cms-locale") as Locale;
+    if (savedLocale && locales.includes(savedLocale)) {
+      setSelectedLocale(savedLocale);
+    }
+  }, []);
 
   const [formData, setFormData] = useState<Partial<Post>>({
     title: "",
@@ -26,6 +36,7 @@ function NewPostPageInner() {
   });
 
   const [saving, setSaving] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   function generateSlug(title: string) {
     return title
@@ -38,7 +49,26 @@ function NewPostPageInner() {
     setFormData({
       ...formData,
       title,
-      slug: formData.slug || generateSlug(title),
+      // Auto-generate slug only if it hasn't been manually edited
+      slug: slugManuallyEdited ? formData.slug : generateSlug(title),
+    });
+  }
+
+  function handleTitleBlur() {
+    // When user finishes typing title, ensure slug is generated
+    if (!slugManuallyEdited && formData.title) {
+      setFormData({
+        ...formData,
+        slug: generateSlug(formData.title),
+      });
+    }
+  }
+
+  function handleSlugChange(slug: string) {
+    setSlugManuallyEdited(true);
+    setFormData({
+      ...formData,
+      slug,
     });
   }
 
@@ -68,6 +98,7 @@ function NewPostPageInner() {
         featuredImage: formData.featuredImage || "",
         type: type,
         status: formData.status || "draft",
+        locale: selectedLocale, // Add locale to post data
         eventLocation: formData.eventLocation || "",
       };
 
@@ -97,7 +128,11 @@ function NewPostPageInner() {
       }
 
       if (res.ok) {
+        // Wait a bit for the database to update before redirecting
+        await new Promise((resolve) => setTimeout(resolve, 500));
         router.push(`/admin/posts?type=${type}`);
+        // Force reload to ensure the list is refreshed
+        window.location.href = `/admin/posts?type=${type}`;
       } else {
         console.error("Save error response:", { status: res.status, data });
         const errorMessage = data?.error || data?.message || `Server error (${res.status})`;
@@ -121,6 +156,39 @@ function NewPostPageInner() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
+            <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px", fontWeight: "600" }}>
+              Language <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={selectedLocale || ""}
+              onChange={(e) => {
+                const newLocale = e.target.value as Locale;
+                if (newLocale) {
+                  setSelectedLocale(newLocale);
+                }
+              }}
+              required
+              style={{
+                width: "100%",
+                maxWidth: "300px",
+                padding: "6px 10px",
+                border: "1px solid #8c8f94",
+                borderRadius: "3px",
+                fontSize: "14px",
+                cursor: "pointer",
+                background: "white",
+              }}
+            >
+              <option value="" disabled>Please select language</option>
+              {locales.map((locale) => (
+                <option key={locale} value={locale}>
+                  {localeFlags[locale]} {localeNames[locale]} ({locale.toUpperCase()})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px" }}>
               Title *
             </label>
@@ -128,6 +196,7 @@ function NewPostPageInner() {
               type="text"
               value={formData.title}
               onChange={(e) => handleTitleChange(e.target.value)}
+              onBlur={handleTitleBlur}
               required
               style={{
                 width: "100%",
@@ -146,7 +215,7 @@ function NewPostPageInner() {
             <input
               type="text"
               value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              onChange={(e) => handleSlugChange(e.target.value)}
               required
               style={{
                 width: "100%",
@@ -196,15 +265,33 @@ function NewPostPageInner() {
                   type="datetime-local"
                   value={
                     formData.eventDate
-                      ? new Date(formData.eventDate).toISOString().slice(0, 16)
+                      ? (() => {
+                          const date = new Date(formData.eventDate);
+                          // Convert to local timezone for datetime-local input
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const day = String(date.getDate()).padStart(2, "0");
+                          const hours = String(date.getHours()).padStart(2, "0");
+                          const minutes = String(date.getMinutes()).padStart(2, "0");
+                          return `${year}-${month}-${day}T${hours}:${minutes}`;
+                        })()
                       : ""
                   }
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      eventDate: e.target.value ? new Date(e.target.value) : undefined,
-                    })
-                  }
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      // datetime-local gives us local time, create Date object
+                      const localDate = new Date(e.target.value);
+                      setFormData({
+                        ...formData,
+                        eventDate: localDate,
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        eventDate: undefined,
+                      });
+                    }
+                  }}
                   style={{
                     width: "100%",
                     maxWidth: "300px",

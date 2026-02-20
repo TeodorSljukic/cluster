@@ -9,27 +9,61 @@ import { processPostContent } from "@/lib/processPostContent";
 
 export const dynamic = "force-dynamic";
 
-async function getPostBySlug(slug: string): Promise<Post | null> {
+async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null> {
   try {
     const collection = await getCollection("posts");
     
-    const post = await collection.findOne({
+    // First try to find post with matching locale
+    let post = await collection.findOne({
       slug: slug,
       status: "published",
+      locale: locale,
     });
+
+    // If not found, try to find any post with this slug (might be from different locale)
+    if (!post) {
+      post = await collection.findOne({
+        slug: slug,
+        status: "published",
+      });
+    }
 
     if (!post) {
       return null;
     }
 
-    return {
+    // Use translations from metadata if available for current locale
+    const postData: Post = {
       ...post,
       _id: post._id.toString(),
       createdAt: post.createdAt?.toISOString(),
       updatedAt: post.updatedAt?.toISOString(),
       publishedAt: post.publishedAt?.toISOString(),
       eventDate: post.eventDate?.toISOString(),
-    } as Post;
+    };
+
+    // Use translations from metadata if available for current locale
+    // Always prefer translation from metadata if it exists, even if locale matches
+    // This ensures that if post was created in one language, translations are used when viewing in another
+    if (post.metadata) {
+      // If post locale matches current locale, use original text
+      // Otherwise, use translation from metadata
+      if (post.locale !== locale) {
+        // Post is in different language, use translation
+        if (post.metadata.titleTranslations?.[locale]) {
+          postData.title = post.metadata.titleTranslations[locale];
+        }
+        if (post.metadata.contentTranslations?.[locale]) {
+          postData.content = post.metadata.contentTranslations[locale];
+        }
+        if (post.metadata.excerptTranslations?.[locale]) {
+          postData.excerpt = post.metadata.excerptTranslations[locale];
+        }
+      }
+      // If locale matches, keep original text (already set above)
+    }
+
+    return postData;
   } catch (error) {
     console.error("Error fetching post:", error);
     return null;
@@ -55,7 +89,7 @@ export default async function PostPage({
   // Handle params as Promise (Next.js 16) or direct object
   const resolvedParams = params instanceof Promise ? await params : params;
   const locale = (resolvedParams.locale as Locale) || "me";
-  const post = await getPostBySlug(resolvedParams.slug);
+  const post = await getPostBySlug(resolvedParams.slug, locale);
 
   if (!post || post.status !== "published") {
     notFound();

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import { ObjectId } from "mongodb";
 import { Post } from "@/models/Post";
-import { autoTranslate } from "@/lib/translate";
+import { autoTranslate, translateHTML } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -170,12 +170,17 @@ export async function PUT(
     
     if (body.content !== undefined) {
       update.content = body.content || "";
-      // Auto-translate content
-      if (body.content) {
+      // Auto-translate content - use translateHTML to preserve structure
+      if (body.content && body.content.trim()) {
         try {
-          const textContent = body.content.replace(/<[^>]*>/g, " ").trim();
-          if (textContent) {
-            contentTranslations = await autoTranslate(textContent, sourceLocale);
+          const contentHTML = body.content.trim();
+          // Check if content is HTML or plain text
+          if (contentHTML.includes("<") && contentHTML.includes(">")) {
+            // It's HTML, use translateHTML
+            contentTranslations = await translateHTML(contentHTML, sourceLocale);
+          } else {
+            // Plain text, use autoTranslate
+            contentTranslations = await autoTranslate(contentHTML, sourceLocale);
           }
         } catch (error) {
           console.error("Error translating content:", error);
@@ -186,10 +191,17 @@ export async function PUT(
     
     if (body.excerpt !== undefined) {
       update.excerpt = body.excerpt || "";
-      // Auto-translate excerpt
-      if (body.excerpt) {
+      // Auto-translate excerpt - check if HTML or plain text
+      if (body.excerpt && body.excerpt.trim()) {
         try {
-          excerptTranslations = await autoTranslate(body.excerpt, sourceLocale);
+          const excerptText = body.excerpt.trim();
+          if (excerptText.includes("<") && excerptText.includes(">")) {
+            // HTML excerpt
+            excerptTranslations = await translateHTML(excerptText, sourceLocale);
+          } else {
+            // Plain text excerpt
+            excerptTranslations = await autoTranslate(excerptText, sourceLocale);
+          }
         } catch (error) {
           console.error("Error translating excerpt:", error);
           excerptTranslations[sourceLocale] = body.excerpt;

@@ -204,6 +204,16 @@ function PostForm({
   });
 
   const [saving, setSaving] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  // Reset slugManuallyEdited when editing existing post
+  useEffect(() => {
+    if (post) {
+      setSlugManuallyEdited(!!post.slug);
+    } else {
+      setSlugManuallyEdited(false);
+    }
+  }, [post]);
 
   function generateSlug(title: string) {
     return title
@@ -216,7 +226,26 @@ function PostForm({
     setFormData({
       ...formData,
       title,
-      slug: formData.slug || generateSlug(title),
+      // Auto-generate slug only if it hasn't been manually edited
+      slug: slugManuallyEdited ? formData.slug : generateSlug(title),
+    });
+  }
+
+  function handleTitleBlur() {
+    // When user finishes typing title, ensure slug is generated
+    if (!slugManuallyEdited && formData.title) {
+      setFormData({
+        ...formData,
+        slug: generateSlug(formData.title),
+      });
+    }
+  }
+
+  function handleSlugChange(slug: string) {
+    setSlugManuallyEdited(true);
+    setFormData({
+      ...formData,
+      slug,
     });
   }
 
@@ -284,6 +313,7 @@ function PostForm({
               type="text"
               value={formData.title}
               onChange={(e) => handleTitleChange(e.target.value)}
+              onBlur={handleTitleBlur}
               required
               style={{ width: "100%", padding: "0.5rem" }}
             />
@@ -296,9 +326,7 @@ function PostForm({
             <input
               type="text"
               value={formData.slug}
-              onChange={(e) =>
-                setFormData({ ...formData, slug: e.target.value })
-              }
+              onChange={(e) => handleSlugChange(e.target.value)}
               required
               style={{ width: "100%", padding: "0.5rem" }}
             />
@@ -357,15 +385,33 @@ function PostForm({
                   type="datetime-local"
                   value={
                     formData.eventDate
-                      ? new Date(formData.eventDate).toISOString().slice(0, 16)
+                      ? (() => {
+                          const date = new Date(formData.eventDate);
+                          // Convert to local timezone for datetime-local input
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const day = String(date.getDate()).padStart(2, "0");
+                          const hours = String(date.getHours()).padStart(2, "0");
+                          const minutes = String(date.getMinutes()).padStart(2, "0");
+                          return `${year}-${month}-${day}T${hours}:${minutes}`;
+                        })()
                       : ""
                   }
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      eventDate: e.target.value ? new Date(e.target.value) : undefined,
-                    })
-                  }
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      // datetime-local gives us local time, create Date object
+                      const localDate = new Date(e.target.value);
+                      setFormData({
+                        ...formData,
+                        eventDate: localDate,
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        eventDate: undefined,
+                      });
+                    }
+                  }}
                   style={{ width: "100%", padding: "0.5rem" }}
                 />
               </div>
