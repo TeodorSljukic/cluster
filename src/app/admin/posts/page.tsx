@@ -734,7 +734,6 @@ function PostForm({
         // Wait a bit for the database to update
         await new Promise((resolve) => setTimeout(resolve, 500));
         // Reload posts to show the newly created/updated post
-        await loadPosts();
         onSave();
       } else {
         console.error("Save error response:", { status: res.status, data });

@@ -36,8 +36,13 @@ async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null>
     const postData: Post = {
       ...post,
       _id: post._id.toString(),
-      createdAt: post.createdAt?.toISOString(),
-      updatedAt: post.updatedAt?.toISOString(),
+      type: post.type || "news",
+      title: post.title || "",
+      slug: post.slug || "",
+      content: post.content || "",
+      status: post.status || "draft",
+      createdAt: post.createdAt?.toISOString() || new Date().toISOString(),
+      updatedAt: post.updatedAt?.toISOString() || new Date().toISOString(),
       publishedAt: post.publishedAt?.toISOString(),
       eventDate: post.eventDate?.toISOString(),
     };
