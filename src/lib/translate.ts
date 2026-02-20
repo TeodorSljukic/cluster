@@ -37,6 +37,57 @@ function containsErrorMessage(text: string): boolean {
   return errorPatterns.some(pattern => text.includes(pattern));
 }
 
+function hasCyrillic(text: string): boolean {
+  return /[\u0400-\u04FF]/.test(text);
+}
+
+// Serbian Cyrillic -> Latin (basic transliteration)
+function srCyrToLat(input: string): string {
+  if (!input) return input;
+  if (!hasCyrillic(input)) return input;
+
+  // Handle digraphs first
+  const digraphs: Array<[RegExp, string]> = [
+    [/Љ/g, "Lj"], [/љ/g, "lj"],
+    [/Њ/g, "Nj"], [/њ/g, "nj"],
+    [/Џ/g, "Dž"], [/џ/g, "dž"],
+  ];
+  let s = input;
+  for (const [re, rep] of digraphs) s = s.replace(re, rep);
+
+  const map: Record<string, string> = {
+    А: "A", а: "a",
+    Б: "B", б: "b",
+    В: "V", в: "v",
+    Г: "G", г: "g",
+    Д: "D", д: "d",
+    Ђ: "Đ", ђ: "đ",
+    Е: "E", е: "e",
+    Ж: "Ž", ж: "ž",
+    З: "Z", з: "z",
+    И: "I", и: "i",
+    Ј: "J", ј: "j",
+    К: "K", к: "k",
+    Л: "L", л: "l",
+    М: "M", м: "m",
+    Н: "N", н: "n",
+    О: "O", о: "o",
+    П: "P", п: "p",
+    Р: "R", р: "r",
+    С: "S", с: "s",
+    Т: "T", т: "t",
+    Ћ: "Ć", ћ: "ć",
+    У: "U", у: "u",
+    Ф: "F", ф: "f",
+    Х: "H", х: "h",
+    Ц: "C", ц: "c",
+    Ч: "Č", ч: "č",
+    Ш: "Š", ш: "š",
+  };
+
+  return s.replace(/[\u0400-\u04FF]/g, (ch) => map[ch] ?? ch);
+}
+
 /**
  * Automatically translate text to all supported languages
  * Uses a free translation API (LibreTranslate or similar)
@@ -86,7 +137,8 @@ export async function autoTranslate(
         
         // Check if translation contains error message
         if (translated && translated !== text && !containsErrorMessage(translated)) {
-          translations[targetLocale] = translated;
+          translations[targetLocale] =
+            targetLocale === "me" ? srCyrToLat(translated) : translated;
           dbg(`[AUTO TRANSLATE] ✅ Successfully translated to ${targetLocale}: "${translated.substring(0, 50)}..."`);
         } else if (containsErrorMessage(translated)) {
           console.warn(`[AUTO TRANSLATE] ⚠️ Translation for ${targetLocale} contains error message, using original text`);
@@ -408,111 +460,59 @@ export async function translateHTML(
     };
   }
 
-  // Extract text content from HTML (remove tags but preserve structure)
-  const textContent = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  
-  if (!textContent) {
-    return {
-      me: html,
-      en: html,
-      it: html,
-      sq: html,
-    };
+  // Robust approach: translate each text chunk between tags, preserving tags exactly.
+  // This avoids word-count mismatches that cause partial translations.
+  const parts = html.split(/(<[^>]*>)/);
+  const textParts = parts
+    .filter((p) => !(p.startsWith("<") && p.endsWith(">")))
+    .map((p) => p);
+
+  const meaningful = textParts
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
+  if (meaningful.length === 0) {
+    return { me: html, en: html, it: html, sq: html };
   }
 
-  // Translate the full text content (will be automatically chunked if needed)
-  console.log(`[TRANSLATE HTML] Extracted text content length: ${textContent.length}`);
-  console.log(`[TRANSLATE HTML] Text preview: "${textContent.substring(0, 100)}..."`);
-  const translations = await autoTranslate(textContent, sourceLocale);
-  console.log(`[TRANSLATE HTML] Got translations for locales:`, Object.keys(translations));
+  const SEP = "\n[[[__SEP__]]]\n";
+  const joined = meaningful.join(SEP);
+  dbg(`[TRANSLATE HTML] Translating ${meaningful.length} text chunks (joined length: ${joined.length})`);
 
-  // Replace text content in HTML with translated versions
-  // Better approach: replace text nodes while preserving HTML structure
-  const result: Record<Locale, string> = {
-    me: html,
-    en: html,
-    it: html,
-    sq: html,
-  };
+  const joinedTranslations = await autoTranslate(joined, sourceLocale);
 
+  const splitBySep = (s: string) => s.split(SEP);
+
+  const result: Record<Locale, string> = { me: html, en: html, it: html, sq: html };
   for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
-    let translatedText = translations[locale];
-    console.log(`[TRANSLATE HTML] Processing locale ${locale}, translated text length: ${translatedText?.length || 0}`);
-    
-    // Check if translation contains error message
-    if (containsErrorMessage(translatedText)) {
-      console.warn(`[TRANSLATE] HTML translation for ${locale} contains error message, using original HTML`);
-      translatedText = textContent; // Use original text if error found
-    }
-    
-    // Simple approach: replace text nodes while preserving HTML tags
-    // Split HTML into parts (tags and text)
-    const parts = html.split(/(<[^>]*>)/);
-    let translatedHTML = '';
-    let textIndex = 0;
-    
-    // Count total words in original text
-    const originalWords = textContent.trim().split(/\s+/);
-    const translatedWords = translatedText.trim().split(/\s+/);
-    
-    // Process each part
-    for (const part of parts) {
-      if (part.startsWith('<') && part.endsWith('>')) {
-        // HTML tag - keep as is
-        translatedHTML += part;
-      } else {
-        // Text content
-        const trimmedPart = part.trim();
-        if (trimmedPart) {
-          // Count words in this text part
-          const wordsInPart = trimmedPart.split(/\s+/).length;
-          
-          // Get corresponding translated words
-          if (textIndex + wordsInPart <= translatedWords.length) {
-            const translatedPart = translatedWords.slice(textIndex, textIndex + wordsInPart).join(' ');
-            textIndex += wordsInPart;
-            
-            // Preserve whitespace from original
-            const leadingSpace = part.match(/^\s*/)?.[0] || '';
-            const trailingSpace = part.match(/\s*$/)?.[0] || '';
-            translatedHTML += leadingSpace + translatedPart + trailingSpace;
-          } else {
-            // Not enough words - use remaining translated words or keep original
-            const remainingWords = translatedWords.slice(textIndex);
-            if (remainingWords.length > 0) {
-              translatedHTML += part.replace(trimmedPart, remainingWords.join(' '));
-              textIndex = translatedWords.length;
-            } else {
-              translatedHTML += part;
-            }
-          }
-        } else {
-          // Just whitespace - keep as is
-          translatedHTML += part;
-        }
+    const translatedJoined = joinedTranslations[locale] || joined;
+    let translatedChunks = splitBySep(translatedJoined);
+
+    // If delimiter got mangled, fall back to per-chunk translation (slower but correct)
+    if (translatedChunks.length !== meaningful.length) {
+      console.warn(`[TRANSLATE HTML] Chunk split mismatch for ${locale} (${translatedChunks.length} vs ${meaningful.length}), falling back to per-chunk translation`);
+      translatedChunks = [];
+      for (const chunk of meaningful) {
+        const t = (await autoTranslate(chunk, sourceLocale))[locale] || chunk;
+        translatedChunks.push(locale === "me" ? srCyrToLat(t) : t);
       }
     }
-    
-    // Fallback: if replacement didn't work well, try simple string replacement
-    if (!translatedHTML || translatedHTML === html) {
-      console.warn(`[TRANSLATE HTML] Word-by-word replacement failed for ${locale}, trying simple replacement`);
-      const normalizedHTML = html.replace(/\s+/g, ' ');
-      const normalizedTextContent = textContent.replace(/\s+/g, ' ').trim();
-      const normalizedTranslatedText = translatedText.replace(/\s+/g, ' ').trim();
-      
-      if (normalizedHTML.includes(normalizedTextContent)) {
-        translatedHTML = normalizedHTML.replace(normalizedTextContent, normalizedTranslatedText);
-        console.log(`[TRANSLATE HTML] Simple replacement succeeded for ${locale}`);
-      } else {
-        // Last resort: return original HTML (translation failed)
-        console.error(`[TRANSLATE HTML] All replacement methods failed for ${locale}`);
-        console.error(`[TRANSLATE HTML] HTML length: ${html.length}, textContent length: ${textContent.length}, translatedText length: ${translatedText.length}`);
-        translatedHTML = html;
-      }
-    }
-    
-    console.log(`[TRANSLATE HTML] Final HTML for ${locale} length: ${translatedHTML.length}`);
-    result[locale] = translatedHTML;
+
+    let idx = 0;
+    const rebuilt = parts
+      .map((p) => {
+        if (p.startsWith("<") && p.endsWith(">")) return p;
+        const trimmed = p.trim();
+        if (!trimmed) return p; // whitespace only
+        const leading = p.match(/^\s*/)?.[0] || "";
+        const trailing = p.match(/\s*$/)?.[0] || "";
+        const replacement = translatedChunks[idx++] ?? trimmed;
+        const finalText = locale === "me" ? srCyrToLat(replacement) : replacement;
+        return leading + finalText + trailing;
+      })
+      .join("");
+
+    result[locale] = rebuilt;
   }
 
   return result;
