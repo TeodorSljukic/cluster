@@ -1,7 +1,7 @@
 import { Post } from "@/models/Post";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { type Locale } from "@/lib/i18n";
+import { locales, localeFlagEmojis, localeNames, type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
 import { PostViewTracker } from "@/components/PostViewTracker";
@@ -128,6 +128,24 @@ export default async function PostPage({
 
   const backLink = getBackLink(post.type, locale);
 
+  const meta: any = (post as any).metadata || {};
+  const sourceLocale = ((post as any).locale as Locale) || "me";
+  const sourceTitle = (meta?.titleTranslations?.[sourceLocale] || post.title || "").trim();
+  const sourceContent = (meta?.contentTranslations?.[sourceLocale] || post.content || "").trim();
+  const sourceExcerpt = (meta?.excerptTranslations?.[sourceLocale] || post.excerpt || "").trim();
+
+  const isTranslated = (loc: Locale): boolean => {
+    if (loc === sourceLocale) return true;
+    const tTitle = (meta?.titleTranslations?.[loc] || "").trim();
+    const tContent = (meta?.contentTranslations?.[loc] || "").trim();
+    const tExcerpt = (meta?.excerptTranslations?.[loc] || "").trim();
+    // Consider translated if any field exists and differs from source (avoid "copied" translations)
+    if (tContent && tContent !== sourceContent) return true;
+    if (tTitle && tTitle !== sourceTitle) return true;
+    if (tExcerpt && tExcerpt !== sourceExcerpt) return true;
+    return false;
+  };
+
   function formatDate(dateString?: string | Date, includeTime = false) {
     if (!dateString) return "";
     const date = typeof dateString === "string" ? new Date(dateString) : dateString;
@@ -148,30 +166,55 @@ export default async function PostPage({
   }
 
   return (
-    <main className="container" style={{ padding: "40px 20px" }}>
+    <main className="container post-page">
       {post._id && <PostViewTracker postId={post._id} />}
-      <Link href={backLink.href} style={{ display: "inline-block", marginBottom: "20px", color: "#B53251", textDecoration: "none" }}>
-        ← {backLink.label}
-      </Link>
+      <div className="post-shell">
+        <Link href={backLink.href} className="post-back">
+          ← {backLink.label}
+        </Link>
+      </div>
 
-      <article style={{ maxWidth: "800px", margin: "0 auto" }}>
+      <div className="post-lang">
+        <div className="post-lang-label">Available languages:</div>
+        <div className="post-lang-pills">
+          {locales.map((l) => {
+            const available = isTranslated(l);
+            const href = localeLink(`/posts/${post.slug}`, l);
+            const active = l === locale;
+            const cls =
+              "post-lang-pill" +
+              (active ? " is-active" : "") +
+              (!available ? " is-disabled" : "");
+            return (
+              <Link
+                key={l}
+                href={href}
+                className={cls}
+                title={available ? `Open in ${localeNames[l]}` : `Not translated to ${localeNames[l]} yet`}
+              >
+                <span>{localeFlagEmojis[l]}</span>
+                <span>{localeNames[l]}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      <article className="post-shell">
         {post.featuredImage && (
-          <div style={{ marginBottom: "30px" }}>
+          <div className="post-hero">
             <img
               src={post.featuredImage}
               alt={post.title}
-              style={{ width: "100%", height: "auto", borderRadius: "8px" }}
             />
           </div>
         )}
 
-        <header style={{ marginBottom: "30px" }}>
-          <h1 style={{ fontSize: "2.5rem", marginBottom: "10px", color: "#333" }}>
-            {post.title}
-          </h1>
-          <div style={{ display: "flex", gap: "20px", color: "#666", fontSize: "0.9rem", flexWrap: "wrap", alignItems: "center" }}>
+        <header className="post-header">
+          <h1 className="post-title">{post.title}</h1>
+          <div className="post-meta">
             <span>{formatDate(post.publishedAt || post.createdAt)}</span>
-            {post.type && <span style={{ textTransform: "capitalize" }}>{post.type}</span>}
+            {post.type && <span className="post-type">{post.type}</span>}
             {post.viewCount !== undefined && (
               <span>👁️ {post.viewCount} {post.viewCount === 1 ? "view" : "views"}</span>
             )}
@@ -184,26 +227,12 @@ export default async function PostPage({
         {post.excerpt && (
           <div
             className="post-excerpt"
-            style={{
-              fontSize: "1.2rem",
-              color: "#555",
-              marginBottom: "30px",
-              fontStyle: "italic",
-              lineHeight: "1.6",
-            }}
             dangerouslySetInnerHTML={{ __html: processPostContent(post.excerpt) }}
           />
         )}
 
         {post.type === "event" && (post.eventDate || post.eventLocation) && (
-          <div
-            style={{
-              background: "#f5f5f5",
-              padding: "20px",
-              borderRadius: "8px",
-              marginBottom: "30px",
-            }}
-          >
+          <div className="post-event-box">
             {post.eventDate && (
               <p style={{ margin: "5px 0" }}>
                 <strong>Date:</strong> {formatDate(post.eventDate)}
@@ -219,10 +248,6 @@ export default async function PostPage({
 
         <div
           className="post-content"
-          style={{ 
-            lineHeight: "1.8", 
-            color: "#333",
-          }}
           dangerouslySetInnerHTML={{ __html: processPostContent(post.content) }}
         />
         <script

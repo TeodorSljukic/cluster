@@ -28,6 +28,14 @@ export function Header() {
 
   const t = getTranslations(currentLocale);
 
+  // Keep frontend locale and CMS locale in sync by default.
+  // CMS still has its own switcher and can override this later.
+  useEffect(() => {
+    localStorage.setItem("preferred-locale", currentLocale);
+    localStorage.setItem("cms-locale", currentLocale);
+    window.dispatchEvent(new Event("cms-locale-changed"));
+  }, [currentLocale]);
+
   useEffect(() => {
     // Only check auth on mount, not on every pathname change
     checkAuth();
@@ -374,7 +382,7 @@ export function Header() {
                 style={{ cursor: "pointer", width: "100%", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
               >
                 <Search size={20} className="search-icon" />
-                <span>Search</span>
+                <span>{t.common.search}</span>
               </Link>
             )}
 

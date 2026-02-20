@@ -20,6 +20,7 @@
 =========================== */
 @import url("pages/about.css");
 @import url("pages/blog.css");
+@import url("pages/post.css");
 @import url("pages/chat.css");
 @import url("pages/contact.css");
 @import url("pages/login.css");
@@ -28,3 +29,8 @@
 @import url("pages/user-profile.css");
 @import url("pages/search.css");
 @import url("pages/dashboard.css");
+
+/* ===========================
+   CMS
+=========================== */
+@import url("cms.css");

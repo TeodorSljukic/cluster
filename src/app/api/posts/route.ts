@@ -3,7 +3,7 @@ import { getCollection } from "@/lib/db";
 import { Post } from "@/models/Post";
 import { autoTranslate, translateHTML } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
-import { getCurrentUser } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 import { ObjectId } from "mongodb";
 
 // GET - Fetch all posts (with optional filtering by type)
@@ -75,6 +75,9 @@ export async function GET(request: NextRequest) {
 // POST - Create new post
 export async function POST(request: NextRequest) {
   try {
+    // Only editor/moderator/admin can create posts
+    const currentUser = await requireEditor();
+
     const body: any = await request.json();
     const collection = await getCollection("posts");
     const locale = body.locale || "me";
@@ -125,7 +128,6 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     
     // Get current user for publishedBy
-    const currentUser = await getCurrentUser();
     let publishedBy: string | undefined;
     let publishedByName: string | undefined;
     
@@ -150,121 +152,54 @@ export async function POST(request: NextRequest) {
         : body.eventDate;
     }
 
-    // Auto-translate title, content, and excerpt to all languages
+    // Manual translation only: translate only if client requests it
     const sourceLocale = locale as Locale;
     const allLocales: Locale[] = ["me", "en", "it", "sq"];
-    
-    let titleTranslations: Record<Locale, string> = {
-      me: body.title,
-      en: body.title,
-      it: body.title,
-      sq: body.title,
-    };
-    let contentTranslations: Record<Locale, string> = {
-      me: body.content,
-      en: body.content,
-      it: body.content,
-      sq: body.content,
-    };
-    let excerptTranslations: Record<Locale, string> = {
-      me: body.excerpt || "",
-      en: body.excerpt || "",
-      it: body.excerpt || "",
-      sq: body.excerpt || "",
-    };
 
-    try {
-      console.log(`[POST CREATE] Starting translation for locale ${sourceLocale}`);
-      
-      // Translate title
+    const initMap = (value: string): Record<Locale, string> => ({
+      me: "",
+      en: "",
+      it: "",
+      sq: "",
+      [sourceLocale]: value,
+    } as Record<Locale, string>);
+
+    const translateToLocales: Locale[] = Array.isArray(body.translateToLocales)
+      ? body.translateToLocales
+          .filter((l: any): l is Locale => allLocales.includes(l))
+          .filter((l: Locale) => l !== sourceLocale)
+      : [];
+
+    let titleTranslations = initMap(body.title || "");
+    let contentTranslations = initMap(body.content || "");
+    let excerptTranslations = initMap(body.excerpt || "");
+
+    if (translateToLocales.length > 0) {
+      // Title
       if (body.title && body.title.trim()) {
-        console.log(`[POST CREATE] Translating title: "${body.title.substring(0, 50)}..."`);
-        titleTranslations = await autoTranslate(body.title.trim(), sourceLocale);
-        console.log(`[POST CREATE] Title translations:`, Object.keys(titleTranslations));
+        const translated = await autoTranslate(body.title.trim(), sourceLocale, translateToLocales);
+        for (const l of translateToLocales) titleTranslations[l] = translated[l] || "";
       }
-      
-      // Translate content (HTML) - use translateHTML to preserve structure
+
+      // Content (HTML-aware)
       if (body.content && body.content.trim()) {
         const contentHTML = body.content.trim();
-        console.log(`[POST CREATE] Translating content (length: ${contentHTML.length})`);
-        console.log(`[POST CREATE] Content preview: "${contentHTML.substring(0, 200)}..."`);
-        // Check if content is HTML or plain text
-        if (contentHTML.includes("<") && contentHTML.includes(">")) {
-          // It's HTML, use translateHTML
-          console.log(`[POST CREATE] Content is HTML, using translateHTML`);
-          contentTranslations = await translateHTML(contentHTML, sourceLocale);
-          console.log(`[POST CREATE] Content translations received for locales:`, Object.keys(contentTranslations));
-          console.log(`[POST CREATE] Content translation lengths:`, {
-            me: contentTranslations.me?.length || 0,
-            en: contentTranslations.en?.length || 0,
-            it: contentTranslations.it?.length || 0,
-            sq: contentTranslations.sq?.length || 0,
-          });
-        } else {
-          // Plain text, use autoTranslate
-          console.log(`[POST CREATE] Content is plain text, using autoTranslate`);
-          contentTranslations = await autoTranslate(contentHTML, sourceLocale);
-          console.log(`[POST CREATE] Content translations:`, Object.keys(contentTranslations));
-        }
+        const translated =
+          contentHTML.includes("<") && contentHTML.includes(">")
+            ? await translateHTML(contentHTML, sourceLocale, translateToLocales)
+            : await autoTranslate(contentHTML, sourceLocale, translateToLocales);
+        for (const l of translateToLocales) contentTranslations[l] = translated[l] || "";
       }
-      
-      // Translate excerpt - check if it's HTML or plain text
+
+      // Excerpt
       if (body.excerpt && body.excerpt.trim()) {
         const excerptText = body.excerpt.trim();
-        console.log(`[POST CREATE] Translating excerpt: "${excerptText.substring(0, 50)}..."`);
-        if (excerptText.includes("<") && excerptText.includes(">")) {
-          // HTML excerpt
-          console.log(`[POST CREATE] Excerpt is HTML, using translateHTML`);
-          excerptTranslations = await translateHTML(excerptText, sourceLocale);
-        } else {
-          // Plain text excerpt
-          console.log(`[POST CREATE] Excerpt is plain text, using autoTranslate`);
-          excerptTranslations = await autoTranslate(excerptText, sourceLocale);
-        }
-        console.log(`[POST CREATE] Excerpt translations:`, Object.keys(excerptTranslations));
+        const translated =
+          excerptText.includes("<") && excerptText.includes(">")
+            ? await translateHTML(excerptText, sourceLocale, translateToLocales)
+            : await autoTranslate(excerptText, sourceLocale, translateToLocales);
+        for (const l of translateToLocales) excerptTranslations[l] = translated[l] || "";
       }
-      
-      // Clean any error messages from translations
-      const cleanTranslation = (translation: string): string => {
-        if (!translation || typeof translation !== "string") return translation;
-        if (translation.includes("QUERY LENGTH LIMIT") || 
-            translation.includes("MAX ALLOWED QUERY") ||
-            translation.includes("500 CHARS")) {
-          return ""; // Return empty string if error found
-        }
-        return translation;
-      };
-
-      // Clean translations
-      for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
-        if (titleTranslations[locale]) {
-          titleTranslations[locale] = cleanTranslation(titleTranslations[locale]);
-        }
-        if (contentTranslations[locale]) {
-          contentTranslations[locale] = cleanTranslation(contentTranslations[locale]);
-        }
-        if (excerptTranslations[locale]) {
-          excerptTranslations[locale] = cleanTranslation(excerptTranslations[locale]);
-        }
-      }
-
-      console.log(`[POST CREATE] Translation completed successfully`);
-      console.log(`[POST CREATE] Title translations sample:`, {
-        me: titleTranslations.me?.substring(0, 30),
-        en: titleTranslations.en?.substring(0, 30),
-        it: titleTranslations.it?.substring(0, 30),
-        sq: titleTranslations.sq?.substring(0, 30),
-      });
-      console.log(`[POST CREATE] Content translations sample:`, {
-        me: contentTranslations.me?.substring(0, 100) || "empty",
-        en: contentTranslations.en?.substring(0, 100) || "empty",
-        it: contentTranslations.it?.substring(0, 100) || "empty",
-        sq: contentTranslations.sq?.substring(0, 100) || "empty",
-      });
-    } catch (error) {
-      console.error("[POST CREATE] Auto-translation error:", error);
-      console.error("[POST CREATE] Error stack:", error instanceof Error ? error.stack : "No stack");
-      // Continue with original text if translation fails
     }
 
     // Create only one post for the current locale, but store translations in metadata
@@ -316,27 +251,6 @@ export async function POST(request: NextRequest) {
       eventDate: post.eventDate?.toISOString(),
       createdForAllLocales: false,
       insertedCount: 1,
-      // Debug info for translation
-      translationDebug: {
-        hasTitleTranslations: !!titleTranslations,
-        hasContentTranslations: !!contentTranslations,
-        hasExcerptTranslations: !!excerptTranslations,
-        titleTranslationKeys: Object.keys(titleTranslations || {}),
-        contentTranslationKeys: Object.keys(contentTranslations || {}),
-        excerptTranslationKeys: Object.keys(excerptTranslations || {}),
-        contentTranslationLengths: {
-          me: contentTranslations?.me?.length || 0,
-          en: contentTranslations?.en?.length || 0,
-          it: contentTranslations?.it?.length || 0,
-          sq: contentTranslations?.sq?.length || 0,
-        },
-        contentTranslationPreviews: {
-          me: contentTranslations?.me?.substring(0, 100) || "empty",
-          en: contentTranslations?.en?.substring(0, 100) || "empty",
-          it: contentTranslations?.it?.substring(0, 100) || "empty",
-          sq: contentTranslations?.sq?.substring(0, 100) || "empty",
-        },
-      },
     });
   } catch (error: any) {
     console.error("Error creating post:", error);

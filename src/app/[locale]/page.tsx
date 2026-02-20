@@ -117,86 +117,25 @@ export default async function Home({
 
           <RegisterForm locale={locale} />
           <PlatformLinksSection locale={locale} />
-          <section className="about" style={{ 
-            padding: "80px 20px",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(234,243,250,0.75) 100%)"
-          }}>
-            <style dangerouslySetInnerHTML={{__html: `
-              @media (max-width: 768px) {
-                .about-responsive {
-                  flex-direction: column !important;
-                  gap: 30px !important;
-                }
-                .about-text h2 {
-                  font-size: 28px !important;
-                }
-                .about-text p {
-                  font-size: 15px !important;
-                  line-height: 1.6 !important;
-                  word-wrap: break-word !important;
-                  overflow-wrap: break-word !important;
-                  hyphens: auto !important;
-                }
-              }
-              @media (max-width: 480px) {
-                .about-section {
-                  padding: 40px 12px !important;
-                }
-                .about-text h2 {
-                  font-size: 24px !important;
-                }
-                .about-text p {
-                  font-size: 14px !important;
-                }
-              }
-            `}} />
-            <div className="container about-section" style={{ 
-              maxWidth: "1600px",
-              margin: "0 auto"
-            }}>
-              <div style={{ 
-                display: "flex", 
-                flexDirection: "row",
-                alignItems: "center", 
-                gap: "60px", 
-                justifyContent: "space-between"
-              }} className="about-responsive">
-                <div className="about-text" style={{ flex: "1", maxWidth: "100%", minWidth: 0 }} data-aos="fade-right">
-                  <h2 style={{ 
-                    fontSize: "36px", 
-                    fontWeight: "600", 
-                    color: "#E23F65", 
-                    marginBottom: "25px",
-                    lineHeight: "1.3"
-                  }}>
-                    {t.about.title}
-                  </h2>
-                  <div style={{ 
-                    fontSize: "16px", 
-                    lineHeight: "1.8", 
-                    color: "#333" 
-                  }}>
-                    <p style={{ marginBottom: "20px", wordWrap: "break-word", overflowWrap: "break-word" }}>{t.about.text1}</p>
-                    <p style={{ marginBottom: "20px", wordWrap: "break-word", overflowWrap: "break-word" }}>{t.about.text2}</p>
-                    <p style={{ wordWrap: "break-word", overflowWrap: "break-word" }}>{t.about.text3}</p>
-                  </div>
-                </div>
+          <section className="about">
+            <div className="container about-inner">
+              <div className="about-content" data-aos="fade-right">
+                <h2 className="about-title">{t.about.title}</h2>
+                <p>{t.about.text1}</p>
+                <p>{t.about.text2}</p>
+                <p>{t.about.text3}</p>
+              </div>
 
-                <div style={{ flex: "1", maxWidth: "50%", minWidth: 0, display: "flex", justifyContent: "center", alignItems: "center" }} data-aos="fade-left">
-                  <Image
-                    src="/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp"
-                    alt="ABGC logo"
-                    width={800}
-                    height={600}
-                    style={{ 
-                      maxWidth: "100%", 
-                      height: "auto",
-                      maxHeight: "500px"
-                    }}
-                    loading="lazy"
-                    unoptimized
-                  />
-                </div>
+              <div className="about-image" data-aos="fade-left">
+                <Image
+                  src="/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp"
+                  alt="ABGC logo"
+                  width={800}
+                  height={600}
+                  style={{ width: "100%", height: "auto" }}
+                  loading="lazy"
+                  unoptimized
+                />
               </div>
             </div>
           </section>

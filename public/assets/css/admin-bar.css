@@ -36,6 +36,36 @@
   flex-shrink: 0;
 }
 
+/* Admin Bar Avatar */
+.admin-bar-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.admin-bar-avatar:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.admin-bar-avatar:active {
+  transform: scale(1.05);
+}
+
 /* Hide "Howdy" text on small screens */
 @media (max-width: 768px) {
   [data-admin-bar="true"] {

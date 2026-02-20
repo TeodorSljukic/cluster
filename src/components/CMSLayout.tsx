@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { getTranslations } from "@/lib/getTranslations";
 import { defaultLocale, locales, localeNames, localeFlags, type Locale } from "@/lib/i18n";
 import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { getStoredCmsLocale } from "@/lib/cmsLocale";
 
 interface CMSLayoutProps {
   children: React.ReactNode;
@@ -23,22 +24,25 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
     return false;
   });
   const [cmsLocale, setCmsLocale] = useState<Locale>(defaultLocale);
+  const [localeInitialized, setLocaleInitialized] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Load locale from localStorage on mount
   useEffect(() => {
-    const savedLocale = localStorage.getItem("cms-locale") as Locale;
+    const savedLocale = getStoredCmsLocale();
     if (savedLocale && locales.includes(savedLocale)) {
       setCmsLocale(savedLocale);
     } else if (propLocale) {
       setCmsLocale(propLocale);
     }
+    setLocaleInitialized(true);
   }, [propLocale]);
 
   // Save locale to localStorage when it changes
   useEffect(() => {
+    if (!localeInitialized) return;
     localStorage.setItem("cms-locale", cmsLocale);
-  }, [cmsLocale]);
+  }, [cmsLocale, localeInitialized]);
 
   // Fetch current user - cache in sessionStorage to avoid repeated calls
   useEffect(() => {
@@ -148,42 +152,12 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
   }, [pathname, isMobile]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f0f0f1",
-        marginTop: "32px", // Admin bar height
-        position: "relative",
-      }}
-    >
+    <div className="cms-wrapper">
       {/* Mobile Menu Button */}
       {isMobile && (
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          style={{
-            position: "fixed",
-            top: "42px",
-            left: "10px",
-            background: "#2271b1",
-            border: "none",
-            color: "white",
-            width: "40px",
-            height: "40px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1001,
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#135e96";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#2271b1";
-          }}
+          className="cms-mobile-menu-btn"
         >
           {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
@@ -193,72 +167,28 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
       {isMobile && mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          style={{
-            position: "fixed",
-            top: "32px",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 999,
-          }}
+          className="cms-mobile-overlay"
         />
       )}
 
       {/* Sidebar */}
       <div
+        className={`cms-sidebar ${isMobile ? (mobileMenuOpen ? "cms-sidebar-open" : "") : (sidebarOpen ? "" : "cms-sidebar-collapsed")}`}
         style={{
           width: isMobile 
-            ? (mobileMenuOpen ? "240px" : "240px")
-            : (sidebarOpen ? "160px" : "36px"),
-          background: "#1d2327",
-          color: "#f0f0f1",
-          transition: isMobile ? "transform 0.3s ease" : "width 0.2s",
-          position: "fixed",
-          left: 0,
-          top: "32px",
-          bottom: 0,
-          overflowY: "auto",
-          zIndex: 1000,
-          display: "flex",
-          flexDirection: "column",
-          transform: isMobile 
-            ? (mobileMenuOpen ? "translateX(0)" : "translateX(-100%)")
-            : "translateX(0)",
-          boxShadow: isMobile && mobileMenuOpen ? "2px 0 8px rgba(0,0,0,0.3)" : "none",
-          visibility: isMobile && !mobileMenuOpen ? "hidden" : "visible",
+            ? "280px"
+            : (sidebarOpen ? "240px" : "64px"),
         }}
       >
         {/* User Avatar Section */}
-        {sidebarOpen && currentUser && (
-          <div
-            style={{
-              padding: "15px 12px",
-              borderBottom: "1px solid #32373c",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-            }}
-          >
+        {(sidebarOpen || isMobile) && currentUser && (
+          <div className="cms-user-section">
             <div
+              className="cms-user-avatar"
               style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
                 background: currentUser.profilePicture
                   ? `url(${currentUser.profilePicture})`
                   : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "white",
-                fontWeight: "600",
-                fontSize: "14px",
-                flexShrink: 0,
-                border: "2px solid #72aee6",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
               }}
             >
               {!currentUser.profilePicture && (
@@ -269,63 +199,28 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
                 </span>
               )}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  color: "#f0f0f1",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {currentUser.displayName || currentUser.username || "Admin"}
+            <div className="cms-user-info">
+              <div className="cms-user-name">
+                {currentUser.displayName || currentUser.username || t.cms.administrator}
               </div>
-              <div
-                style={{
-                  fontSize: "11px",
-                  color: "#b4b9be",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {currentUser.role === "admin" ? "Administrator" : "User"}
+              <div className="cms-user-role">
+                {currentUser.role === "admin" ? t.cms.administrator : t.cms.userRole}
               </div>
             </div>
           </div>
         )}
 
-        <div style={{ padding: "10px 0", flex: 1 }}>
+        <div className="cms-menu">
           {menuItems.map((item, index) => (
             <div key={index}>
               {item.children ? (
                 <div>
-                  <div
-                    style={{
-                      padding: "8px 12px",
-                      fontSize: "16px",
-                      fontWeight: "600",
-                      color: "#f0f0f1",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#32373c";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    <span>{item.icon}</span>
-                    {sidebarOpen && <span>{item.title}</span>}
+                  <div className="cms-menu-item" style={{ cursor: "default" }}>
+                    <span className="cms-menu-icon">{item.icon}</span>
+                    {(sidebarOpen || isMobile) && <span className="cms-menu-title">{item.title}</span>}
                   </div>
-                  {sidebarOpen && (
-                    <div style={{ paddingLeft: "20px" }}>
+                  {(sidebarOpen || isMobile) && (
+                    <div className="cms-submenu">
                       {item.children.map((child, childIndex) => {
                         const childPath = child.href.split("?")[0];
                         const isChildActive = pathname === childPath || 
@@ -335,28 +230,7 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
                             key={childIndex}
                             href={child.href}
                             prefetch={true}
-                            style={{
-                              display: "block",
-                              padding: "6px 12px",
-                              fontSize: "15px",
-                              color: isChildActive ? "#72aee6" : "#b4b9be",
-                              textDecoration: "none",
-                              background: isChildActive ? "#32373c" : "transparent",
-                              borderLeft: isChildActive
-                                ? "4px solid #72aee6"
-                                : "4px solid transparent",
-                              transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isChildActive) {
-                                e.currentTarget.style.background = "#32373c";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isChildActive) {
-                                e.currentTarget.style.background = "transparent";
-                              }
-                            }}
+                            className={`cms-submenu-item ${isChildActive ? "cms-submenu-item-active" : ""}`}
                           >
                             {child.title}
                           </Link>
@@ -369,37 +243,10 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
                 <Link
                   href={item.href || "#"}
                   prefetch={true}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    padding: "8px 12px",
-                    fontSize: "16px",
-                    color: isActive(item.href || "", item.exact)
-                      ? "#72aee6"
-                      : "#b4b9be",
-                    textDecoration: "none",
-                    background: isActive(item.href || "", item.exact)
-                      ? "#32373c"
-                      : "transparent",
-                    borderLeft: isActive(item.href || "", item.exact)
-                      ? "4px solid #72aee6"
-                      : "4px solid transparent",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive(item.href || "", item.exact)) {
-                      e.currentTarget.style.background = "#32373c";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive(item.href || "", item.exact)) {
-                      e.currentTarget.style.background = "transparent";
-                    }
-                  }}
+                  className={`cms-menu-item ${isActive(item.href || "", item.exact) ? "cms-menu-item-active" : ""}`}
                 >
-                  <span>{item.icon}</span>
-                  {sidebarOpen && <span>{item.title}</span>}
+                  <span className="cms-menu-icon">{item.icon}</span>
+                  {(sidebarOpen || isMobile) && <span className="cms-menu-title">{item.title}</span>}
                 </Link>
               )}
             </div>
@@ -407,12 +254,13 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
         </div>
 
         {/* Language Selector */}
-        {sidebarOpen && (
-          <div style={{ padding: "10px 12px", borderTop: "1px solid #32373c", marginTop: "10px" }}>
-            <label style={{ display: "block", fontSize: "12px", color: "#b4b9be", marginBottom: "5px" }}>
-              {t.cms.language || "Language"}
+        {(sidebarOpen || isMobile) && (
+          <div className="cms-language-section">
+            <label className="cms-language-label">
+              {t.cms.language}
             </label>
             <select
+              className="cms-language-select"
               value={cmsLocale}
               onChange={(e) => {
                 const newLocale = e.target.value as Locale;
@@ -420,16 +268,6 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
                 localStorage.setItem("cms-locale", newLocale);
                 // Trigger custom event to notify other components
                 window.dispatchEvent(new Event("cms-locale-changed"));
-              }}
-              style={{
-                width: "100%",
-                padding: "4px 6px",
-                background: "#32373c",
-                color: "#f0f0f1",
-                border: "1px solid #50575e",
-                borderRadius: "3px",
-                fontSize: "13px",
-                cursor: "pointer",
               }}
             >
               {locales.map((locale) => (
@@ -445,37 +283,13 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
         {!isMobile && (
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{
-              position: "absolute",
-              bottom: sidebarOpen ? "60px" : "10px",
-              right: sidebarOpen ? "10px" : "6px",
-              background: "#2271b1",
-              border: "none",
-              color: "white",
-              width: sidebarOpen ? "28px" : "24px",
-              height: sidebarOpen ? "28px" : "24px",
-              borderRadius: "4px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "all 0.2s ease",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#135e96";
-              e.currentTarget.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#2271b1";
-              e.currentTarget.style.transform = "scale(1)";
-            }}
-            title={sidebarOpen ? t.cms.collapse || "Collapse" : t.cms.expand || "Expand"}
+            className="cms-sidebar-toggle"
+            title={sidebarOpen ? t.cms.collapse : t.cms.expand}
           >
             {sidebarOpen ? (
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             ) : (
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             )}
           </button>
         )}
@@ -483,15 +297,11 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
 
       {/* Main Content */}
       <div
+        className={`cms-main-content ${isMobile ? "cms-main-content-mobile" : ""}`}
         style={{
           marginLeft: isMobile 
             ? "0" 
-            : (sidebarOpen ? "160px" : "36px"),
-          flex: 1,
-          transition: "margin-left 0.2s",
-          padding: isMobile ? "10px" : "20px",
-          width: isMobile ? "100%" : "auto",
-          boxSizing: "border-box",
+            : (sidebarOpen ? "240px" : "64px"),
         }}
       >
         {children}

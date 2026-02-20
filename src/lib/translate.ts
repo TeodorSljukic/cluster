@@ -44,7 +44,8 @@ function containsErrorMessage(text: string): boolean {
  */
 export async function autoTranslate(
   text: string,
-  sourceLocale: Locale = "en"
+  sourceLocale: Locale = "en",
+  targetLocales?: Locale[]
 ): Promise<Record<Locale, string>> {
   dbg(`[AUTO TRANSLATE] Starting translation for text: "${text.substring(0, 50)}..." from locale: ${sourceLocale}`);
   
@@ -64,9 +65,14 @@ export async function autoTranslate(
     // Or use Google Translate API (requires API key)
     // For now, we'll use a simple approach with fetch to a translation service
     
-    const targets: Locale[] = ["me", "en", "it", "sq"].filter(
-      (loc) => loc !== sourceLocale
-    ) as Locale[];
+    const all: Locale[] = ["me", "en", "it", "sq"];
+    const requested = Array.isArray(targetLocales) && targetLocales.length > 0
+      ? targetLocales
+      : (all.filter((loc) => loc !== sourceLocale) as Locale[]);
+
+    const targets = requested
+      .filter((loc): loc is Locale => all.includes(loc))
+      .filter((loc) => loc !== sourceLocale);
     
     dbg(`[AUTO TRANSLATE] Target locales to translate:`, targets);
 
@@ -398,7 +404,8 @@ async function translateTextChunk(
  */
 export async function translateHTML(
   html: string,
-  sourceLocale: Locale = "en"
+  sourceLocale: Locale = "en",
+  targetLocales?: Locale[]
 ): Promise<Record<Locale, string>> {
   // If HTML is empty or just whitespace, return as-is for all locales
   if (!html || html.trim() === "") {
@@ -430,12 +437,31 @@ export async function translateHTML(
   const joined = meaningful.join(SEP);
   dbg(`[TRANSLATE HTML] Translating ${meaningful.length} text chunks (joined length: ${joined.length})`);
 
-  const joinedTranslations = await autoTranslate(joined, sourceLocale);
+  const joinedTranslations = await autoTranslate(joined, sourceLocale, targetLocales);
 
   const splitBySep = (s: string) => s.split(SEP);
 
   const result: Record<Locale, string> = { me: html, en: html, it: html, sq: html };
-  for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+
+  const all: Locale[] = ["me", "en", "it", "sq"];
+  const requested = Array.isArray(targetLocales) && targetLocales.length > 0
+    ? targetLocales
+    : (all.filter((loc) => loc !== sourceLocale) as Locale[]);
+  const targets = requested
+    .filter((loc): loc is Locale => all.includes(loc))
+    .filter((loc) => loc !== sourceLocale);
+
+  for (const locale of all) {
+    if (locale === sourceLocale) {
+      result[locale] = html;
+      continue;
+    }
+    if (!targets.includes(locale)) {
+      // Not requested → leave original HTML
+      result[locale] = html;
+      continue;
+    }
+
     const translatedJoined = joinedTranslations[locale] || joined;
     let translatedChunks = splitBySep(translatedJoined);
 

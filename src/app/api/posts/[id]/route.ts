@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 import { Post } from "@/models/Post";
 import { autoTranslate, translateHTML } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
-import { requireAdmin, getCurrentUser } from "@/lib/auth";
+import { requireAdmin, requireEditor, getCurrentUser } from "@/lib/auth";
 
 // GET - Fetch single post by ID
 export async function GET(
@@ -60,6 +60,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    // Only editor/moderator/admin can update posts
+    await requireEditor();
+
     const body: any = await request.json();
     const collection = await getCollection("posts");
 
@@ -106,14 +109,17 @@ export async function PUT(
     }
 
     // Convert eventDate from string to Date if provided
-    let eventDate: Date | undefined;
+    let eventDate: Date | null | undefined;
     if (body.eventDate !== undefined) {
       if (body.eventDate === null || body.eventDate === "") {
-        eventDate = undefined;
+        eventDate = null;
       } else {
-        eventDate = typeof body.eventDate === "string" 
-          ? new Date(body.eventDate) 
-          : body.eventDate;
+        const parsedDate =
+          typeof body.eventDate === "string" ? new Date(body.eventDate) : body.eventDate;
+        if (!parsedDate || Number.isNaN(new Date(parsedDate).getTime())) {
+          return NextResponse.json({ error: "Invalid event date format" }, { status: 400 });
+        }
+        eventDate = new Date(parsedDate);
       }
     }
 
@@ -131,158 +137,110 @@ export async function PUT(
 
     // Get existing metadata or create new
     const existingMetadata = existing.metadata || {};
-    let titleTranslations = existingMetadata.titleTranslations || {
-      me: existing.title || "",
-      en: existing.title || "",
-      it: existing.title || "",
-      sq: existing.title || "",
+    const allLocales: Locale[] = ["me", "en", "it", "sq"];
+
+    const baseLocale = ((existing.locale || "me") as Locale);
+    const editLocale = ((body.editLocale || body.locale || baseLocale) as Locale);
+    const isBaseEdit = editLocale === baseLocale;
+
+    // Manual translation: translate only if client requests it
+    const translateToLocales: Locale[] = Array.isArray(body.translateToLocales)
+      ? body.translateToLocales
+          .filter((l: any): l is Locale => allLocales.includes(l))
+          .filter((l: Locale) => l !== editLocale)
+      : [];
+
+    const mergedTitleTranslations: Record<Locale, string> = {
+      me: "",
+      en: "",
+      it: "",
+      sq: "",
+      ...(existingMetadata.titleTranslations || {}),
     };
-    let contentTranslations = existingMetadata.contentTranslations || {
-      me: existing.content || "",
-      en: existing.content || "",
-      it: existing.content || "",
-      sq: existing.content || "",
+    const mergedContentTranslations: Record<Locale, string> = {
+      me: "",
+      en: "",
+      it: "",
+      sq: "",
+      ...(existingMetadata.contentTranslations || {}),
     };
-    let excerptTranslations = existingMetadata.excerptTranslations || {
-      me: existing.excerpt || "",
-      en: existing.excerpt || "",
-      it: existing.excerpt || "",
-      sq: existing.excerpt || "",
+    const mergedExcerptTranslations: Record<Locale, string> = {
+      me: "",
+      en: "",
+      it: "",
+      sq: "",
+      ...(existingMetadata.excerptTranslations || {}),
     };
 
-    // Auto-translate if title, content, or excerpt is being updated
-    const sourceLocale = (body.locale || existing.locale || "me") as Locale;
-    const allLocales: Locale[] = ["me", "en", "it", "sq"];
-    
-    // Helper function to check if translations are missing or invalid
-    const needsTranslation = (translations: Record<Locale, string> | undefined, sourceText: string): boolean => {
-      if (!translations) return true;
-      // Check if we have valid translations for all locales
-      return !allLocales.every(locale => 
-        translations[locale] && 
-        translations[locale].trim() !== "" &&
-        translations[locale] !== sourceText &&
-        !translations[locale].includes("QUERY LENGTH LIMIT") &&
-        !translations[locale].includes("MAX ALLOWED QUERY") &&
-        !translations[locale].includes("500 CHARS")
-      );
-    };
-    
-    // Only update fields that are provided
-    if (body.title !== undefined) {
-      update.title = body.title;
-      // Auto-translate title if it changed or if translations are missing/invalid
-      const titleChanged = body.title !== existing.title;
-      const titleNeedsTranslation = needsTranslation(existingMetadata.titleTranslations, body.title);
-      
-      if (titleChanged || titleNeedsTranslation) {
-        try {
-          console.log(`[POST UPDATE] Translating title from ${sourceLocale}: "${body.title.substring(0, 50)}..."`);
-          titleTranslations = await autoTranslate(body.title, sourceLocale);
-          console.log(`[POST UPDATE] Title translations received:`, Object.keys(titleTranslations));
-        } catch (error) {
-          console.error("[POST UPDATE] Error translating title:", error);
-          titleTranslations[sourceLocale] = body.title;
-        }
-      } else {
-        console.log(`[POST UPDATE] Title translations already exist and are valid, skipping translation`);
-      }
+    // Only update base fields when editing the base locale.
+    if (isBaseEdit) {
+      if (body.title !== undefined) update.title = body.title;
+      if (body.slug !== undefined) update.slug = body.slug;
+      if (body.content !== undefined) update.content = body.content || "";
+      if (body.excerpt !== undefined) update.excerpt = body.excerpt || "";
     }
-    
-    if (body.slug !== undefined) update.slug = body.slug;
-    
-    if (body.content !== undefined) {
-      update.content = body.content || "";
-      // Auto-translate content - use translateHTML to preserve structure
-      if (body.content && body.content.trim()) {
-        const contentChanged = body.content !== existing.content;
-        const contentNeedsTranslation = needsTranslation(existingMetadata.contentTranslations, body.content);
-        
-        if (contentChanged || contentNeedsTranslation) {
-          try {
-            const contentHTML = body.content.trim();
-            console.log(`[POST UPDATE] Translating content from ${sourceLocale} (length: ${contentHTML.length} chars)`);
-            // Check if content is HTML or plain text
-            if (contentHTML.includes("<") && contentHTML.includes(">")) {
-              // It's HTML, use translateHTML
-              console.log(`[POST UPDATE] Content is HTML, using translateHTML`);
-              contentTranslations = await translateHTML(contentHTML, sourceLocale);
-            } else {
-              // Plain text, use autoTranslate
-              console.log(`[POST UPDATE] Content is plain text, using autoTranslate`);
-              contentTranslations = await autoTranslate(contentHTML, sourceLocale);
-            }
-            console.log(`[POST UPDATE] Content translations received for locales:`, Object.keys(contentTranslations));
-          } catch (error) {
-            console.error("[POST UPDATE] Error translating content:", error);
-            contentTranslations[sourceLocale] = body.content;
-          }
-        } else {
-          console.log(`[POST UPDATE] Content translations already exist and are valid, skipping translation`);
-        }
+
+    // Keep edited locale up-to-date in metadata (even if we don't translate now)
+    const titleSource = (body.title !== undefined
+      ? body.title
+      : (isBaseEdit ? (existing.title || "") : (mergedTitleTranslations[editLocale] || ""))) as string;
+    const contentSource = (body.content !== undefined
+      ? body.content
+      : (isBaseEdit ? (existing.content || "") : (mergedContentTranslations[editLocale] || ""))) as string;
+    const excerptSource = (body.excerpt !== undefined
+      ? body.excerpt
+      : (isBaseEdit ? (existing.excerpt || "") : (mergedExcerptTranslations[editLocale] || ""))) as string;
+
+    mergedTitleTranslations[editLocale] = titleSource;
+    mergedContentTranslations[editLocale] = contentSource;
+    mergedExcerptTranslations[editLocale] = excerptSource;
+
+    if (translateToLocales.length > 0) {
+      // Title
+      if (titleSource && titleSource.trim()) {
+        const translated = await autoTranslate(titleSource.trim(), editLocale, translateToLocales);
+        for (const l of translateToLocales) mergedTitleTranslations[l] = translated[l] || "";
       }
-      
-      // Clean any error messages from content translations
-      for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
-        if (contentTranslations[locale] && 
-            (contentTranslations[locale].includes("QUERY LENGTH LIMIT") ||
-             contentTranslations[locale].includes("MAX ALLOWED QUERY") ||
-             contentTranslations[locale].includes("500 CHARS"))) {
-          console.warn(`[POST UPDATE] Content translation for ${locale} contains error, using original`);
-          contentTranslations[locale] = body.content || existing.content || "";
-        }
+
+      // Content (HTML-aware)
+      if (contentSource && contentSource.trim()) {
+        const contentHTML = contentSource.trim();
+        const translated =
+          contentHTML.includes("<") && contentHTML.includes(">")
+            ? await translateHTML(contentHTML, editLocale, translateToLocales)
+            : await autoTranslate(contentHTML, editLocale, translateToLocales);
+        for (const l of translateToLocales) mergedContentTranslations[l] = translated[l] || "";
       }
-    }
-    
-    if (body.excerpt !== undefined) {
-      update.excerpt = body.excerpt || "";
-      // Auto-translate excerpt - check if HTML or plain text
-      if (body.excerpt && body.excerpt.trim()) {
-        const excerptChanged = body.excerpt !== existing.excerpt;
-        const excerptNeedsTranslation = needsTranslation(existingMetadata.excerptTranslations, body.excerpt);
-        
-        if (excerptChanged || excerptNeedsTranslation) {
-          try {
-            const excerptText = body.excerpt.trim();
-            if (excerptText.includes("<") && excerptText.includes(">")) {
-              // HTML excerpt
-              excerptTranslations = await translateHTML(excerptText, sourceLocale);
-            } else {
-              // Plain text excerpt
-              excerptTranslations = await autoTranslate(excerptText, sourceLocale);
-            }
-          } catch (error) {
-            console.error("Error translating excerpt:", error);
-            excerptTranslations[sourceLocale] = body.excerpt;
-          }
-        }
-        
-        // Clean any error messages from excerpt translations
-        for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
-          if (excerptTranslations[locale] && 
-              (excerptTranslations[locale].includes("QUERY LENGTH LIMIT") ||
-               excerptTranslations[locale].includes("MAX ALLOWED QUERY") ||
-               excerptTranslations[locale].includes("500 CHARS"))) {
-            console.warn(`[POST UPDATE] Excerpt translation for ${locale} contains error, using original`);
-            excerptTranslations[locale] = body.excerpt || existing.excerpt || "";
-          }
-        }
+
+      // Excerpt
+      if (excerptSource && excerptSource.trim()) {
+        const excerptText = excerptSource.trim();
+        const translated =
+          excerptText.includes("<") && excerptText.includes(">")
+            ? await translateHTML(excerptText, editLocale, translateToLocales)
+            : await autoTranslate(excerptText, editLocale, translateToLocales);
+        for (const l of translateToLocales) mergedExcerptTranslations[l] = translated[l] || "";
       }
     }
     
     if (body.featuredImage !== undefined) update.featuredImage = body.featuredImage || "";
     if (body.status !== undefined) update.status = body.status;
     if (body.type !== undefined) update.type = body.type;
-    if (body.locale !== undefined) update.locale = body.locale;
-    if (eventDate !== undefined) update.eventDate = eventDate;
+    // Never change base locale via translation edits unless explicitly editing base locale
+    if (isBaseEdit && body.locale !== undefined) update.locale = body.locale;
+    if (eventDate === null) {
+      update.eventDate = null;
+    } else if (eventDate !== undefined) {
+      update.eventDate = eventDate;
+    }
     if (body.eventLocation !== undefined) update.eventLocation = body.eventLocation || "";
 
-    // Update metadata with translations
+    // Update metadata with (possibly partial) translations
     update.metadata = {
       ...existingMetadata,
-      titleTranslations,
-      contentTranslations,
-      excerptTranslations,
+      titleTranslations: mergedTitleTranslations,
+      contentTranslations: mergedContentTranslations,
+      excerptTranslations: mergedExcerptTranslations,
     };
 
     // If status changed to published, set publishedAt and publishedBy
@@ -334,7 +292,11 @@ export async function PUT(
     if (body.featuredImage !== undefined) updatesForAllLocales.featuredImage = body.featuredImage || "";
     if (body.status !== undefined) updatesForAllLocales.status = body.status;
     if (body.type !== undefined) updatesForAllLocales.type = body.type;
-    if (eventDate !== undefined) updatesForAllLocales.eventDate = eventDate;
+    if (eventDate === null) {
+      updatesForAllLocales.eventDate = null;
+    } else if (eventDate !== undefined) {
+      updatesForAllLocales.eventDate = eventDate;
+    }
     if (body.eventLocation !== undefined) updatesForAllLocales.eventLocation = body.eventLocation || "";
     // Handle republish for all locales
     const isRepublishForAll = body.republish === true && existing.status === "published";
@@ -349,9 +311,9 @@ export async function PUT(
 
     // Update metadata with translations for all related posts
     updatesForAllLocales.metadata = {
-      titleTranslations,
-      contentTranslations,
-      excerptTranslations,
+      titleTranslations: mergedTitleTranslations,
+      contentTranslations: mergedContentTranslations,
+      excerptTranslations: mergedExcerptTranslations,
     };
 
     // Update all posts with the same slug (different locales)
@@ -361,13 +323,12 @@ export async function PUT(
     );
 
     // Update each locale-specific post with its translated content
-    for (const targetLocale of allLocales) {
-      if (targetLocale === sourceLocale) continue; // Already updated above
-
+    // Only do this for requested locales; otherwise do not overwrite locale-specific documents.
+    for (const targetLocale of translateToLocales) {
       const localeUpdate: any = {
-        title: titleTranslations[targetLocale] || existing.title,
-        content: contentTranslations[targetLocale] || existing.content,
-        excerpt: excerptTranslations[targetLocale] || existing.excerpt || "",
+        title: mergedTitleTranslations[targetLocale] || existing.title,
+        content: mergedContentTranslations[targetLocale] || existing.content,
+        excerpt: mergedExcerptTranslations[targetLocale] || existing.excerpt || "",
         updatedAt: now,
       };
 

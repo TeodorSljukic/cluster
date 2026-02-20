@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { localeLink, type Locale } from "@/lib/localeLink";
+import { getTranslations } from "@/lib/getTranslations";
 
 interface AdminGuardProps {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     }
     return "me";
   })();
+  const t = getTranslations(locale);
 
   useEffect(() => {
     checkAuth();
@@ -31,7 +33,8 @@ export function AdminGuard({ children }: AdminGuardProps) {
     try {
       const res = await fetch("/api/auth/me");
       const data = await res.json();
-      if (!data.user || data.user.role !== "admin") {
+      const allowedRoles = ["admin", "moderator", "editor"];
+      if (!data.user || !allowedRoles.includes(data.user.role)) {
         router.push(localeLink("/login", locale));
         return;
       }
@@ -45,11 +48,12 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   if (loading) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>Loading...</div>
+      <div style={{ padding: "2rem", textAlign: "center" }}>{t.cms.loading}</div>
     );
   }
 
-  if (!user || user.role !== "admin") {
+  const allowedRoles = ["admin", "moderator", "editor"];
+  if (!user || !allowedRoles.includes(user.role)) {
     return null;
   }
 

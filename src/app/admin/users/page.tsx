@@ -5,6 +5,9 @@ import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
 import { getTranslations } from "@/lib/getTranslations";
 import { defaultLocale, type Locale } from "@/lib/i18n";
+import { getStoredCmsLocale } from "@/lib/cmsLocale";
+
+const CMS_DEBUG = process.env.NEXT_PUBLIC_CMS_DEBUG === "1";
 
 interface User {
   _id: string;
@@ -62,16 +65,10 @@ export default function UsersPage() {
   useEffect(() => {
     loadUsers();
     // Load CMS locale from localStorage
-    const savedLocale = localStorage.getItem("cms-locale") as Locale;
-    if (savedLocale) {
-      setCmsLocale(savedLocale);
-    }
+    setCmsLocale(getStoredCmsLocale());
     // Listen for locale changes
     const handleLocaleChange = () => {
-      const newLocale = localStorage.getItem("cms-locale") as Locale;
-      if (newLocale) {
-        setCmsLocale(newLocale);
-      }
+      setCmsLocale(getStoredCmsLocale());
     };
     window.addEventListener("cms-locale-changed", handleLocaleChange);
     return () => {
@@ -80,10 +77,10 @@ export default function UsersPage() {
   }, [loadUsers]);
 
   const handleResetPassword = useCallback(async (userId: string, email: string) => {
-    console.log("[RESET PASSWORD] Starting reset password for user:", userId, email);
+    if (CMS_DEBUG) console.log("[RESET PASSWORD] Starting reset password for user:", userId, email);
     
     if (!confirm(`${t.adminUsers.generateResetLink} ${email}?`)) {
-      console.log("[RESET PASSWORD] User cancelled");
+      if (CMS_DEBUG) console.log("[RESET PASSWORD] User cancelled");
       return;
     }
 
@@ -91,7 +88,7 @@ export default function UsersPage() {
     setResetPasswordResult(null);
     
     try {
-      console.log("[RESET PASSWORD] Making API request to:", `/api/admin/users/${userId}/reset-password`);
+      if (CMS_DEBUG) console.log("[RESET PASSWORD] Making API request to:", `/api/admin/users/${userId}/reset-password`);
       
       const res = await fetch(`/api/admin/users/${userId}/reset-password`, {
         method: "POST",
@@ -101,29 +98,29 @@ export default function UsersPage() {
         credentials: "include",
       });
       
-      console.log("[RESET PASSWORD] Response status:", res.status, res.statusText);
+      if (CMS_DEBUG) console.log("[RESET PASSWORD] Response status:", res.status, res.statusText);
       
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+        const errorData = await res.json().catch(() => ({ error: t.cms.unknownError }));
         console.error("[RESET PASSWORD] Error response:", errorData);
         throw new Error(errorData.error || `HTTP ${res.status}`);
       }
       
       const data = await res.json();
-      console.log("[RESET PASSWORD] Success response:", data);
+      if (CMS_DEBUG) console.log("[RESET PASSWORD] Success response:", data);
       if (res.ok) {
         setResetPasswordResult({ userId, link: data.resetLink });
         
         // Show message based on email sending status
         if (data.emailSent) {
-          alert(`${t.adminUsers.resetLinkGenerated}\n\nEmail has been sent to ${data.email}.`);
+          alert(`${t.adminUsers.resetLinkGenerated}\n\n${t.adminUsers.resetEmailSentTo} ${data.email}.`);
         } else if (data.emailSent === false) {
           // Email failed, show link to copy
           try {
             await navigator.clipboard.writeText(data.resetLink);
-            alert(`${t.adminUsers.resetLinkGenerated}\n\nEmail sending failed. Link copied to clipboard:\n${data.resetLink}`);
+            alert(`${t.adminUsers.resetLinkGenerated}\n\n${t.adminUsers.resetEmailSendFailedCopied}\n${data.resetLink}`);
           } catch (err) {
-            alert(`${t.adminUsers.resetLinkGenerated}\n\nEmail sending failed. Please copy this link manually:\n${data.resetLink}`);
+            alert(`${t.adminUsers.resetLinkGenerated}\n\n${t.adminUsers.resetEmailSendFailedManual}\n${data.resetLink}`);
           }
         } else {
           // Fallback for old API responses
@@ -144,7 +141,7 @@ export default function UsersPage() {
         stack: error?.stack,
         name: error?.name,
       });
-      alert(`${t.adminUsers.failedToGenerate}\n\nError: ${error?.message || "Unknown error"}`);
+      alert(`${t.adminUsers.failedToGenerate}\n\n${t.cms.errorLabel}: ${error?.message || t.cms.unknownError}`);
     } finally {
       setResetPasswordLoading(null);
     }
@@ -197,7 +194,7 @@ export default function UsersPage() {
     return (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log("[RESET PASSWORD BUTTON] Clicked for user:", userId, email);
+      if (CMS_DEBUG) console.log("[RESET PASSWORD BUTTON] Clicked for user:", userId, email);
       handleResetPassword(userId, email).catch((err) => {
         console.error("[RESET PASSWORD BUTTON] Unhandled error:", err);
       });
@@ -287,16 +284,16 @@ export default function UsersPage() {
                         username: data.user.username,
                         password: data.password,
                       });
-                      alert(`${t.adminUsers.userCreatedSuccess}\n\n${t.adminUsers.emailFailed}: ${data.emailError || "Unknown error"}\n\n${t.adminUsers.credentialsBelow}`);
+                      alert(`${t.adminUsers.userCreatedSuccess}\n\n${t.adminUsers.emailFailed}: ${data.emailError || t.cms.unknownError}\n\n${t.adminUsers.credentialsBelow}`);
                     }
                     setCreateUserEmail("");
                     setCreateUserRole("user");
                     loadUsers();
                   } else {
-                    alert(`${t.adminUsers.errorCreatingUser}: ${data.error || "Unknown error"}`);
+                    alert(`${t.adminUsers.errorCreatingUser}: ${data.error || t.cms.unknownError}`);
                   }
                 } catch (error: any) {
-                  alert(`${t.adminUsers.errorCreatingUser}: ${error.message || "Unknown error"}`);
+                  alert(`${t.adminUsers.errorCreatingUser}: ${error.message || t.cms.unknownError}`);
                 } finally {
                   setCreateUserLoading(false);
                 }

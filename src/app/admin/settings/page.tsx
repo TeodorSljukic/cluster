@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
-import { locales, localeNames, localeFlags, type Locale, defaultLocale } from "@/lib/i18n";
+import { localeNames, localeFlags, type Locale, defaultLocale } from "@/lib/i18n";
 import { getTranslations } from "@/lib/getTranslations";
+import { getStoredCmsLocale } from "@/lib/cmsLocale";
 
 export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
@@ -16,10 +17,7 @@ export default function SettingsPage() {
 
   // Load settings and CMS locale from localStorage
   useEffect(() => {
-    const savedLocale = localStorage.getItem("cms-locale") as Locale;
-    if (savedLocale && locales.includes(savedLocale)) {
-      setCmsLocale(savedLocale);
-    }
+    setCmsLocale(getStoredCmsLocale());
     
     // Load settings from API
     async function loadSettings() {
@@ -43,37 +41,23 @@ export default function SettingsPage() {
   // Listen for locale changes
   useEffect(() => {
     const handleLocaleChange = () => {
-      const savedLocale = localStorage.getItem("cms-locale") as Locale;
-      if (savedLocale && locales.includes(savedLocale)) {
-        setCmsLocale((prevLocale) => {
-          if (prevLocale !== savedLocale) {
-            return savedLocale;
-          }
-          return prevLocale;
-        });
-      }
+      const savedLocale = getStoredCmsLocale();
+      setCmsLocale((prevLocale) => (prevLocale !== savedLocale ? savedLocale : prevLocale));
     };
-    
-    // Check immediately
+
+    // Sync once on mount (covers refreshed tabs and restored sessions).
     handleLocaleChange();
-    
+
     window.addEventListener("storage", handleLocaleChange);
     window.addEventListener("cms-locale-changed", handleLocaleChange);
-    // Check more frequently for same-window updates
-    const interval = setInterval(handleLocaleChange, 50);
+
     return () => {
       window.removeEventListener("storage", handleLocaleChange);
       window.removeEventListener("cms-locale-changed", handleLocaleChange);
-      clearInterval(interval);
     };
   }, []);
 
-  // Update translations when locale changes
-  const [t, setT] = useState(() => getTranslations(cmsLocale));
-  
-  useEffect(() => {
-    setT(getTranslations(cmsLocale));
-  }, [cmsLocale]);
+  const t = getTranslations(cmsLocale);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,11 +80,11 @@ export default function SettingsPage() {
       if (res.ok) {
         setMessage(t.cms.settingsSaved);
       } else {
-        setMessage(data.error || "Error saving settings");
+        setMessage(data.error || t.cms.saveFailed);
       }
     } catch (error: any) {
       console.error("Error saving settings:", error);
-      setMessage("Error saving settings: " + (error.message || "Unknown error"));
+      setMessage(`${t.cms.saveFailed}: ${error.message || t.cms.unknownError}`);
     } finally {
       setSaving(false);
     }

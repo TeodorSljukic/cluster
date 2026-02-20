@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { getTranslations, type Locale } from "@/lib/getTranslations";
 
@@ -10,7 +10,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   // Extract locale from pathname
@@ -48,7 +47,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
+    <main className="login-page">
       <div className="login-wrapper">
         <h2 className="login-title">{t.login.title}</h2>
 
@@ -77,14 +76,10 @@ export default function LoginPage() {
               required
             />
           </div>
-          <div style={{ marginBottom: "15px", textAlign: "right" }}>
+          <div className="login-forgot-wrapper">
             <Link 
               href={`/${locale}/forgot-password`}
-              style={{ 
-                color: "#0073e6", 
-                textDecoration: "none",
-                fontSize: "14px"
-              }}
+              className="login-forgot-link"
             >
               {t.login.forgotPassword}
             </Link>

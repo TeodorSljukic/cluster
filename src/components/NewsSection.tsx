@@ -102,11 +102,15 @@ export async function NewsSection({ locale = "en" }: NewsSectionProps) {
                     {formatDate(post.publishedAt || post.createdAt)}
                   </span>
                 </div>
-                <h3 className="news-item-title">{post.title}</h3>
+                <h3 className="news-item-title">
+                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
+                </h3>
 
-                <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
-                  {t.news.readMore}
-                </Link>
+                <div className="news-button-wrapper">
+                  <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
+                    {t.news.readMore}
+                  </Link>
+                </div>
               </div>
             ))}
           </div>

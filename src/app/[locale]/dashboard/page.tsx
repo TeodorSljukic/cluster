@@ -500,88 +500,31 @@ export default function DashboardPage() {
 
       {/* Platform Links Section */}
       {(registeredPlatforms.lms || registeredPlatforms.ecommerce || registeredPlatforms.dms) && (
-        <div className="dashboard-platforms-section" style={{
-          marginTop: "32px",
-          background: "white",
-          borderRadius: "12px",
-          padding: "24px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        }}>
-          <h3 style={{
-            fontSize: "20px",
-            fontWeight: "600",
-            marginBottom: "20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}>
+        <div className="dashboard-platforms-section">
+          <h3>
             <Globe size={20} />
             {t.dashboard.yourPlatforms}
           </h3>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "16px",
-          }}>
+          <div className="dashboard-platforms-grid">
             {registeredPlatforms.lms && (
               <a
                 href="http://edu.southadriaticskills.org"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="dashboard-platform-link"
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "16px",
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  borderRadius: "8px",
-                  color: "white",
-                  textDecoration: "none",
-                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
-                  e.currentTarget.style.boxShadow = "0 16px 32px rgba(0,0,0,0.2)";
-                  e.currentTarget.style.borderRadius = "12px";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0) scale(1)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-                  e.currentTarget.style.borderRadius = "8px";
-                }}
+                  "--platform-color-1": "#667eea",
+                  "--platform-color-2": "#764ba2",
+                } as React.CSSProperties}
               >
-                <div style={{
-                  width: "40px",
-                  height: "40px",
-                  background: "rgba(255,255,255,0.2)",
-                  borderRadius: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.1) rotate(5deg)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1) rotate(0deg)";
-                }}
-                >
+                <div className="dashboard-platform-icon">
                   <FileText size={20} />
                 </div>
-                <div>
-                  <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.eLearning}</div>
-                  <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.lmsPlatform}</div>
+                <div className="dashboard-platform-content">
+                  <div className="dashboard-platform-title">{t.dashboard.eLearning}</div>
+                  <div className="dashboard-platform-subtitle">{t.dashboard.lmsPlatform}</div>
                 </div>
-                <ArrowRight size={16} style={{ marginLeft: "auto", transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }} 
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateX(4px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateX(0)";
-                  }}
-                />
+                <ArrowRight size={16} className="dashboard-platform-arrow" />
               </a>
             )}
             {registeredPlatforms.ecommerce && (
@@ -589,60 +532,20 @@ export default function DashboardPage() {
                 href="https://market.southadriaticskills.org"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="dashboard-platform-link"
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "16px",
-                  background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-                  borderRadius: "8px",
-                  color: "white",
-                  textDecoration: "none",
-                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
-                  e.currentTarget.style.boxShadow = "0 16px 32px rgba(0,0,0,0.2)";
-                  e.currentTarget.style.borderRadius = "12px";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0) scale(1)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-                  e.currentTarget.style.borderRadius = "8px";
-                }}
+                  "--platform-color-1": "#f093fb",
+                  "--platform-color-2": "#f5576c",
+                } as React.CSSProperties}
               >
-                <div style={{
-                  width: "40px",
-                  height: "40px",
-                  background: "rgba(255,255,255,0.2)",
-                  borderRadius: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.1) rotate(5deg)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1) rotate(0deg)";
-                }}
-                >
+                <div className="dashboard-platform-icon">
                   <TrendingUp size={20} />
                 </div>
-                <div>
-                  <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.marketplace}</div>
-                  <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.ecommercePlatform}</div>
+                <div className="dashboard-platform-content">
+                  <div className="dashboard-platform-title">{t.dashboard.marketplace}</div>
+                  <div className="dashboard-platform-subtitle">{t.dashboard.ecommercePlatform}</div>
                 </div>
-                <ArrowRight size={16} style={{ marginLeft: "auto", transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }} 
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateX(4px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateX(0)";
-                  }}
-                />
+                <ArrowRight size={16} className="dashboard-platform-arrow" />
               </a>
             )}
             {registeredPlatforms.dms && (
@@ -650,60 +553,20 @@ export default function DashboardPage() {
                 href="https://info.southadriaticskills.org"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="dashboard-platform-link"
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "16px",
-                  background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-                  borderRadius: "8px",
-                  color: "white",
-                  textDecoration: "none",
-                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px) scale(1.02)";
-                  e.currentTarget.style.boxShadow = "0 16px 32px rgba(0,0,0,0.2)";
-                  e.currentTarget.style.borderRadius = "12px";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0) scale(1)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-                  e.currentTarget.style.borderRadius = "8px";
-                }}
+                  "--platform-color-1": "#4facfe",
+                  "--platform-color-2": "#00f2fe",
+                } as React.CSSProperties}
               >
-                <div style={{
-                  width: "40px",
-                  height: "40px",
-                  background: "rgba(255,255,255,0.2)",
-                  borderRadius: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.1) rotate(5deg)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1) rotate(0deg)";
-                }}
-                >
+                <div className="dashboard-platform-icon">
                   <FileText size={20} />
                 </div>
-                <div>
-                  <div style={{ fontWeight: "600", fontSize: "16px" }}>{t.dashboard.documents}</div>
-                  <div style={{ fontSize: "12px", opacity: 0.9 }}>{t.dashboard.dmsPlatform}</div>
+                <div className="dashboard-platform-content">
+                  <div className="dashboard-platform-title">{t.dashboard.documents}</div>
+                  <div className="dashboard-platform-subtitle">{t.dashboard.dmsPlatform}</div>
                 </div>
-                <ArrowRight size={16} style={{ marginLeft: "auto", transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }} 
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateX(4px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateX(0)";
-                  }}
-                />
+                <ArrowRight size={16} className="dashboard-platform-arrow" />
               </a>
             )}
           </div>
@@ -711,7 +574,7 @@ export default function DashboardPage() {
       )}
 
       {/* Recent Activity */}
-      <div className="dashboard-activity-grid" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="dashboard-activity-grid">
         <div className="activity-card">
           <div className="activity-card-header">
             <h3>
@@ -738,23 +601,7 @@ export default function DashboardPage() {
                         {userRole === "admin" && (
                           <Link
                             href={`/admin/posts?type=${post.type}&edit=${post._id}`}
-                            style={{
-                              fontSize: "12px",
-                              color: "#2271b1",
-                              textDecoration: "none",
-                              padding: "2px 6px",
-                              border: "1px solid #2271b1",
-                              borderRadius: "3px",
-                              transition: "all 0.2s",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "#2271b1";
-                              e.currentTarget.style.color = "white";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "transparent";
-                              e.currentTarget.style.color = "#2271b1";
-                            }}
+                            className="activity-item-edit-link"
                           >
                             Edit
                           </Link>

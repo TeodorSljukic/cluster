@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
+import { getTranslations } from "@/lib/getTranslations";
+import { defaultLocale, locales, type Locale } from "@/lib/i18n";
+import { getStoredCmsLocale } from "@/lib/cmsLocale";
 
 interface MediaFile {
   filename: string;
@@ -18,8 +21,11 @@ export default function MediaPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [cmsLocale, setCmsLocale] = useState<Locale>(defaultLocale);
+  const t = getTranslations(cmsLocale);
 
   useEffect(() => {
+    setCmsLocale(getStoredCmsLocale());
     loadMedia();
   }, []);
 
@@ -55,18 +61,18 @@ export default function MediaPage() {
         e.target.value = ""; // Reset input
       } else {
         const error = await res.json();
-        alert(`Error: ${error.error}`);
+        alert(`${t.cms.errorLabel}: ${error.error}`);
       }
     } catch (error) {
       console.error("Error uploading file:", error);
-      alert("Error uploading file");
+      alert(`${t.cms.uploading}: ${t.cms.unknownError}`);
     } finally {
       setUploading(false);
     }
   }
 
   async function handleDeleteFile(filename: string) {
-    if (!confirm("Are you sure you want to delete this file?")) {
+    if (!confirm(t.cms.deleteFileConfirm)) {
       return;
     }
 
@@ -81,11 +87,11 @@ export default function MediaPage() {
         loadMedia();
       } else {
         const error = await res.json();
-        alert(`Error: ${error.error}`);
+        alert(`${t.cms.errorLabel}: ${error.error}`);
       }
     } catch (error) {
       console.error("Error deleting file:", error);
-      alert("Error deleting file");
+      alert(`${t.cms.deleteFile}: ${t.cms.unknownError}`);
     } finally {
       setDeleting(null);
     }
@@ -117,7 +123,7 @@ export default function MediaPage() {
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
-    alert("URL copied to clipboard!");
+    alert(t.cms.urlCopied);
   }
 
   return (
@@ -133,7 +139,7 @@ export default function MediaPage() {
             }}
           >
             <h1 style={{ margin: 0, fontSize: "23px", fontWeight: "400" }}>
-              Media Library
+              {t.cms.mediaLibrary}
             </h1>
             <label
               style={{
@@ -147,7 +153,7 @@ export default function MediaPage() {
                 display: "inline-block",
               }}
             >
-              {uploading ? "Uploading..." : "Upload File"}
+              {uploading ? t.cms.uploading : t.cms.uploadFile}
               <input
                 type="file"
                 onChange={handleFileUpload}
@@ -218,7 +224,7 @@ export default function MediaPage() {
                       zIndex: 10,
                       opacity: deleting === file.filename ? 0.6 : 1,
                     }}
-                    title="Delete file"
+                    title={t.cms.deleteFile}
                   >
                     {deleting === file.filename ? "..." : "×"}
                   </button>
@@ -294,7 +300,7 @@ export default function MediaPage() {
                           fontSize: "12px",
                         }}
                       >
-                        Copy URL
+                        {t.cms.copyUrl}
                       </button>
                       {file.type !== "image" && (
                         <a
@@ -317,7 +323,7 @@ export default function MediaPage() {
                             justifyContent: "center",
                           }}
                         >
-                          Open
+                          {t.cms.open}
                         </a>
                       )}
                     </div>
@@ -336,10 +342,10 @@ export default function MediaPage() {
               }}
             >
               <p style={{ fontSize: "18px", marginBottom: "10px" }}>
-                No media files yet
+                {t.cms.noMediaFiles}
               </p>
               <p style={{ fontSize: "14px" }}>
-                Upload your first file to get started
+                {t.cms.uploadFirstFile}
               </p>
             </div>
           )}

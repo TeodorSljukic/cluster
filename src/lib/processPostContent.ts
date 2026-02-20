@@ -11,6 +11,14 @@ export function processPostContent(html: string): string {
     // #endregion
     let processed = html;
 
+    // Preserve intentional blank lines from the editor.
+    // TipTap can emit empty paragraphs like <p></p> or <p><br></p>;
+    // we convert them to explicit spacer paragraphs so frontend keeps multi-Enter spacing.
+    processed = processed.replace(
+      /<p>\s*(?:&nbsp;|\u00a0|<br\s*\/?>|\s)*<\/p>/gi,
+      '<p class="spacer-paragraph">&nbsp;</p>'
+    );
+
     // Process ul lists - add inline styles
     const ulMatches = processed.match(/<ul[^>]*>/gi);
     // #region agent log

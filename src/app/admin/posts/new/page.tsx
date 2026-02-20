@@ -7,20 +7,60 @@ import { AdminGuard } from "@/components/AdminGuard";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Post } from "@/models/Post";
-import { locales, localeNames, localeFlags, localeFlagEmojis, type Locale, defaultLocale } from "@/lib/i18n";
+import { locales, localeNames, type Locale, defaultLocale } from "@/lib/i18n";
+import { getTranslations } from "@/lib/getTranslations";
+import { getStoredCmsLocale } from "@/lib/cmsLocale";
+
+const CMS_DEBUG = process.env.NEXT_PUBLIC_CMS_DEBUG === "1";
+
+function toDateTimeLocalValue(value?: string | Date): string {
+  if (!value) return "";
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function getDatePart(value?: string): string {
+  if (!value) return "";
+  return value.slice(0, 10);
+}
+
+function getTimePart(value?: string): string {
+  if (!value) return "00:00";
+  const time = value.slice(11, 16);
+  return time || "00:00";
+}
 
 function NewPostPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = (searchParams.get("type") || "news") as "news" | "event";
   const [selectedLocale, setSelectedLocale] = useState<Locale | "">("");
+  const [cmsLocale, setCmsLocale] = useState<Locale>(defaultLocale);
+  const t = getTranslations(cmsLocale);
 
   // Load CMS locale from localStorage
   useEffect(() => {
-    const savedLocale = localStorage.getItem("cms-locale") as Locale;
-    if (savedLocale && locales.includes(savedLocale)) {
-      setSelectedLocale(savedLocale);
-    }
+    const locale = getStoredCmsLocale();
+    setSelectedLocale(locale);
+    setCmsLocale(locale);
+  }, []);
+
+  useEffect(() => {
+    const handleLocaleChange = () => {
+      const locale = getStoredCmsLocale();
+      setCmsLocale(locale);
+      setSelectedLocale((prev) => (prev ? prev : locale));
+    };
+
+    window.addEventListener("storage", handleLocaleChange);
+    window.addEventListener("cms-locale-changed", handleLocaleChange);
+
+    return () => {
+      window.removeEventListener("storage", handleLocaleChange);
+      window.removeEventListener("cms-locale-changed", handleLocaleChange);
+    };
   }, []);
 
   const [formData, setFormData] = useState<Partial<Post>>({
@@ -31,12 +71,31 @@ function NewPostPageInner() {
     featuredImage: "",
     status: "draft",
     type: type,
-    eventDate: undefined,
+    eventDate: "" as any,
     eventLocation: "",
   });
 
   const [saving, setSaving] = useState(false);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  const [translateOnSave, setTranslateOnSave] = useState(false);
+  const [translateTargets, setTranslateTargets] = useState<Record<Locale, boolean>>({
+    me: false,
+    en: false,
+    it: false,
+    sq: false,
+  });
+
+  useEffect(() => {
+    if (!selectedLocale) return;
+    setTranslateTargets({
+      me: selectedLocale !== "me",
+      en: selectedLocale !== "en",
+      it: selectedLocale !== "it",
+      sq: selectedLocale !== "sq",
+    });
+    setTranslateOnSave(false);
+  }, [selectedLocale]);
 
   function generateSlug(title: string) {
     return title
@@ -79,7 +138,7 @@ function NewPostPageInner() {
     try {
       // Validate required fields
       if (!formData.title || !formData.slug) {
-        alert("Please fill in all required fields (Title, Slug)");
+        alert(`${t.cms.fillRequiredFields} (${t.cms.title}, ${t.cms.slug})`);
         setSaving(false);
         return;
       }
@@ -102,21 +161,33 @@ function NewPostPageInner() {
         eventLocation: formData.eventLocation || "",
       };
 
-      // Convert dates to ISO strings if they exist
-      if (formData.eventDate) {
-        if (formData.eventDate instanceof Date) {
-          postData.eventDate = formData.eventDate.toISOString();
-        } else if (typeof formData.eventDate === "string") {
-          postData.eventDate = new Date(formData.eventDate).toISOString();
+      if (translateOnSave && selectedLocale) {
+        const targets = Array.from(locales)
+          .filter((l) => l !== selectedLocale)
+          .filter((l) => !!translateTargets[l]);
+        if (targets.length > 0) {
+          postData.translateToLocales = targets;
         }
       }
 
-      console.log("[CLIENT] Sending post data:", {
-        title: postData.title,
-        contentLength: postData.content?.length || 0,
-        contentPreview: postData.content?.substring(0, 100) || "empty",
-        locale: postData.locale,
-      });
+      // Convert dates to ISO strings if they exist
+      const eventDateValue = formData.eventDate as any;
+      if (typeof eventDateValue === "string") {
+        if (eventDateValue.trim()) {
+          postData.eventDate = new Date(eventDateValue).toISOString();
+        } else {
+          postData.eventDate = null;
+        }
+      }
+
+      if (CMS_DEBUG) {
+        console.log("[CLIENT] Sending post data:", {
+          title: postData.title,
+          contentLength: postData.content?.length || 0,
+          contentPreview: postData.content?.substring(0, 100) || "empty",
+          locale: postData.locale,
+        });
+      }
 
       const res = await fetch("/api/posts", {
         method: "POST",
@@ -124,24 +195,26 @@ function NewPostPageInner() {
         body: JSON.stringify(postData),
       });
 
-      console.log("[CLIENT] Response status:", res.status);
+      if (CMS_DEBUG) console.log("[CLIENT] Response status:", res.status);
 
       let data;
       try {
         const responseText = await res.text();
-        console.log("[CLIENT] Response text length:", responseText.length);
-        console.log("[CLIENT] Response text preview:", responseText.substring(0, 500));
+        if (CMS_DEBUG) {
+          console.log("[CLIENT] Response text length:", responseText.length);
+          console.log("[CLIENT] Response text preview:", responseText.substring(0, 500));
+        }
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error("Failed to parse response:", parseError);
-        alert("Error: Invalid response from server");
+        alert(`${t.cms.errorLabel}: ${t.cms.invalidServerResponse}`);
         setSaving(false);
         return;
       }
 
       if (res.ok) {
         // Log translation debug info
-        if (data.translationDebug) {
+        if (CMS_DEBUG && data.translationDebug) {
           console.log("[CLIENT] Translation Debug Info:", data.translationDebug);
           console.log("[CLIENT] Content Translation Lengths:", data.translationDebug.contentTranslationLengths);
           console.log("[CLIENT] Content Translation Previews:", data.translationDebug.contentTranslationPreviews);
@@ -155,11 +228,11 @@ function NewPostPageInner() {
       } else {
         console.error("Save error response:", { status: res.status, data });
         const errorMessage = data?.error || data?.message || `Server error (${res.status})`;
-        alert(`Error: ${errorMessage}`);
+        alert(`${t.cms.saveFailed}: ${errorMessage}`);
       }
     } catch (error: any) {
       console.error("Error saving post:", error);
-      alert(`Error saving post: ${error.message || "Unknown error"}`);
+      alert(`${t.cms.saveFailed}: ${error.message || t.cms.unknownError}`);
     } finally {
       setSaving(false);
     }
@@ -170,13 +243,13 @@ function NewPostPageInner() {
       <CMSLayout>
       <div style={{ background: "white", padding: "20px", borderRadius: "4px" }}>
         <h1 style={{ margin: "0 0 20px 0", fontSize: "23px", fontWeight: "400" }}>
-          Add New {type.charAt(0).toUpperCase() + type.slice(1)}
+          {t.cms.addNew} {type === "news" ? t.cms.news : t.cms.events}
         </h1>
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px", fontWeight: "600" }}>
-              Language <span style={{ color: "red" }}>*</span>
+              {t.cms.selectLanguage || t.cms.language} <span style={{ color: "red" }}>*</span>
             </label>
             <select
               value={selectedLocale || ""}
@@ -198,7 +271,7 @@ function NewPostPageInner() {
                 background: "white",
               }}
             >
-              <option value="" disabled>Please select language</option>
+              <option value="" disabled>{t.cms.pleaseSelectLanguage}</option>
               {locales.map((locale) => (
                 <option key={locale} value={locale}>
                   {localeNames[locale]} ({locale.toUpperCase()})
@@ -208,8 +281,47 @@ function NewPostPageInner() {
           </div>
 
           <div style={{ marginBottom: "1rem" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: "600" }}>
+              <input
+                type="checkbox"
+                checked={translateOnSave}
+                onChange={(e) => setTranslateOnSave(e.target.checked)}
+                disabled={!selectedLocale}
+              />
+              {t.cms.translateOnSave}
+            </label>
+            {translateOnSave && selectedLocale && (
+              <div style={{ marginTop: "8px", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                {Array.from(locales).filter((l) => l !== selectedLocale).map((l) => (
+                  <label
+                    key={l}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "6px 10px",
+                      border: "1px solid #dcdcde",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!translateTargets[l]}
+                      onChange={(e) =>
+                        setTranslateTargets((prev) => ({ ...prev, [l]: e.target.checked }))
+                      }
+                    />
+                    {localeNames[l]} ({l.toUpperCase()})
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginBottom: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px" }}>
-              Title *
+              {t.cms.title} *
             </label>
             <input
               type="text"
@@ -229,7 +341,7 @@ function NewPostPageInner() {
 
           <div style={{ marginBottom: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px" }}>
-              Slug *
+              {t.cms.slug} *
             </label>
             <input
               type="text"
@@ -248,81 +360,89 @@ function NewPostPageInner() {
 
           <div style={{ marginBottom: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px", fontWeight: "600" }}>
-              Excerpt
+              {t.cms.excerpt}
             </label>
             <RichTextEditor
               value={formData.excerpt || ""}
               onChange={(value) => setFormData({ ...formData, excerpt: value })}
-              placeholder="Enter a short excerpt..."
+              placeholder={t.cms.excerptPlaceholder}
+              toolbarSide="top"
+              stickyToolbar
+              editorHeight={320}
             />
           </div>
-
           <div style={{ marginBottom: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px", fontWeight: "600" }}>
-              Content *
+              {t.cms.content} *
             </label>
             <RichTextEditor
               value={formData.content || ""}
               onChange={(value) => setFormData({ ...formData, content: value })}
-              placeholder="Enter your content here..."
+              placeholder={t.cms.contentPlaceholder}
+              toolbarSide="top"
+              stickyToolbar
+              editorHeight={520}
             />
           </div>
 
           <ImageUpload
             value={formData.featuredImage || ""}
             onChange={(url) => setFormData({ ...formData, featuredImage: url })}
-            label="Featured Image"
+            label={t.cms.featuredImage}
           />
 
           {type === "event" && (
             <>
               <div style={{ marginBottom: "1rem" }}>
                 <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px" }}>
-                  Event Date
+                  {t.cms.eventDate}
                 </label>
-                <input
-                  type="datetime-local"
-                  value={
-                    formData.eventDate
-                      ? (() => {
-                          const date = new Date(formData.eventDate);
-                          // Convert to local timezone for datetime-local input
-                          const year = date.getFullYear();
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
-                          const day = String(date.getDate()).padStart(2, "0");
-                          const hours = String(date.getHours()).padStart(2, "0");
-                          const minutes = String(date.getMinutes()).padStart(2, "0");
-                          return `${year}-${month}-${day}T${hours}:${minutes}`;
-                        })()
-                      : ""
-                  }
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      // datetime-local gives us local time, create Date object
-                      const localDate = new Date(e.target.value);
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <input
+                    type="date"
+                    value={getDatePart(typeof formData.eventDate === "string" ? formData.eventDate : toDateTimeLocalValue(formData.eventDate))}
+                    onChange={(e) => {
+                      const nextDate = e.target.value;
+                      const current = typeof formData.eventDate === "string" ? formData.eventDate : toDateTimeLocalValue(formData.eventDate);
+                      const nextTime = getTimePart(current);
                       setFormData({
                         ...formData,
-                        eventDate: localDate,
+                        eventDate: (nextDate ? `${nextDate}T${nextTime}` : "") as any,
                       });
-                    } else {
+                    }}
+                    style={{
+                      width: "100%",
+                      maxWidth: "220px",
+                      padding: "6px 10px",
+                      border: "1px solid #8c8f94",
+                      borderRadius: "3px",
+                    }}
+                  />
+                  <input
+                    type="time"
+                    value={getTimePart(typeof formData.eventDate === "string" ? formData.eventDate : toDateTimeLocalValue(formData.eventDate))}
+                    onChange={(e) => {
+                      const nextTime = e.target.value || "00:00";
+                      const current = typeof formData.eventDate === "string" ? formData.eventDate : toDateTimeLocalValue(formData.eventDate);
+                      const nextDate = getDatePart(current);
                       setFormData({
                         ...formData,
-                        eventDate: undefined,
+                        eventDate: (nextDate ? `${nextDate}T${nextTime}` : "") as any,
                       });
-                    }
-                  }}
-                  style={{
-                    width: "100%",
-                    maxWidth: "300px",
-                    padding: "6px 10px",
-                    border: "1px solid #8c8f94",
-                    borderRadius: "3px",
-                  }}
-                />
+                    }}
+                    style={{
+                      width: "100%",
+                      maxWidth: "140px",
+                      padding: "6px 10px",
+                      border: "1px solid #8c8f94",
+                      borderRadius: "3px",
+                    }}
+                  />
+                </div>
               </div>
               <div style={{ marginBottom: "1rem" }}>
                 <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px" }}>
-                  Event Location
+                  {t.cms.eventLocation}
                 </label>
                 <input
                   type="text"
@@ -344,7 +464,7 @@ function NewPostPageInner() {
 
           <div style={{ marginBottom: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "14px" }}>
-              Status
+              {t.cms.status}
             </label>
             <select
               value={formData.status}
@@ -362,8 +482,8 @@ function NewPostPageInner() {
                 borderRadius: "3px",
               }}
             >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
+              <option value="draft">{t.cms.draft}</option>
+              <option value="published">{t.cms.published}</option>
             </select>
           </div>
 
@@ -381,7 +501,7 @@ function NewPostPageInner() {
                 fontSize: "13px",
               }}
             >
-              {saving ? "Publishing..." : "Publish"}
+              {saving ? t.cms.saving : t.cms.save}
             </button>
             <button
               type="button"
@@ -396,7 +516,7 @@ function NewPostPageInner() {
                 fontSize: "13px",
               }}
             >
-              Cancel
+              {t.cms.cancel}
             </button>
           </div>
         </form>

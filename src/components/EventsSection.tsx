@@ -84,29 +84,33 @@ export async function EventsSection({ locale = "en" }: EventsSectionProps) {
         </p>
 
         {displayPosts.length > 0 && (
-          <div className="events-grid" data-aos="fade-up">
+          <div className="news-grid" data-aos="fade-up">
             {displayPosts.map((post: Post) => (
-              <div key={post._id} className="event-card">
+              <div key={post._id} className="news-item">
                 {post.featuredImage && (
                   <Link href={localeLink(`/posts/${post.slug}`, locale)}>
                     <img
                       src={post.featuredImage}
                       alt={post.title}
-                      className="event-thumb"
+                      className="news-thumb"
                     />
                   </Link>
                 )}
 
-                <div className="event-meta">
-                  <span className="event-date">
+                <div className="news-meta">
+                  <span className="news-date">
                     {formatDate(post.eventDate || post.publishedAt || post.createdAt)}
                   </span>
                 </div>
-                <h3 className="event-title">{post.title}</h3>
+                <h3 className="news-item-title">
+                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
+                </h3>
 
-                <Link href={localeLink(`/posts/${post.slug}`, locale)} className="event-button">
-                  {t.events.readMore}
-                </Link>
+                <div className="news-button-wrapper">
+                  <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
+                    {t.events.readMore}
+                  </Link>
+                </div>
               </div>
             ))}
           </div>

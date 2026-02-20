@@ -107,8 +107,8 @@ export default async function NewsPage({
   const { posts, pagination } = await getNews(locale, page, 50);
 
   return (
-    <main className="blog-archive container" style={{ padding: "40px 20px" }}>
-      <h2 data-aos="fade-up" style={{ fontSize: "2.5rem", marginBottom: "30px", color: "#E23F65" }}>
+    <main className="blog-archive container">
+      <h2 data-aos="fade-up" className="page-title">
         {t.newsPage.title}
       </h2>
 
@@ -149,7 +149,7 @@ export default async function NewsPage({
             </div>
           ))
         ) : (
-          <p style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px", color: "#666" }}>
+          <p className="empty-state">
             {t.newsPage.noPostsFound}
           </p>
         )}

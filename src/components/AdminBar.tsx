@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { localeLink, type Locale } from "@/lib/localeLink";
+import { getTranslations } from "@/lib/getTranslations";
+import { defaultLocale, locales } from "@/lib/i18n";
+import { getStoredCmsLocale } from "@/lib/cmsLocale";
 
 interface User {
   _id: string;
@@ -11,17 +14,20 @@ interface User {
   email: string;
   role: string;
   displayName?: string;
+  profilePicture?: string;
 }
 
 export function AdminBar() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [cmsLocale, setCmsLocale] = useState<Locale>(defaultLocale);
   const pathname = usePathname();
+  const t = getTranslations(cmsLocale);
 
   useEffect(() => {
     setLoading(true); // Reset loading state when route changes
     checkAuth();
+    setCmsLocale(getStoredCmsLocale());
   }, [pathname]); // Re-check when route changes (e.g., after login)
 
   async function checkAuth() {
@@ -105,26 +111,8 @@ export function AdminBar() {
       }}
     >
       <div className="admin-bar-left" style={{ display: "flex", alignItems: "center", gap: "15px", flex: 1, minWidth: 0 }}>
-        {/* Site Logo/Name */}
-        <Link
-          href="/"
-          style={{
-            color: "#a0a5aa",
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-            fontWeight: "600",
-            marginRight: "10px",
-          }}
-          className="admin-bar-logo"
-        >
-          <span className="admin-bar-emoji" style={{ fontSize: "16px" }}>🌊</span>
-          <span className="admin-bar-logo-text">ABGC</span>
-        </Link>
-
         {/* Main Navigation */}
-        <div className="admin-bar-nav" style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: "1px solid #3c434a", paddingLeft: "15px" }}>
+        <div className="admin-bar-nav" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {isOnSite ? (
             <Link
               href="/admin"
@@ -169,7 +157,7 @@ export function AdminBar() {
               }}
             >
               <span className="admin-bar-icon" style={{ fontSize: "14px" }}>🏠</span>
-              <span>Visit Site</span>
+              <span>{t.cms.visitSite}</span>
             </Link>
           )}
         </div>
@@ -177,32 +165,21 @@ export function AdminBar() {
 
       {/* Right side - User info */}
       <div className="admin-bar-right" style={{ display: "flex", alignItems: "center", gap: "10px", borderLeft: "1px solid #3c434a", paddingLeft: "15px", flexShrink: 0 }}>
-        <span className="admin-bar-greeting" style={{ fontSize: "13px" }}>Howdy, {user.displayName || user.username}</span>
+        <span className="admin-bar-greeting" style={{ fontSize: "13px" }}>{t.cms.howdy}, {user.displayName || user.username}</span>
         <div
           className="admin-bar-avatar"
           style={{
-            width: "26px",
-            height: "26px",
-            borderRadius: "50%",
-            background: "#50575e",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontSize: "12px",
-            fontWeight: "600",
-            cursor: "pointer",
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#5c636a";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#50575e";
+            background: user.profilePicture
+              ? `url(${user.profilePicture}) center/cover, linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
+              : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           }}
           title={user.email}
         >
-          {(user.displayName || user.username).charAt(0).toUpperCase()}
+          {!user.profilePicture && (
+            <span>
+              {(user.displayName || user.username).charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
         <button
           onClick={handleLogout}
@@ -223,7 +200,7 @@ export function AdminBar() {
             e.currentTarget.style.background = "transparent";
           }}
         >
-          Logout
+          {t.cms.logout}
         </button>
       </div>
     </div>
