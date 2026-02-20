@@ -48,8 +48,8 @@ async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null>
     };
 
     // Helper function to clean error messages from text
-    const cleanErrorMessage = (text: string): string => {
-      if (!text || typeof text !== "string") return text;
+    const cleanErrorMessage = (text: string | undefined): string => {
+      if (!text || typeof text !== "string") return text || "";
       const errorPatterns = [
         /QUERY LENGTH LIMIT EXCEEDED[^<]*/gi,
         /MAX ALLOWED QUERY[^<]*/gi,
