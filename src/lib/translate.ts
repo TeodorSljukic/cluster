@@ -87,9 +87,43 @@ export async function autoTranslate(
 }
 
 /**
+ * Split text into chunks of max length, trying to split at sentence boundaries
+ */
+function splitIntoChunks(text: string, maxLength: number): string[] {
+  if (text.length <= maxLength) {
+    return [text];
+  }
+
+  const chunks: string[] = [];
+  let remaining = text;
+
+  while (remaining.length > maxLength) {
+    // Try to find a good split point (sentence boundary)
+    const chunk = remaining.substring(0, maxLength);
+    const lastPeriod = chunk.lastIndexOf(".");
+    const lastExclamation = chunk.lastIndexOf("!");
+    const lastQuestion = chunk.lastIndexOf("?");
+    const lastNewline = chunk.lastIndexOf("\n");
+    
+    // Find the best split point
+    const splitPoints = [lastPeriod, lastExclamation, lastQuestion, lastNewline].filter(p => p > maxLength * 0.5);
+    const splitPoint = splitPoints.length > 0 ? Math.max(...splitPoints) + 1 : maxLength;
+
+    chunks.push(remaining.substring(0, splitPoint).trim());
+    remaining = remaining.substring(splitPoint).trim();
+  }
+
+  if (remaining.length > 0) {
+    chunks.push(remaining);
+  }
+
+  return chunks;
+}
+
+/**
  * Translate text from one language to another
  * Uses LibreTranslate public API (free, no API key needed)
- * Handles 500 character limit by truncating or skipping translation
+ * Handles 500 character limit by splitting text into chunks and translating each chunk
  */
 async function translateText(
   text: string,
@@ -107,6 +141,42 @@ async function translateText(
   }
 
   // Check length limit (500 chars for LibreTranslate)
+  const MAX_LENGTH = 500;
+  
+  // If text is longer than limit, split into chunks
+  if (text.length > MAX_LENGTH) {
+    const chunks = splitIntoChunks(text, MAX_LENGTH);
+    console.log(`[TRANSLATE] Text is ${text.length} chars, splitting into ${chunks.length} chunks`);
+    
+    // Translate each chunk separately
+    const translatedChunks: string[] = [];
+    for (let i = 0; i < chunks.length; i++) {
+      console.log(`[TRANSLATE] Translating chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)`);
+      const translatedChunk = await translateTextChunk(chunks[i], sourceLang, targetLang);
+      translatedChunks.push(translatedChunk);
+      
+      // Add small delay between chunks to avoid rate limiting
+      if (i < chunks.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    // Join all translated chunks
+    return translatedChunks.join(" ");
+  }
+  
+  // If text is short enough, translate directly
+  return translateTextChunk(text, sourceLang, targetLang);
+}
+
+/**
+ * Translate a single chunk of text (max 500 chars)
+ */
+async function translateTextChunk(
+  text: string,
+  sourceLang: string,
+  targetLang: string
+): Promise<string> {
   const MAX_LENGTH = 500;
   const textToTranslate = text.length > MAX_LENGTH ? text.substring(0, MAX_LENGTH) : text;
   const isTruncated = text.length > MAX_LENGTH;
@@ -244,41 +314,11 @@ export async function translateHTML(
     };
   }
 
-  // For long content, only translate first 500 chars to avoid API limits
-  // Split into sentences and translate up to limit
-  const MAX_TRANSLATE_LENGTH = 500;
-  let textToTranslate = textContent;
-  let remainingText = "";
-  
-  if (textContent.length > MAX_TRANSLATE_LENGTH) {
-    // Try to split at sentence boundary
-    const truncated = textContent.substring(0, MAX_TRANSLATE_LENGTH);
-    const lastPeriod = truncated.lastIndexOf(".");
-    const lastExclamation = truncated.lastIndexOf("!");
-    const lastQuestion = truncated.lastIndexOf("?");
-    const lastBreak = Math.max(lastPeriod, lastExclamation, lastQuestion);
-    
-    if (lastBreak > MAX_TRANSLATE_LENGTH * 0.7) {
-      // Split at sentence boundary if it's not too early
-      textToTranslate = textContent.substring(0, lastBreak + 1);
-      remainingText = textContent.substring(lastBreak + 1);
-    } else {
-      // Otherwise truncate at word boundary
-      const lastSpace = truncated.lastIndexOf(" ");
-      if (lastSpace > MAX_TRANSLATE_LENGTH * 0.7) {
-        textToTranslate = textContent.substring(0, lastSpace);
-        remainingText = textContent.substring(lastSpace);
-      } else {
-        textToTranslate = truncated;
-        remainingText = textContent.substring(MAX_TRANSLATE_LENGTH);
-      }
-    }
-  }
+  // Translate the full text content (will be automatically chunked if needed)
+  const translations = await autoTranslate(textContent, sourceLocale);
 
-  // Translate the text content
-  const translations = await autoTranslate(textToTranslate, sourceLocale);
-
-  // Append remaining text to all translations if it was truncated
+  // Replace text content in HTML with translated versions
+  // This is a simplified approach - in production you'd want better HTML parsing
   const result: Record<Locale, string> = {
     me: html,
     en: html,
@@ -286,10 +326,8 @@ export async function translateHTML(
     sq: html,
   };
 
-  // Replace text content in HTML with translated versions
-  // This is a simplified approach - in production you'd want better HTML parsing
   for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
-    let translatedText = translations[locale] + (remainingText || "");
+    let translatedText = translations[locale];
     // Check if translation contains error message
     if (containsErrorMessage(translatedText)) {
       console.warn(`[TRANSLATE] HTML translation for ${locale} contains error message, using original HTML`);
