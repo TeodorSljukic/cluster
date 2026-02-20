@@ -47,6 +47,21 @@ async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null>
       eventDate: post.eventDate?.toISOString(),
     };
 
+    // Helper function to clean error messages from text
+    const cleanErrorMessage = (text: string): string => {
+      if (!text || typeof text !== "string") return text;
+      const errorPatterns = [
+        /QUERY LENGTH LIMIT EXCEEDED[^<]*/gi,
+        /MAX ALLOWED QUERY[^<]*/gi,
+        /500 CHARS[^<]*/gi,
+      ];
+      let cleaned = text;
+      errorPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, "");
+      });
+      return cleaned.trim();
+    };
+
     // Use translations from metadata if available for current locale
     // Always prefer translation from metadata if it exists, even if locale matches
     // This ensures that if post was created in one language, translations are used when viewing in another
@@ -56,17 +71,21 @@ async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null>
       if (post.locale !== locale) {
         // Post is in different language, use translation
         if (post.metadata.titleTranslations?.[locale]) {
-          postData.title = post.metadata.titleTranslations[locale];
+          postData.title = cleanErrorMessage(post.metadata.titleTranslations[locale]);
         }
         if (post.metadata.contentTranslations?.[locale]) {
-          postData.content = post.metadata.contentTranslations[locale];
+          postData.content = cleanErrorMessage(post.metadata.contentTranslations[locale]);
         }
         if (post.metadata.excerptTranslations?.[locale]) {
-          postData.excerpt = post.metadata.excerptTranslations[locale];
+          postData.excerpt = cleanErrorMessage(post.metadata.excerptTranslations[locale]);
         }
       }
       // If locale matches, keep original text (already set above)
     }
+
+    // Clean error messages from original content/excerpt as well
+    postData.content = cleanErrorMessage(postData.content);
+    postData.excerpt = cleanErrorMessage(postData.excerpt);
 
     return postData;
   } catch (error) {

@@ -30,12 +30,44 @@ export async function POST(request: NextRequest) {
       postsBySlug.get(slug)!.push(post);
     }
 
+    // Helper function to clean error messages
+    const cleanErrorMessage = (text: string): string => {
+      if (!text || typeof text !== "string") return text;
+      const errorPatterns = [
+        /QUERY LENGTH LIMIT EXCEEDED[^<]*/gi,
+        /MAX ALLOWED QUERY[^<]*/gi,
+        /500 CHARS[^<]*/gi,
+      ];
+      let cleaned = text;
+      errorPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, "");
+      });
+      return cleaned.trim();
+    };
+
     // Process each post individually to add translations to metadata
     // We'll update each post with translations, not create new ones
     for (const post of allPosts) {
       try {
         // Ensure post has required fields
         const updates: any = {};
+        
+        // Clean error messages from existing content/excerpt
+        if (post.content && typeof post.content === "string" && 
+            (post.content.includes("QUERY LENGTH LIMIT") || 
+             post.content.includes("MAX ALLOWED QUERY") ||
+             post.content.includes("500 CHARS"))) {
+          updates.content = cleanErrorMessage(post.content);
+          migrated++;
+        }
+        if (post.excerpt && typeof post.excerpt === "string" && 
+            (post.excerpt.includes("QUERY LENGTH LIMIT") || 
+             post.excerpt.includes("MAX ALLOWED QUERY") ||
+             post.excerpt.includes("500 CHARS"))) {
+          updates.excerpt = cleanErrorMessage(post.excerpt);
+          migrated++;
+        }
+        
         if (!post.type) {
           const title = ((post.title || "") as string).toLowerCase();
           if (title.includes("event") || title.includes("dogadjaj")) {
@@ -71,6 +103,51 @@ export async function POST(request: NextRequest) {
         const sourceTitle = post.title || "";
         const sourceContent = post.content || "";
         const sourceExcerpt = post.excerpt || "";
+
+        // Clean error messages from existing metadata translations
+        if (post.metadata) {
+          if (post.metadata.titleTranslations) {
+            for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+              if (post.metadata.titleTranslations[locale] && 
+                  containsErrorMessage(post.metadata.titleTranslations[locale])) {
+                if (!updates.metadata) updates.metadata = { ...post.metadata };
+                if (!updates.metadata.titleTranslations) updates.metadata.titleTranslations = { ...post.metadata.titleTranslations };
+                updates.metadata.titleTranslations[locale] = cleanErrorMessage(post.metadata.titleTranslations[locale]);
+                migrated++;
+              }
+            }
+          }
+          if (post.metadata.contentTranslations) {
+            for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+              if (post.metadata.contentTranslations[locale] && 
+                  containsErrorMessage(post.metadata.contentTranslations[locale])) {
+                if (!updates.metadata) updates.metadata = { ...post.metadata };
+                if (!updates.metadata.contentTranslations) updates.metadata.contentTranslations = { ...post.metadata.contentTranslations };
+                updates.metadata.contentTranslations[locale] = cleanErrorMessage(post.metadata.contentTranslations[locale]);
+                migrated++;
+              }
+            }
+          }
+          if (post.metadata.excerptTranslations) {
+            for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+              if (post.metadata.excerptTranslations[locale] && 
+                  containsErrorMessage(post.metadata.excerptTranslations[locale])) {
+                if (!updates.metadata) updates.metadata = { ...post.metadata };
+                if (!updates.metadata.excerptTranslations) updates.metadata.excerptTranslations = { ...post.metadata.excerptTranslations };
+                updates.metadata.excerptTranslations[locale] = cleanErrorMessage(post.metadata.excerptTranslations[locale]);
+                migrated++;
+              }
+            }
+          }
+        }
+
+        // Helper function to check for error messages
+        const containsErrorMessage = (text: string): boolean => {
+          if (!text || typeof text !== "string") return false;
+          return text.includes("QUERY LENGTH LIMIT") || 
+                 text.includes("MAX ALLOWED QUERY") ||
+                 text.includes("500 CHARS");
+        };
 
         // Check if post already has translations in metadata
         const hasTranslations = post.metadata?.titleTranslations && 
@@ -129,6 +206,42 @@ export async function POST(request: NextRequest) {
                 // Plain text excerpt
                 excerptTranslations = await autoTranslate(excerptText, sourceLocale);
               }
+            }
+
+            // Clean error messages from translations before saving
+            const cleanErrorMessage = (text: string): string => {
+              if (!text || typeof text !== "string") return text;
+              const errorPatterns = [
+                /QUERY LENGTH LIMIT EXCEEDED[^<]*/gi,
+                /MAX ALLOWED QUERY[^<]*/gi,
+                /500 CHARS[^<]*/gi,
+              ];
+              let cleaned = text;
+              errorPatterns.forEach(pattern => {
+                cleaned = cleaned.replace(pattern, "");
+              });
+              return cleaned.trim();
+            };
+
+            // Clean all translations
+            for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
+              if (titleTranslations[locale]) {
+                titleTranslations[locale] = cleanErrorMessage(titleTranslations[locale]);
+              }
+              if (contentTranslations[locale]) {
+                contentTranslations[locale] = cleanErrorMessage(contentTranslations[locale]);
+              }
+              if (excerptTranslations[locale]) {
+                excerptTranslations[locale] = cleanErrorMessage(excerptTranslations[locale]);
+              }
+            }
+
+            // Also clean original content/excerpt if they contain errors
+            if (updates.content === undefined && sourceContent) {
+              updates.content = cleanErrorMessage(sourceContent);
+            }
+            if (updates.excerpt === undefined && sourceExcerpt) {
+              updates.excerpt = cleanErrorMessage(sourceExcerpt);
             }
 
             // Add translations to metadata
