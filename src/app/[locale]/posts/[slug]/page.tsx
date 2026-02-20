@@ -6,6 +6,7 @@ import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
 import { PostViewTracker } from "@/components/PostViewTracker";
 import { processPostContent } from "@/lib/processPostContent";
+import { srCyrToLat } from "@/lib/transliterate";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,13 @@ async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null>
     // Clean error messages from original content/excerpt as well
     postData.content = cleanErrorMessage(postData.content);
     postData.excerpt = cleanErrorMessage(postData.excerpt);
+
+    // Ensure Montenegrin ("me") is displayed in latinica
+    if (locale === "me") {
+      postData.title = srCyrToLat(postData.title);
+      postData.content = srCyrToLat(postData.content);
+      postData.excerpt = srCyrToLat(postData.excerpt || "");
+    }
 
     return postData;
   } catch (error) {

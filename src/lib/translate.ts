@@ -1,4 +1,5 @@
 import { type Locale } from "./i18n";
+import { srCyrToLat } from "./transliterate";
 
 const TRANSLATION_DEBUG = process.env.TRANSLATION_DEBUG === "1";
 const dbg = (...args: any[]) => {
@@ -35,57 +36,6 @@ function containsErrorMessage(text: string): boolean {
     "error:",
   ];
   return errorPatterns.some(pattern => text.includes(pattern));
-}
-
-function hasCyrillic(text: string): boolean {
-  return /[\u0400-\u04FF]/.test(text);
-}
-
-// Serbian Cyrillic -> Latin (basic transliteration)
-function srCyrToLat(input: string): string {
-  if (!input) return input;
-  if (!hasCyrillic(input)) return input;
-
-  // Handle digraphs first
-  const digraphs: Array<[RegExp, string]> = [
-    [/Љ/g, "Lj"], [/љ/g, "lj"],
-    [/Њ/g, "Nj"], [/њ/g, "nj"],
-    [/Џ/g, "Dž"], [/џ/g, "dž"],
-  ];
-  let s = input;
-  for (const [re, rep] of digraphs) s = s.replace(re, rep);
-
-  const map: Record<string, string> = {
-    А: "A", а: "a",
-    Б: "B", б: "b",
-    В: "V", в: "v",
-    Г: "G", г: "g",
-    Д: "D", д: "d",
-    Ђ: "Đ", ђ: "đ",
-    Е: "E", е: "e",
-    Ж: "Ž", ж: "ž",
-    З: "Z", з: "z",
-    И: "I", и: "i",
-    Ј: "J", ј: "j",
-    К: "K", к: "k",
-    Л: "L", л: "l",
-    М: "M", м: "m",
-    Н: "N", н: "n",
-    О: "O", о: "o",
-    П: "P", п: "p",
-    Р: "R", р: "r",
-    С: "S", с: "s",
-    Т: "T", т: "t",
-    Ћ: "Ć", ћ: "ć",
-    У: "U", у: "u",
-    Ф: "F", ф: "f",
-    Х: "H", х: "h",
-    Ц: "C", ц: "c",
-    Ч: "Č", ч: "č",
-    Ш: "Š", ш: "š",
-  };
-
-  return s.replace(/[\u0400-\u04FF]/g, (ch) => map[ch] ?? ch);
 }
 
 /**
@@ -475,7 +425,8 @@ export async function translateHTML(
     return { me: html, en: html, it: html, sq: html };
   }
 
-  const SEP = "\n[[[__SEP__]]]\n";
+  // Private-use separator chars: very unlikely to be modified by translation providers
+  const SEP = "\uE000\uE001\uE002\uE003\uE004";
   const joined = meaningful.join(SEP);
   dbg(`[TRANSLATE HTML] Translating ${meaningful.length} text chunks (joined length: ${joined.length})`);
 
