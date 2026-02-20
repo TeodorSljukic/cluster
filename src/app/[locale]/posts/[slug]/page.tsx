@@ -63,24 +63,19 @@ async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null>
     };
 
     // Use translations from metadata if available for current locale
-    // Always prefer translation from metadata if it exists, even if locale matches
-    // This ensures that if post was created in one language, translations are used when viewing in another
+    // ALWAYS use translation from metadata if it exists, regardless of post locale
+    // This ensures translations are always used when available
     if (post.metadata) {
-      // If post locale matches current locale, use original text
-      // Otherwise, use translation from metadata
-      if (post.locale !== locale) {
-        // Post is in different language, use translation
-        if (post.metadata.titleTranslations?.[locale]) {
-          postData.title = cleanErrorMessage(post.metadata.titleTranslations[locale]);
-        }
-        if (post.metadata.contentTranslations?.[locale]) {
-          postData.content = cleanErrorMessage(post.metadata.contentTranslations[locale]);
-        }
-        if (post.metadata.excerptTranslations?.[locale]) {
-          postData.excerpt = cleanErrorMessage(post.metadata.excerptTranslations[locale]);
-        }
+      // Always prefer translations from metadata if they exist
+      if (post.metadata.titleTranslations?.[locale]) {
+        postData.title = cleanErrorMessage(post.metadata.titleTranslations[locale]);
       }
-      // If locale matches, keep original text (already set above)
+      if (post.metadata.contentTranslations?.[locale]) {
+        postData.content = cleanErrorMessage(post.metadata.contentTranslations[locale]);
+      }
+      if (post.metadata.excerptTranslations?.[locale]) {
+        postData.excerpt = cleanErrorMessage(post.metadata.excerptTranslations[locale]);
+      }
     }
 
     // Clean error messages from original content/excerpt as well

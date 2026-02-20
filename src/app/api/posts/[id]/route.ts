@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 import { Post } from "@/models/Post";
 import { autoTranslate, translateHTML } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
-import { getCurrentUser } from "@/lib/auth";
+import { requireAdmin, getCurrentUser } from "@/lib/auth";
 
 // GET - Fetch single post by ID
 export async function GET(
@@ -154,15 +154,38 @@ export async function PUT(
     const sourceLocale = (body.locale || existing.locale || "me") as Locale;
     const allLocales: Locale[] = ["me", "en", "it", "sq"];
     
+    // Helper function to check if translations are missing or invalid
+    const needsTranslation = (translations: Record<Locale, string> | undefined, sourceText: string): boolean => {
+      if (!translations) return true;
+      // Check if we have valid translations for all locales
+      return !allLocales.every(locale => 
+        translations[locale] && 
+        translations[locale].trim() !== "" &&
+        translations[locale] !== sourceText &&
+        !translations[locale].includes("QUERY LENGTH LIMIT") &&
+        !translations[locale].includes("MAX ALLOWED QUERY") &&
+        !translations[locale].includes("500 CHARS")
+      );
+    };
+    
     // Only update fields that are provided
     if (body.title !== undefined) {
       update.title = body.title;
-      // Auto-translate title
-      try {
-        titleTranslations = await autoTranslate(body.title, sourceLocale);
-      } catch (error) {
-        console.error("Error translating title:", error);
-        titleTranslations[sourceLocale] = body.title;
+      // Auto-translate title if it changed or if translations are missing/invalid
+      const titleChanged = body.title !== existing.title;
+      const titleNeedsTranslation = needsTranslation(existingMetadata.titleTranslations, body.title);
+      
+      if (titleChanged || titleNeedsTranslation) {
+        try {
+          console.log(`[POST UPDATE] Translating title from ${sourceLocale}: "${body.title.substring(0, 50)}..."`);
+          titleTranslations = await autoTranslate(body.title, sourceLocale);
+          console.log(`[POST UPDATE] Title translations received:`, Object.keys(titleTranslations));
+        } catch (error) {
+          console.error("[POST UPDATE] Error translating title:", error);
+          titleTranslations[sourceLocale] = body.title;
+        }
+      } else {
+        console.log(`[POST UPDATE] Title translations already exist and are valid, skipping translation`);
       }
     }
     
@@ -172,19 +195,30 @@ export async function PUT(
       update.content = body.content || "";
       // Auto-translate content - use translateHTML to preserve structure
       if (body.content && body.content.trim()) {
-        try {
-          const contentHTML = body.content.trim();
-          // Check if content is HTML or plain text
-          if (contentHTML.includes("<") && contentHTML.includes(">")) {
-            // It's HTML, use translateHTML
-            contentTranslations = await translateHTML(contentHTML, sourceLocale);
-          } else {
-            // Plain text, use autoTranslate
-            contentTranslations = await autoTranslate(contentHTML, sourceLocale);
+        const contentChanged = body.content !== existing.content;
+        const contentNeedsTranslation = needsTranslation(existingMetadata.contentTranslations, body.content);
+        
+        if (contentChanged || contentNeedsTranslation) {
+          try {
+            const contentHTML = body.content.trim();
+            console.log(`[POST UPDATE] Translating content from ${sourceLocale} (length: ${contentHTML.length} chars)`);
+            // Check if content is HTML or plain text
+            if (contentHTML.includes("<") && contentHTML.includes(">")) {
+              // It's HTML, use translateHTML
+              console.log(`[POST UPDATE] Content is HTML, using translateHTML`);
+              contentTranslations = await translateHTML(contentHTML, sourceLocale);
+            } else {
+              // Plain text, use autoTranslate
+              console.log(`[POST UPDATE] Content is plain text, using autoTranslate`);
+              contentTranslations = await autoTranslate(contentHTML, sourceLocale);
+            }
+            console.log(`[POST UPDATE] Content translations received for locales:`, Object.keys(contentTranslations));
+          } catch (error) {
+            console.error("[POST UPDATE] Error translating content:", error);
+            contentTranslations[sourceLocale] = body.content;
           }
-        } catch (error) {
-          console.error("Error translating content:", error);
-          contentTranslations[sourceLocale] = body.content;
+        } else {
+          console.log(`[POST UPDATE] Content translations already exist and are valid, skipping translation`);
         }
       }
       
@@ -204,18 +238,23 @@ export async function PUT(
       update.excerpt = body.excerpt || "";
       // Auto-translate excerpt - check if HTML or plain text
       if (body.excerpt && body.excerpt.trim()) {
-        try {
-          const excerptText = body.excerpt.trim();
-          if (excerptText.includes("<") && excerptText.includes(">")) {
-            // HTML excerpt
-            excerptTranslations = await translateHTML(excerptText, sourceLocale);
-          } else {
-            // Plain text excerpt
-            excerptTranslations = await autoTranslate(excerptText, sourceLocale);
+        const excerptChanged = body.excerpt !== existing.excerpt;
+        const excerptNeedsTranslation = needsTranslation(existingMetadata.excerptTranslations, body.excerpt);
+        
+        if (excerptChanged || excerptNeedsTranslation) {
+          try {
+            const excerptText = body.excerpt.trim();
+            if (excerptText.includes("<") && excerptText.includes(">")) {
+              // HTML excerpt
+              excerptTranslations = await translateHTML(excerptText, sourceLocale);
+            } else {
+              // Plain text excerpt
+              excerptTranslations = await autoTranslate(excerptText, sourceLocale);
+            }
+          } catch (error) {
+            console.error("Error translating excerpt:", error);
+            excerptTranslations[sourceLocale] = body.excerpt;
           }
-        } catch (error) {
-          console.error("Error translating excerpt:", error);
-          excerptTranslations[sourceLocale] = body.excerpt;
         }
         
         // Clean any error messages from excerpt translations
@@ -366,32 +405,55 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    // Check admin authentication using requireAdmin
+    const currentUser = await requireAdmin();
+    console.log(`[DELETE] Admin user ${currentUser.userId} (role: ${currentUser.role}) attempting to delete post`);
+
     const collection = await getCollection("posts");
     
     // Handle params as Promise (Next.js 16) or direct object
     const resolvedParams = params instanceof Promise ? await params : params;
     const postIdString = resolvedParams.id;
     
+    console.log(`[DELETE] Post ID string: ${postIdString}`);
+    
     let postId: ObjectId;
     try {
       if (!ObjectId.isValid(postIdString)) {
+        console.error(`[DELETE] Invalid post ID format: ${postIdString}`);
         return NextResponse.json({ error: `Invalid post ID format: ${postIdString}` }, { status: 400 });
       }
       postId = new ObjectId(postIdString);
+      console.log(`[DELETE] Valid ObjectId created: ${postId.toString()}`);
     } catch (error: any) {
+      console.error(`[DELETE] Error creating ObjectId:`, error);
       return NextResponse.json({ error: `Invalid post ID: ${postIdString}` }, { status: 400 });
     }
 
     // First, find the post to get its slug
     const post = await collection.findOne({ _id: postId });
     if (!post) {
+      console.log(`[DELETE] Post not found with ID: ${postIdString}`);
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
+    // Get slug or use post ID as fallback
+    const slugToDelete = post.slug || `post-${postIdString}`;
+    console.log(`[DELETE] Found post with slug: ${slugToDelete}, deleting all posts with this slug`);
+
     // Delete all posts with the same slug (all locale versions)
-    const result = await collection.deleteMany({
-      slug: post.slug,
-    });
+    // Also handle case where slug might be null/undefined
+    const deleteQuery: any = {};
+    if (post.slug) {
+      deleteQuery.slug = post.slug;
+    } else {
+      // If no slug, delete by ID only
+      deleteQuery._id = postId;
+    }
+    
+    const result = await collection.deleteMany(deleteQuery);
+
+    console.log(`[DELETE] Delete result: ${result.deletedCount} post(s) deleted`);
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -400,11 +462,16 @@ export async function DELETE(
     return NextResponse.json({ 
       success: true, 
       deletedCount: result.deletedCount,
-      message: `Deleted ${result.deletedCount} post(s) with slug: ${post.slug}`
+      message: `Deleted ${result.deletedCount} post(s)${post.slug ? ` with slug: ${post.slug}` : ` with ID: ${postIdString}`}`
     });
   } catch (error: any) {
+    console.error("[DELETE] Error deleting post:", error);
+    // Handle authentication errors
+    if (error.message === "Unauthorized" || error.message.includes("Forbidden") || error.message.includes("Admin access required")) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     return NextResponse.json(
-      { error: error.message },
+      { error: error.message || "Failed to delete post" },
       { status: 500 }
     );
   }

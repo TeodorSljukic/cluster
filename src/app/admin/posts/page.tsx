@@ -101,15 +101,44 @@ function PostsPageInner() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm(t.cms.confirmDelete)) return;
+    if (!id) {
+      console.error("Cannot delete: post ID is missing");
+      alert("Error: Post ID is missing");
+      return;
+    }
+
+    const confirmMessage = t.cms?.confirmDelete || "Are you sure you want to delete this post?";
+    if (!confirm(confirmMessage)) return;
 
     try {
+      console.log(`[DELETE] Attempting to delete post with ID: ${id}`);
       const res = await fetch(`/api/posts/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        loadPosts();
+      
+      let responseData;
+      try {
+        responseData = await res.json();
+      } catch (parseError) {
+        console.error(`[DELETE] Failed to parse response:`, parseError);
+        const text = await res.text();
+        console.error(`[DELETE] Response text:`, text);
+        alert(`Error deleting post: Invalid server response (${res.status})`);
+        return;
       }
-    } catch (error) {
-      console.error("Error deleting post:", error);
+      
+      console.log(`[DELETE] Response status: ${res.status}`, responseData);
+      
+      if (res.ok) {
+        console.log(`[DELETE] Successfully deleted post: ${id}`);
+        alert(`Post deleted successfully. ${responseData.deletedCount ? `(${responseData.deletedCount} post(s) deleted)` : ''}`);
+        loadPosts();
+      } else {
+        console.error(`[DELETE] Failed to delete post: ${responseData.error || 'Unknown error'}`);
+        const errorMessage = responseData.error || `Server error (${res.status})`;
+        alert(`Error deleting post: ${errorMessage}${res.status === 403 ? '\n\nYou may not have permission to delete posts.' : ''}`);
+      }
+    } catch (error: any) {
+      console.error("[DELETE] Error deleting post:", error);
+      alert(`Error deleting post: ${error.message || "Unknown error"}\n\nPlease check the browser console for more details.`);
     }
   }
 
@@ -200,15 +229,15 @@ function PostsPageInner() {
           </button>
           <button
             onClick={async (e) => {
-              if (confirm("This will translate all existing blog posts to all languages. This may take a few minutes. Continue?")) {
+              if (confirm("This will automatically translate all blog posts that don't have translations or have incomplete translations. This may take a few minutes. Continue?")) {
                 const button = e.currentTarget;
                 try {
                   button.disabled = true;
                   button.textContent = "Translating...";
-                  const res = await fetch("/api/posts/migrate", { method: "POST" });
+                  const res = await fetch("/api/posts/translate-all?force=1", { method: "POST" });
                   const data = await res.json();
                   if (res.ok) {
-                    alert(`Translation complete! ${data.message}\n\nTotal: ${data.total}\nTranslated: ${data.translated}\nSkipped: ${data.skipped}`);
+                    alert(`Translation complete! ${data.message}\n\nTotal: ${data.total}\nTranslated: ${data.translated}\nSkipped: ${data.skipped}${data.errors > 0 ? `\nErrors: ${data.errors}` : ""}`);
                     loadPosts();
                   } else {
                     alert(`Error: ${data.error}`);
@@ -486,35 +515,66 @@ function PostsPageInner() {
             >
               {t.cms.noPosts}
             </p>
-            <button
-              onClick={async () => {
-                if (confirm("This will migrate existing posts to the new structure. Continue?")) {
-                  try {
-                    const res = await fetch("/api/posts/migrate", { method: "POST" });
-                    const data = await res.json();
-                    if (res.ok) {
-                      alert(`Migration complete! ${data.message}`);
-                      loadPosts();
-                    } else {
-                      alert(`Error: ${data.error}`);
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              <button
+                onClick={async () => {
+                  if (confirm("This will migrate existing posts to the new structure. Continue?")) {
+                    try {
+                      const res = await fetch("/api/posts/migrate", { method: "POST" });
+                      const data = await res.json();
+                      if (res.ok) {
+                        alert(`Migration complete! ${data.message}`);
+                        loadPosts();
+                      } else {
+                        alert(`Error: ${data.error}`);
+                      }
+                    } catch (error) {
+                      alert("Error migrating posts");
                     }
-                  } catch (error) {
-                    alert("Error migrating posts");
                   }
-                }
-              }}
-              style={{
-                padding: "8px 16px",
-                background: "#6c757d",
-                color: "white",
-                border: "none",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "13px",
-              }}
-            >
-              Migrate Existing Posts
-            </button>
+                }}
+                style={{
+                  padding: "8px 16px",
+                  background: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
+              >
+                Migrate Existing Posts
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm("This will automatically translate all posts that don't have translations. This may take a while. Continue?")) {
+                    try {
+                      const res = await fetch("/api/posts/translate-all?force=1", { method: "POST" });
+                      const data = await res.json();
+                      if (res.ok) {
+                        alert(`Translation complete! ${data.message}`);
+                        loadPosts();
+                      } else {
+                        alert(`Error: ${data.error}`);
+                      }
+                    } catch (error) {
+                      alert("Error translating posts");
+                    }
+                  }
+                }}
+                style={{
+                  padding: "8px 16px",
+                  background: "#2271b1",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
+              >
+                Translate All Posts
+              </button>
+            </div>
           </div>
         )}
 
@@ -713,6 +773,7 @@ function PostForm({
       const method = isUpdate ? "PUT" : "POST";
 
       console.log("Saving post:", { isUpdate, url, method, postData });
+      console.log("🌐 [BROWSER] Sending request to:", url, "with locale:", postData.locale);
 
       const res = await fetch(url, {
         method,
@@ -723,6 +784,12 @@ function PostForm({
       let data;
       try {
         data = await res.json();
+        console.log("🌐 [BROWSER] Response received:", { 
+          status: res.status, 
+          ok: res.ok,
+          hasTranslations: !!data.metadata?.titleTranslations,
+          translationDebug: data.translationDebug
+        });
       } catch (parseError) {
         console.error("Failed to parse response:", parseError);
         alert("Error: Invalid response from server");
@@ -731,12 +798,23 @@ function PostForm({
       }
 
       if (res.ok) {
+        // Check if translations were created
+        if (data.metadata?.titleTranslations) {
+          console.log("✅ [BROWSER] Translations received:", {
+            titleTranslations: Object.keys(data.metadata.titleTranslations),
+            contentTranslations: Object.keys(data.metadata.contentTranslations || {}),
+            excerptTranslations: Object.keys(data.metadata.excerptTranslations || {}),
+          });
+        } else {
+          console.warn("⚠️ [BROWSER] No translations in response!");
+        }
+        
         // Wait a bit for the database to update
         await new Promise((resolve) => setTimeout(resolve, 500));
         // Reload posts to show the newly created/updated post
         onSave();
       } else {
-        console.error("Save error response:", { status: res.status, data });
+        console.error("❌ [BROWSER] Save error response:", { status: res.status, data });
         // Log full error details
         console.error("Full error data:", JSON.stringify(data, null, 2));
         console.error("Request data sent:", postData);

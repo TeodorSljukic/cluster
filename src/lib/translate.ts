@@ -1,5 +1,10 @@
 import { type Locale } from "./i18n";
 
+const TRANSLATION_DEBUG = process.env.TRANSLATION_DEBUG === "1";
+const dbg = (...args: any[]) => {
+  if (TRANSLATION_DEBUG) console.log(...args);
+};
+
 // Language codes mapping
 const languageCodes: Record<Locale, string> = {
   me: "sr", // Montenegrin/Serbian
@@ -40,6 +45,8 @@ export async function autoTranslate(
   text: string,
   sourceLocale: Locale = "en"
 ): Promise<Record<Locale, string>> {
+  dbg(`[AUTO TRANSLATE] Starting translation for text: "${text.substring(0, 50)}..." from locale: ${sourceLocale}`);
+  
   const translations: Record<Locale, string> = {
     me: text,
     en: text,
@@ -49,6 +56,7 @@ export async function autoTranslate(
 
   // If source is already in target language, keep original
   const sourceLang = languageCodes[sourceLocale];
+  dbg(`[AUTO TRANSLATE] Source language code: ${sourceLang}`);
 
   try {
     // Try using LibreTranslate (free, self-hosted option)
@@ -58,29 +66,51 @@ export async function autoTranslate(
     const targets: Locale[] = ["me", "en", "it", "sq"].filter(
       (loc) => loc !== sourceLocale
     ) as Locale[];
+    
+    dbg(`[AUTO TRANSLATE] Target locales to translate:`, targets);
 
     for (const targetLocale of targets) {
       try {
+        dbg(`[AUTO TRANSLATE] Translating to ${targetLocale} (${languageCodes[targetLocale]})...`);
         const translated = await translateText(
           text,
           sourceLang,
           languageCodes[targetLocale]
         );
+        dbg(`[AUTO TRANSLATE] Translation result for ${targetLocale}:`, {
+          originalLength: text.length,
+          translatedLength: translated?.length || 0,
+          isSame: translated === text,
+          preview: translated?.substring(0, 50),
+        });
+        
         // Check if translation contains error message
         if (translated && translated !== text && !containsErrorMessage(translated)) {
           translations[targetLocale] = translated;
+          dbg(`[AUTO TRANSLATE] ✅ Successfully translated to ${targetLocale}: "${translated.substring(0, 50)}..."`);
         } else if (containsErrorMessage(translated)) {
-          console.warn(`[TRANSLATE] Translation for ${targetLocale} contains error message, using original text`);
+          console.warn(`[AUTO TRANSLATE] ⚠️ Translation for ${targetLocale} contains error message, using original text`);
           translations[targetLocale] = text;
+        } else {
+          console.warn(`[AUTO TRANSLATE] ⚠️ Translation for ${targetLocale} returned same text or empty, keeping original`);
         }
-      } catch (error) {
-        console.error(`Translation error for ${targetLocale}:`, error);
+      } catch (error: any) {
+        console.error(`[AUTO TRANSLATE] ❌ Translation error for ${targetLocale}:`, error?.message || error);
+        if (TRANSLATION_DEBUG) console.error(`[AUTO TRANSLATE] Error stack:`, error?.stack);
         // Keep original text if translation fails
         translations[targetLocale] = text;
       }
     }
-  } catch (error) {
-    console.error("Auto-translation error:", error);
+    
+    dbg(`[AUTO TRANSLATE] Final translations:`, {
+      me: translations.me?.substring(0, 30),
+      en: translations.en?.substring(0, 30),
+      it: translations.it?.substring(0, 30),
+      sq: translations.sq?.substring(0, 30),
+    });
+  } catch (error: any) {
+    console.error("[AUTO TRANSLATE] ❌ Auto-translation error:", error?.message || error);
+    if (TRANSLATION_DEBUG) console.error("[AUTO TRANSLATE] Error stack:", error?.stack);
   }
 
   return translations;
@@ -181,17 +211,76 @@ async function translateTextChunk(
   const textToTranslate = text.length > MAX_LENGTH ? text.substring(0, MAX_LENGTH) : text;
   const isTruncated = text.length > MAX_LENGTH;
 
+  const translateWithGoogleGtx = async (
+    q: string,
+    sl: string,
+    tl: string
+  ): Promise<string | null> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const url =
+        "https://translate.googleapis.com/translate_a/single" +
+        `?client=gtx&sl=${encodeURIComponent(sl)}` +
+        `&tl=${encodeURIComponent(tl)}` +
+        `&dt=t&q=${encodeURIComponent(q)}`;
+
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const t = await res.text();
+        console.warn(`[TRANSLATE] Google GTX API error (${res.status}):`, t.substring(0, 200));
+        return null;
+      }
+
+      const data: any = await res.json();
+      // Expected shape: [[["Ciao mondo","Hello world",...], ...], ...]
+      const parts: any[] | undefined = Array.isArray(data) ? data[0] : undefined;
+      if (!Array.isArray(parts)) return null;
+
+      const translated = parts
+        .map((p) => (Array.isArray(p) ? p[0] : ""))
+        .filter((s) => typeof s === "string" && s.length > 0)
+        .join("");
+
+      if (!translated || typeof translated !== "string") return null;
+      return translated;
+    } catch (err: any) {
+      console.warn(`[TRANSLATE] Google GTX failed:`, err?.message || err);
+      return null;
+    }
+  };
+
   try {
     console.log(`[TRANSLATE] Translating "${textToTranslate.substring(0, 30)}..." from ${sourceLang} to ${targetLang}${isTruncated ? ` (truncated from ${text.length} chars)` : ""}`);
     
-    // Try multiple translation services for better reliability
-    // 1. Try LibreTranslate first (free, no API key)
+    const provider = (process.env.TRANSLATE_PROVIDER || "").toLowerCase();
+
+    // Try multiple translation services for better reliability.
+    // Default behavior: prefer Google GTX (more reliable than public LibreTranslate/MyMemory which rate-limit hard).
+    const preferLibre = provider === "libretranslate";
+
+    // 1) Preferred provider
+    if (!preferLibre) {
+      // Google GTX
+      const gtx = await translateWithGoogleGtx(textToTranslate, sourceLang, targetLang);
+      if (gtx && gtx !== textToTranslate && gtx !== text) {
+        console.log(`[TRANSLATE] Google GTX result: "${gtx.substring(0, 30)}..."`);
+        return isTruncated ? gtx + text.substring(MAX_LENGTH) : gtx;
+      }
+    }
+
+    // 2) LibreTranslate (public endpoint may rate-limit; keep as fallback unless explicitly preferred)
     try {
+      const libreUrl = process.env.LIBRETRANSLATE_URL || "https://libretranslate.com/translate";
+      const libreApiKey = process.env.LIBRETRANSLATE_API_KEY;
       // Create timeout controller
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch("https://libretranslate.com/translate", {
+      const response = await fetch(libreUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -201,6 +290,7 @@ async function translateTextChunk(
           source: sourceLang,
           target: targetLang,
           format: "text",
+          ...(libreApiKey ? { api_key: libreApiKey } : {}),
         }),
         signal: controller.signal,
       });
@@ -210,6 +300,12 @@ async function translateTextChunk(
       if (response.ok) {
         const data = await response.json();
         const translated = data.translatedText || textToTranslate;
+        console.log(`[TRANSLATE] LibreTranslate response for ${sourceLang}->${targetLang}:`, {
+          status: response.status,
+          hasTranslatedText: !!data.translatedText,
+          translatedLength: translated?.length || 0,
+          originalLength: textToTranslate.length,
+        });
         // Check if response contains error message
         if (translated && typeof translated === "string" && 
             (translated.includes("QUERY LENGTH LIMIT") || 
@@ -218,13 +314,16 @@ async function translateTextChunk(
           console.warn(`[TRANSLATE] Response contains error message, using original text`);
           return text; // Return original if error in response
         }
-        if (translated && translated !== textToTranslate && translated !== text) {
-          console.log(`[TRANSLATE] LibreTranslate result: "${translated.substring(0, 30)}..."`);
+        if (translated && translated !== textToTranslate && translated !== text && translated.trim() !== "") {
+          console.log(`[TRANSLATE] LibreTranslate success: "${translated.substring(0, 50)}..."`);
           // If text was truncated, append original remaining text
           return isTruncated ? translated + text.substring(MAX_LENGTH) : translated;
+        } else {
+          console.warn(`[TRANSLATE] LibreTranslate returned same text or empty, translated="${translated?.substring(0, 30)}", original="${textToTranslate.substring(0, 30)}"`);
         }
       } else {
         const errorText = await response.text();
+        console.error(`[TRANSLATE] LibreTranslate API error (${response.status}):`, errorText.substring(0, 200));
         if (errorText.includes("QUERY LENGTH LIMIT") || 
             errorText.includes("500") ||
             errorText.includes("MAX ALLOWED QUERY")) {
@@ -240,7 +339,14 @@ async function translateTextChunk(
       console.warn(`[TRANSLATE] LibreTranslate failed, trying alternative:`, libreError.message);
     }
 
-    // 2. Fallback: Try MyMemory Translation API (free tier available)
+    // 3) Google GTX fallback if LibreTranslate failed or returned same text
+    const gtx2 = await translateWithGoogleGtx(textToTranslate, sourceLang, targetLang);
+    if (gtx2 && gtx2 !== textToTranslate && gtx2 !== text) {
+      console.log(`[TRANSLATE] Google GTX result: "${gtx2.substring(0, 30)}..."`);
+      return isTruncated ? gtx2 + text.substring(MAX_LENGTH) : gtx2;
+    }
+
+    // 4) Last fallback: MyMemory Translation API (very limited free tier)
     try {
       const controller2 = new AbortController();
       const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
@@ -315,7 +421,10 @@ export async function translateHTML(
   }
 
   // Translate the full text content (will be automatically chunked if needed)
+  console.log(`[TRANSLATE HTML] Extracted text content length: ${textContent.length}`);
+  console.log(`[TRANSLATE HTML] Text preview: "${textContent.substring(0, 100)}..."`);
   const translations = await autoTranslate(textContent, sourceLocale);
+  console.log(`[TRANSLATE HTML] Got translations for locales:`, Object.keys(translations));
 
   // Replace text content in HTML with translated versions
   // Better approach: replace text nodes while preserving HTML structure
@@ -328,78 +437,82 @@ export async function translateHTML(
 
   for (const locale of ["me", "en", "it", "sq"] as Locale[]) {
     let translatedText = translations[locale];
+    console.log(`[TRANSLATE HTML] Processing locale ${locale}, translated text length: ${translatedText?.length || 0}`);
+    
     // Check if translation contains error message
     if (containsErrorMessage(translatedText)) {
       console.warn(`[TRANSLATE] HTML translation for ${locale} contains error message, using original HTML`);
       translatedText = textContent; // Use original text if error found
     }
     
-    // Simple but effective approach: replace text between HTML tags
+    // Simple approach: replace text nodes while preserving HTML tags
     // Split HTML into parts (tags and text)
     const parts = html.split(/(<[^>]*>)/);
-    const translatedParts: string[] = [];
-    const textParts: string[] = [];
+    let translatedHTML = '';
+    let textIndex = 0;
     
-    // First, collect all text parts (non-tag content)
+    // Count total words in original text
+    const originalWords = textContent.trim().split(/\s+/);
+    const translatedWords = translatedText.trim().split(/\s+/);
+    
+    // Process each part
     for (const part of parts) {
-      if (!part.startsWith('<') || !part.endsWith('>')) {
-        const trimmed = part.trim();
-        if (trimmed) {
-          textParts.push(trimmed);
-        }
-      }
-    }
-    
-    // If we have text parts, map translated text back
-    if (textParts.length > 0 && textContent.trim() && translatedText.trim()) {
-      // Split both original and translated text into words
-      const originalWords = textContent.trim().split(/\s+/);
-      const translatedWords = translatedText.trim().split(/\s+/);
-      
-      // Build translated HTML
-      let wordIndex = 0;
-      for (const part of parts) {
-        if (part.startsWith('<') && part.endsWith('>')) {
-          // HTML tag - keep as is
-          translatedParts.push(part);
-        } else {
-          // Text content
-          const trimmedPart = part.trim();
-          if (trimmedPart) {
-            // Count words in this part
-            const wordsInPart = trimmedPart.split(/\s+/).length;
-            // Get corresponding translated words
-            const translatedPartWords = translatedWords.slice(wordIndex, wordIndex + wordsInPart);
-            const translatedPart = translatedPartWords.join(' ');
-            wordIndex += wordsInPart;
+      if (part.startsWith('<') && part.endsWith('>')) {
+        // HTML tag - keep as is
+        translatedHTML += part;
+      } else {
+        // Text content
+        const trimmedPart = part.trim();
+        if (trimmedPart) {
+          // Count words in this text part
+          const wordsInPart = trimmedPart.split(/\s+/).length;
+          
+          // Get corresponding translated words
+          if (textIndex + wordsInPart <= translatedWords.length) {
+            const translatedPart = translatedWords.slice(textIndex, textIndex + wordsInPart).join(' ');
+            textIndex += wordsInPart;
             
-            // Preserve whitespace
+            // Preserve whitespace from original
             const leadingSpace = part.match(/^\s*/)?.[0] || '';
             const trailingSpace = part.match(/\s*$/)?.[0] || '';
-            translatedParts.push(leadingSpace + translatedPart + trailingSpace);
+            translatedHTML += leadingSpace + translatedPart + trailingSpace;
           } else {
-            // Just whitespace - keep as is
-            translatedParts.push(part);
+            // Not enough words - use remaining translated words or keep original
+            const remainingWords = translatedWords.slice(textIndex);
+            if (remainingWords.length > 0) {
+              translatedHTML += part.replace(trimmedPart, remainingWords.join(' '));
+              textIndex = translatedWords.length;
+            } else {
+              translatedHTML += part;
+            }
           }
+        } else {
+          // Just whitespace - keep as is
+          translatedHTML += part;
         }
       }
-      
-      result[locale] = translatedParts.join('');
-    } else {
-      // Fallback: simple string replacement
-      // Normalize whitespace for matching
+    }
+    
+    // Fallback: if replacement didn't work well, try simple string replacement
+    if (!translatedHTML || translatedHTML === html) {
+      console.warn(`[TRANSLATE HTML] Word-by-word replacement failed for ${locale}, trying simple replacement`);
       const normalizedHTML = html.replace(/\s+/g, ' ');
-      const normalizedTextContent = textContent.replace(/\s+/g, ' ');
-      const normalizedTranslatedText = translatedText.replace(/\s+/g, ' ');
+      const normalizedTextContent = textContent.replace(/\s+/g, ' ').trim();
+      const normalizedTranslatedText = translatedText.replace(/\s+/g, ' ').trim();
       
       if (normalizedHTML.includes(normalizedTextContent)) {
-        result[locale] = normalizedHTML.replace(normalizedTextContent, normalizedTranslatedText);
+        translatedHTML = normalizedHTML.replace(normalizedTextContent, normalizedTranslatedText);
+        console.log(`[TRANSLATE HTML] Simple replacement succeeded for ${locale}`);
       } else {
-        // Last resort: return original HTML with translated text appended as comment (for debugging)
-        console.warn(`[TRANSLATE] Could not replace text in HTML for ${locale}, using original`);
-        result[locale] = html;
+        // Last resort: return original HTML (translation failed)
+        console.error(`[TRANSLATE HTML] All replacement methods failed for ${locale}`);
+        console.error(`[TRANSLATE HTML] HTML length: ${html.length}, textContent length: ${textContent.length}, translatedText length: ${translatedText.length}`);
+        translatedHTML = html;
       }
     }
+    
+    console.log(`[TRANSLATE HTML] Final HTML for ${locale} length: ${translatedHTML.length}`);
+    result[locale] = translatedHTML;
   }
 
   return result;

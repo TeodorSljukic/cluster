@@ -111,15 +111,27 @@ function NewPostPageInner() {
         }
       }
 
+      console.log("[CLIENT] Sending post data:", {
+        title: postData.title,
+        contentLength: postData.content?.length || 0,
+        contentPreview: postData.content?.substring(0, 100) || "empty",
+        locale: postData.locale,
+      });
+
       const res = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(postData),
       });
 
+      console.log("[CLIENT] Response status:", res.status);
+
       let data;
       try {
-        data = await res.json();
+        const responseText = await res.text();
+        console.log("[CLIENT] Response text length:", responseText.length);
+        console.log("[CLIENT] Response text preview:", responseText.substring(0, 500));
+        data = JSON.parse(responseText);
       } catch (parseError) {
         console.error("Failed to parse response:", parseError);
         alert("Error: Invalid response from server");
@@ -128,6 +140,13 @@ function NewPostPageInner() {
       }
 
       if (res.ok) {
+        // Log translation debug info
+        if (data.translationDebug) {
+          console.log("[CLIENT] Translation Debug Info:", data.translationDebug);
+          console.log("[CLIENT] Content Translation Lengths:", data.translationDebug.contentTranslationLengths);
+          console.log("[CLIENT] Content Translation Previews:", data.translationDebug.contentTranslationPreviews);
+        }
+        
         // Wait a bit for the database to update before redirecting
         await new Promise((resolve) => setTimeout(resolve, 500));
         router.push(`/admin/posts?type=${type}`);

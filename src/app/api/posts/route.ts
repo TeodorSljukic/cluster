@@ -96,12 +96,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if slug already exists for this locale
-    const existing = await collection.findOne({ slug: body.slug, locale });
-    if (existing) {
-      return NextResponse.json(
-        { error: `Slug already exists for ${locale} locale` },
-        { status: 400 }
-      );
+    // If it exists, automatically append a number to make it unique
+    let finalSlug = body.slug;
+    let slugCounter = 1;
+    let existing = await collection.findOne({ slug: finalSlug, locale });
+    
+    while (existing) {
+      finalSlug = `${body.slug}-${slugCounter}`;
+      existing = await collection.findOne({ slug: finalSlug, locale });
+      slugCounter++;
+      
+      // Safety check to prevent infinite loop
+      if (slugCounter > 100) {
+        console.error(`[POST CREATE] Could not generate unique slug after 100 attempts for ${body.slug}`);
+        return NextResponse.json(
+          { error: `Could not generate unique slug. Please try a different slug.` },
+          { status: 400 }
+        );
+      }
+    }
+    
+    if (slugCounter > 1) {
+      console.log(`[POST CREATE] Slug ${body.slug} already exists for locale ${locale}, using ${finalSlug} instead`);
+    } else {
+      console.log(`[POST CREATE] Slug ${finalSlug} is available for locale ${locale}, proceeding with creation`);
     }
 
     const now = new Date();
@@ -169,17 +187,25 @@ export async function POST(request: NextRequest) {
       if (body.content && body.content.trim()) {
         const contentHTML = body.content.trim();
         console.log(`[POST CREATE] Translating content (length: ${contentHTML.length})`);
+        console.log(`[POST CREATE] Content preview: "${contentHTML.substring(0, 200)}..."`);
         // Check if content is HTML or plain text
         if (contentHTML.includes("<") && contentHTML.includes(">")) {
           // It's HTML, use translateHTML
           console.log(`[POST CREATE] Content is HTML, using translateHTML`);
           contentTranslations = await translateHTML(contentHTML, sourceLocale);
+          console.log(`[POST CREATE] Content translations received for locales:`, Object.keys(contentTranslations));
+          console.log(`[POST CREATE] Content translation lengths:`, {
+            me: contentTranslations.me?.length || 0,
+            en: contentTranslations.en?.length || 0,
+            it: contentTranslations.it?.length || 0,
+            sq: contentTranslations.sq?.length || 0,
+          });
         } else {
           // Plain text, use autoTranslate
           console.log(`[POST CREATE] Content is plain text, using autoTranslate`);
           contentTranslations = await autoTranslate(contentHTML, sourceLocale);
+          console.log(`[POST CREATE] Content translations:`, Object.keys(contentTranslations));
         }
-        console.log(`[POST CREATE] Content translations:`, Object.keys(contentTranslations));
       }
       
       // Translate excerpt - check if it's HTML or plain text
@@ -229,8 +255,15 @@ export async function POST(request: NextRequest) {
         it: titleTranslations.it?.substring(0, 30),
         sq: titleTranslations.sq?.substring(0, 30),
       });
+      console.log(`[POST CREATE] Content translations sample:`, {
+        me: contentTranslations.me?.substring(0, 100) || "empty",
+        en: contentTranslations.en?.substring(0, 100) || "empty",
+        it: contentTranslations.it?.substring(0, 100) || "empty",
+        sq: contentTranslations.sq?.substring(0, 100) || "empty",
+      });
     } catch (error) {
       console.error("[POST CREATE] Auto-translation error:", error);
+      console.error("[POST CREATE] Error stack:", error instanceof Error ? error.stack : "No stack");
       // Continue with original text if translation fails
     }
 
@@ -238,7 +271,7 @@ export async function POST(request: NextRequest) {
     // Translations can be used to create other locale versions later if needed
     const post: Omit<Post, "_id"> = {
       title: body.title,
-      slug: body.slug,
+      slug: finalSlug, // Use the unique slug
       content: body.content,
       excerpt: body.excerpt || "",
       featuredImage: body.featuredImage || "",
@@ -283,6 +316,27 @@ export async function POST(request: NextRequest) {
       eventDate: post.eventDate?.toISOString(),
       createdForAllLocales: false,
       insertedCount: 1,
+      // Debug info for translation
+      translationDebug: {
+        hasTitleTranslations: !!titleTranslations,
+        hasContentTranslations: !!contentTranslations,
+        hasExcerptTranslations: !!excerptTranslations,
+        titleTranslationKeys: Object.keys(titleTranslations || {}),
+        contentTranslationKeys: Object.keys(contentTranslations || {}),
+        excerptTranslationKeys: Object.keys(excerptTranslations || {}),
+        contentTranslationLengths: {
+          me: contentTranslations?.me?.length || 0,
+          en: contentTranslations?.en?.length || 0,
+          it: contentTranslations?.it?.length || 0,
+          sq: contentTranslations?.sq?.length || 0,
+        },
+        contentTranslationPreviews: {
+          me: contentTranslations?.me?.substring(0, 100) || "empty",
+          en: contentTranslations?.en?.substring(0, 100) || "empty",
+          it: contentTranslations?.it?.substring(0, 100) || "empty",
+          sq: contentTranslations?.sq?.substring(0, 100) || "empty",
+        },
+      },
     });
   } catch (error: any) {
     console.error("Error creating post:", error);

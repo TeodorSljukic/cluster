@@ -35,24 +35,16 @@ async function getLatestNews(locale: Locale) {
         eventDate: post.eventDate?.toISOString(),
       };
 
-      // Use translations from metadata if available for current locale
-      // If post locale matches current locale, use original text
-      // Otherwise, use translation from metadata
-      if (post.metadata) {
-        if (post.locale === locale) {
-          // Post is in current locale, use original text (already set)
-        } else {
-          // Post is in different locale, use translation from metadata
-          if (post.metadata.titleTranslations?.[locale]) {
-            postData.title = post.metadata.titleTranslations[locale];
-          }
-          if (post.metadata.contentTranslations?.[locale]) {
-            postData.content = post.metadata.contentTranslations[locale];
-          }
-          if (post.metadata.excerptTranslations?.[locale]) {
-            postData.excerpt = post.metadata.excerptTranslations[locale];
-          }
-        }
+      // Always prefer translations from metadata if available for the current locale.
+      // (Existing posts may have wrong/missing `post.locale`, so don't depend on it.)
+      if (post.metadata?.titleTranslations?.[locale]) {
+        postData.title = post.metadata.titleTranslations[locale];
+      }
+      if (post.metadata?.contentTranslations?.[locale]) {
+        postData.content = post.metadata.contentTranslations[locale];
+      }
+      if (post.metadata?.excerptTranslations?.[locale]) {
+        postData.excerpt = post.metadata.excerptTranslations[locale];
       }
 
       return postData;
