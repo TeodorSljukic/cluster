@@ -318,7 +318,7 @@ export async function translateHTML(
   const translations = await autoTranslate(textContent, sourceLocale);
 
   // Replace text content in HTML with translated versions
-  // This is a simplified approach - in production you'd want better HTML parsing
+  // Better approach: replace text nodes while preserving HTML structure
   const result: Record<Locale, string> = {
     me: html,
     en: html,
@@ -333,9 +333,73 @@ export async function translateHTML(
       console.warn(`[TRANSLATE] HTML translation for ${locale} contains error message, using original HTML`);
       translatedText = textContent; // Use original text if error found
     }
-    // Simple replacement: replace the extracted text with translated text
-    // This works if the HTML structure is simple
-    result[locale] = html.replace(textContent, translatedText);
+    
+    // Simple but effective approach: replace text between HTML tags
+    // Split HTML into parts (tags and text)
+    const parts = html.split(/(<[^>]*>)/);
+    const translatedParts: string[] = [];
+    const textParts: string[] = [];
+    
+    // First, collect all text parts (non-tag content)
+    for (const part of parts) {
+      if (!part.startsWith('<') || !part.endsWith('>')) {
+        const trimmed = part.trim();
+        if (trimmed) {
+          textParts.push(trimmed);
+        }
+      }
+    }
+    
+    // If we have text parts, map translated text back
+    if (textParts.length > 0 && textContent.trim() && translatedText.trim()) {
+      // Split both original and translated text into words
+      const originalWords = textContent.trim().split(/\s+/);
+      const translatedWords = translatedText.trim().split(/\s+/);
+      
+      // Build translated HTML
+      let wordIndex = 0;
+      for (const part of parts) {
+        if (part.startsWith('<') && part.endsWith('>')) {
+          // HTML tag - keep as is
+          translatedParts.push(part);
+        } else {
+          // Text content
+          const trimmedPart = part.trim();
+          if (trimmedPart) {
+            // Count words in this part
+            const wordsInPart = trimmedPart.split(/\s+/).length;
+            // Get corresponding translated words
+            const translatedPartWords = translatedWords.slice(wordIndex, wordIndex + wordsInPart);
+            const translatedPart = translatedPartWords.join(' ');
+            wordIndex += wordsInPart;
+            
+            // Preserve whitespace
+            const leadingSpace = part.match(/^\s*/)?.[0] || '';
+            const trailingSpace = part.match(/\s*$/)?.[0] || '';
+            translatedParts.push(leadingSpace + translatedPart + trailingSpace);
+          } else {
+            // Just whitespace - keep as is
+            translatedParts.push(part);
+          }
+        }
+      }
+      
+      result[locale] = translatedParts.join('');
+    } else {
+      // Fallback: simple string replacement
+      // Normalize whitespace for matching
+      const normalizedHTML = html.replace(/\s+/g, ' ');
+      const normalizedTextContent = textContent.replace(/\s+/g, ' ');
+      const normalizedTranslatedText = translatedText.replace(/\s+/g, ' ');
+      
+      if (normalizedHTML.includes(normalizedTextContent)) {
+        result[locale] = normalizedHTML.replace(normalizedTextContent, normalizedTranslatedText);
+      } else {
+        // Last resort: return original HTML with translated text appended as comment (for debugging)
+        console.warn(`[TRANSLATE] Could not replace text in HTML for ${locale}, using original`);
+        result[locale] = html;
+      }
+    }
   }
 
   return result;
