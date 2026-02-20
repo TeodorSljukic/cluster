@@ -30,6 +30,14 @@ export async function POST(request: NextRequest) {
       postsBySlug.get(slug)!.push(post);
     }
 
+    // Helper function to check for error messages
+    const containsErrorMessage = (text: string): boolean => {
+      if (!text || typeof text !== "string") return false;
+      return text.includes("QUERY LENGTH LIMIT") || 
+             text.includes("MAX ALLOWED QUERY") ||
+             text.includes("500 CHARS");
+    };
+
     // Helper function to clean error messages
     const cleanErrorMessage = (text: string): string => {
       if (!text || typeof text !== "string") return text;
@@ -140,14 +148,6 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-
-        // Helper function to check for error messages
-        const containsErrorMessage = (text: string): boolean => {
-          if (!text || typeof text !== "string") return false;
-          return text.includes("QUERY LENGTH LIMIT") || 
-                 text.includes("MAX ALLOWED QUERY") ||
-                 text.includes("500 CHARS");
-        };
 
         // Check if post already has translations in metadata
         const hasTranslations = post.metadata?.titleTranslations && 
