@@ -198,6 +198,49 @@ function PostsPageInner() {
           >
             {t.cms.addNew}
           </button>
+          <button
+            onClick={async (e) => {
+              if (confirm("This will translate all existing blog posts to all languages. This may take a few minutes. Continue?")) {
+                const button = e.currentTarget;
+                try {
+                  button.disabled = true;
+                  button.textContent = "Translating...";
+                  const res = await fetch("/api/posts/migrate", { method: "POST" });
+                  const data = await res.json();
+                  if (res.ok) {
+                    alert(`Translation complete! ${data.message}\n\nTotal: ${data.total}\nTranslated: ${data.translated}\nSkipped: ${data.skipped}`);
+                    loadPosts();
+                  } else {
+                    alert(`Error: ${data.error}`);
+                  }
+                  button.disabled = false;
+                  button.textContent = "Translate All Posts";
+                } catch (error: any) {
+                  alert(`Error translating posts: ${error.message || "Unknown error"}`);
+                  button.disabled = false;
+                  button.textContent = "Translate All Posts";
+                }
+              }
+            }}
+            style={{
+              padding: "8px 16px",
+              background: "#6c757d",
+              color: "white",
+              border: "none",
+              borderRadius: "3px",
+              cursor: "pointer",
+              fontSize: "14px",
+              marginLeft: "10px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#5a6268";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#6c757d";
+            }}
+          >
+            Translate All Posts
+          </button>
         </div>
 
         {showForm && (
