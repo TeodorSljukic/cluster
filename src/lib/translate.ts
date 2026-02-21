@@ -6,6 +6,39 @@ const dbg = (...args: any[]) => {
   if (TRANSLATION_DEBUG) console.log(...args);
 };
 
+const TRANSLATE_CONCURRENCY = Math.max(
+  1,
+  Math.min(6, Number(process.env.TRANSLATE_CONCURRENCY || "3") || 3)
+);
+
+function getTranslateMaxChunk(provider: string): number {
+  // LibreTranslate public endpoints often enforce 500 chars.
+  if (provider === "libretranslate") return 500;
+  // Google GTX (unofficial) can handle more; keep conservative to reduce failures.
+  return Math.max(500, Math.min(5000, Number(process.env.TRANSLATE_MAX_CHUNK || "4000") || 4000));
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  mapper: (item: T, idx: number) => Promise<R>
+): Promise<R[]> {
+  if (items.length === 0) return [];
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const idx = nextIndex++;
+      if (idx >= items.length) return;
+      results[idx] = await mapper(items[idx], idx);
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+}
+
 // Language codes mapping
 const languageCodes: Record<Locale, string> = {
   me: "sr", // Montenegrin/Serbian
@@ -76,37 +109,50 @@ export async function autoTranslate(
     
     dbg(`[AUTO TRANSLATE] Target locales to translate:`, targets);
 
-    for (const targetLocale of targets) {
-      try {
-        dbg(`[AUTO TRANSLATE] Translating to ${targetLocale} (${languageCodes[targetLocale]})...`);
-        const translated = await translateText(
-          text,
-          sourceLang,
-          languageCodes[targetLocale]
-        );
-        dbg(`[AUTO TRANSLATE] Translation result for ${targetLocale}:`, {
-          originalLength: text.length,
-          translatedLength: translated?.length || 0,
-          isSame: translated === text,
-          preview: translated?.substring(0, 50),
-        });
-        
-        // Check if translation contains error message
-        if (translated && translated !== text && !containsErrorMessage(translated)) {
-          translations[targetLocale] =
-            targetLocale === "me" ? srCyrToLat(translated) : translated;
-          dbg(`[AUTO TRANSLATE] ✅ Successfully translated to ${targetLocale}: "${translated.substring(0, 50)}..."`);
-        } else if (containsErrorMessage(translated)) {
-          console.warn(`[AUTO TRANSLATE] ⚠️ Translation for ${targetLocale} contains error message, using original text`);
-          translations[targetLocale] = text;
-        } else {
-          console.warn(`[AUTO TRANSLATE] ⚠️ Translation for ${targetLocale} returned same text or empty, keeping original`);
+    const results = await mapWithConcurrency(
+      targets,
+      TRANSLATE_CONCURRENCY,
+      async (targetLocale) => {
+        try {
+          dbg(`[AUTO TRANSLATE] Translating to ${targetLocale} (${languageCodes[targetLocale]})...`);
+          const translated = await translateText(text, sourceLang, languageCodes[targetLocale]);
+          return { targetLocale, translated, ok: true as const };
+        } catch (error: any) {
+          return { targetLocale, translated: text, ok: false as const, error };
         }
-      } catch (error: any) {
-        console.error(`[AUTO TRANSLATE] ❌ Translation error for ${targetLocale}:`, error?.message || error);
-        if (TRANSLATION_DEBUG) console.error(`[AUTO TRANSLATE] Error stack:`, error?.stack);
-        // Keep original text if translation fails
+      }
+    );
+
+    for (const r of results) {
+      const targetLocale = r.targetLocale;
+      const translated = r.translated;
+
+      dbg(`[AUTO TRANSLATE] Translation result for ${targetLocale}:`, {
+        originalLength: text.length,
+        translatedLength: translated?.length || 0,
+        isSame: translated === text,
+        preview: translated?.substring(0, 50),
+      });
+
+      if (!r.ok) {
+        console.error(
+          `[AUTO TRANSLATE] ❌ Translation error for ${targetLocale}:`,
+          (r as any)?.error?.message || (r as any)?.error
+        );
+        if (TRANSLATION_DEBUG) console.error(`[AUTO TRANSLATE] Error stack:`, (r as any)?.error?.stack);
         translations[targetLocale] = text;
+        continue;
+      }
+
+      // Check if translation contains error message
+      if (translated && translated !== text && !containsErrorMessage(translated)) {
+        translations[targetLocale] = targetLocale === "me" ? srCyrToLat(translated) : translated;
+        dbg(`[AUTO TRANSLATE] ✅ Successfully translated to ${targetLocale}: "${translated.substring(0, 50)}..."`);
+      } else if (containsErrorMessage(translated)) {
+        console.warn(`[AUTO TRANSLATE] ⚠️ Translation for ${targetLocale} contains error message, using original text`);
+        translations[targetLocale] = text;
+      } else {
+        console.warn(`[AUTO TRANSLATE] ⚠️ Translation for ${targetLocale} returned same text or empty, keeping original`);
       }
     }
     
@@ -178,26 +224,22 @@ async function translateText(
     return text;
   }
 
-  // Check length limit (500 chars for LibreTranslate)
-  const MAX_LENGTH = 500;
+  const provider = (process.env.TRANSLATE_PROVIDER || "").toLowerCase();
+  const MAX_LENGTH = getTranslateMaxChunk(provider);
   
   // If text is longer than limit, split into chunks
   if (text.length > MAX_LENGTH) {
     const chunks = splitIntoChunks(text, MAX_LENGTH);
     console.log(`[TRANSLATE] Text is ${text.length} chars, splitting into ${chunks.length} chunks`);
     
-    // Translate each chunk separately
-    const translatedChunks: string[] = [];
-    for (let i = 0; i < chunks.length; i++) {
-      console.log(`[TRANSLATE] Translating chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)`);
-      const translatedChunk = await translateTextChunk(chunks[i], sourceLang, targetLang);
-      translatedChunks.push(translatedChunk);
-      
-      // Add small delay between chunks to avoid rate limiting
-      if (i < chunks.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+    const translatedChunks = await mapWithConcurrency(
+      chunks,
+      TRANSLATE_CONCURRENCY,
+      async (chunk, i) => {
+        console.log(`[TRANSLATE] Translating chunk ${i + 1}/${chunks.length} (${chunk.length} chars)`);
+        return await translateTextChunk(chunk, sourceLang, targetLang);
       }
-    }
+    );
     
     // Join all translated chunks
     return translatedChunks.join(" ");
@@ -215,7 +257,8 @@ async function translateTextChunk(
   sourceLang: string,
   targetLang: string
 ): Promise<string> {
-  const MAX_LENGTH = 500;
+  const provider = (process.env.TRANSLATE_PROVIDER || "").toLowerCase();
+  const MAX_LENGTH = getTranslateMaxChunk(provider);
   const textToTranslate = text.length > MAX_LENGTH ? text.substring(0, MAX_LENGTH) : text;
   const isTruncated = text.length > MAX_LENGTH;
 
@@ -264,8 +307,6 @@ async function translateTextChunk(
   try {
     console.log(`[TRANSLATE] Translating "${textToTranslate.substring(0, 30)}..." from ${sourceLang} to ${targetLang}${isTruncated ? ` (truncated from ${text.length} chars)` : ""}`);
     
-    const provider = (process.env.TRANSLATE_PROVIDER || "").toLowerCase();
-
     // Try multiple translation services for better reliability.
     // Default behavior: prefer Google GTX (more reliable than public LibreTranslate/MyMemory which rate-limit hard).
     const preferLibre = provider === "libretranslate";
@@ -468,11 +509,14 @@ export async function translateHTML(
     // If delimiter got mangled, fall back to per-chunk translation (slower but correct)
     if (translatedChunks.length !== meaningful.length) {
       console.warn(`[TRANSLATE HTML] Chunk split mismatch for ${locale} (${translatedChunks.length} vs ${meaningful.length}), falling back to per-chunk translation`);
-      translatedChunks = [];
-      for (const chunk of meaningful) {
-        const t = (await autoTranslate(chunk, sourceLocale))[locale] || chunk;
-        translatedChunks.push(locale === "me" ? srCyrToLat(t) : t);
-      }
+      translatedChunks = await mapWithConcurrency(
+        meaningful,
+        TRANSLATE_CONCURRENCY,
+        async (chunk) => {
+          const t = (await autoTranslate(chunk, sourceLocale, [locale]))[locale] || chunk;
+          return locale === "me" ? srCyrToLat(t) : t;
+        }
+      );
     }
 
     let idx = 0;
