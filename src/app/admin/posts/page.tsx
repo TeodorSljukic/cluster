@@ -299,7 +299,7 @@ function PostsPageInner() {
           <PostForm
             post={editingPost}
             type={type as "news" | "event"}
-            currentLocale={(viewLocale || defaultLocale) as Locale}
+            currentLocale={(cmsLocale || defaultLocale) as Locale}
             onClose={() => {
               setShowForm(false);
               setEditingPost(null);
@@ -659,12 +659,25 @@ function PostForm({
   const [saving, setSaving] = useState(false);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [selectedLocale, setSelectedLocale] = useState<Locale>((post?.locale || currentLocale) as Locale);
+  const [userPickedLocale, setUserPickedLocale] = useState(false);
   const [translateOnSave, setTranslateOnSave] = useState(false);
   const [translateToLocales, setTranslateToLocales] = useState<Locale[]>([]);
 
   const allLocales: Locale[] = ["me", "en", "it", "sq"];
   const baseLocale: Locale = (post?.locale || currentLocale) as Locale;
   const isTranslationEdit = !!post && selectedLocale !== baseLocale;
+
+  // Default "edit language" to the currently selected CMS locale when the modal opens.
+  // Keep user override if they manually changed it.
+  useEffect(() => {
+    if (userPickedLocale) return;
+    const preferred = getStoredCmsLocale();
+    if (preferred && locales.includes(preferred)) {
+      setSelectedLocale(preferred);
+    }
+    // Only run once per modal open (post changes when you open a new modal)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post]);
 
   const getLocaleField = (loc: Locale, field: "title" | "content" | "excerpt"): string => {
     if (!post) return (formData as any)[field] || "";
@@ -957,6 +970,7 @@ function PostForm({
                 onChange={(e) => {
                   const newLocale = e.target.value as Locale;
                   if (newLocale) {
+                    setUserPickedLocale(true);
                     setSelectedLocale(newLocale);
                     setFormData({ ...formData, locale: newLocale });
                   }
