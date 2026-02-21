@@ -266,7 +266,7 @@
   letter-spacing: 0.5px;
 }
 
-.cms-language-select {
+.cms-language-section .cms-language-select {
   width: 100%;
   padding: 8px 12px;
   background: rgba(50, 55, 60, 0.8);
@@ -279,12 +279,12 @@
   font-family: inherit;
 }
 
-.cms-language-select:hover {
+.cms-language-section .cms-language-select:hover {
   border-color: rgba(114, 174, 230, 0.6);
   background: rgba(50, 55, 60, 1);
 }
 
-.cms-language-select:focus {
+.cms-language-section .cms-language-select:focus {
   outline: none;
   border-color: #72aee6;
   box-shadow: 0 0 0 3px rgba(114, 174, 230, 0.2);
@@ -333,6 +333,8 @@
   width: auto;
   box-sizing: border-box;
   background: transparent;
+  /* Force light form controls (select dropdown menus, date/time pickers, etc.) */
+  color-scheme: light;
 }
 
 .cms-main-content-mobile {
@@ -776,6 +778,8 @@
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease-out;
+  /* Ensure dropdown menus render light (some browsers inherit OS dark menu styling) */
+  color-scheme: light;
 }
 
 @keyframes slideUp {
