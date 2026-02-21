@@ -11,11 +11,61 @@ const TRANSLATE_CONCURRENCY = Math.max(
   Math.min(6, Number(process.env.TRANSLATE_CONCURRENCY || "3") || 3)
 );
 
+const TRANSLATE_RETRY_ATTEMPTS = Math.max(
+  0,
+  Math.min(5, Number(process.env.TRANSLATE_RETRY_ATTEMPTS || "2") || 2)
+);
+const TRANSLATE_RETRY_BASE_MS = Math.max(
+  100,
+  Math.min(5000, Number(process.env.TRANSLATE_RETRY_BASE_MS || "700") || 700)
+);
+
 function getTranslateMaxChunk(provider: string): number {
   // LibreTranslate public endpoints often enforce 500 chars.
   if (provider === "libretranslate") return 500;
   // Google GTX (unofficial) can handle more; keep conservative to reduce failures.
   return Math.max(500, Math.min(5000, Number(process.env.TRANSLATE_MAX_CHUNK || "4000") || 4000));
+}
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function fetchJsonWithRetry(
+  url: string,
+  init: RequestInit,
+  opts: { timeoutMs: number; retryAttempts: number; retryBaseMs: number }
+): Promise<Response> {
+  const attempts = Math.max(0, opts.retryAttempts);
+  for (let attempt = 0; attempt <= attempts; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), opts.timeoutMs);
+    try {
+      const res = await fetch(url, { ...init, signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      // Retry on rate-limits and transient server errors.
+      if ((res.status === 429 || (res.status >= 500 && res.status <= 599)) && attempt < attempts) {
+        const wait = opts.retryBaseMs * (attempt + 1) + Math.floor(Math.random() * 250);
+        await sleep(wait);
+        continue;
+      }
+
+      return res;
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      const isAbort = err?.name === "AbortError";
+      if ((isAbort || err) && attempt < attempts) {
+        const wait = opts.retryBaseMs * (attempt + 1) + Math.floor(Math.random() * 250);
+        await sleep(wait);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  // Unreachable, but keeps TS happy.
+  throw new Error("fetchJsonWithRetry: exhausted retries");
 }
 
 async function mapWithConcurrency<T, R>(
@@ -268,17 +318,21 @@ async function translateTextChunk(
     tl: string
   ): Promise<string | null> => {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
       const url =
         "https://translate.googleapis.com/translate_a/single" +
         `?client=gtx&sl=${encodeURIComponent(sl)}` +
         `&tl=${encodeURIComponent(tl)}` +
         `&dt=t&q=${encodeURIComponent(q)}`;
 
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
+      const res = await fetchJsonWithRetry(
+        url,
+        { method: "GET" },
+        {
+          timeoutMs: 10000,
+          retryAttempts: TRANSLATE_RETRY_ATTEMPTS,
+          retryBaseMs: TRANSLATE_RETRY_BASE_MS,
+        }
+      );
 
       if (!res.ok) {
         const t = await res.text();
@@ -310,6 +364,8 @@ async function translateTextChunk(
     // Try multiple translation services for better reliability.
     // Default behavior: prefer Google GTX (more reliable than public LibreTranslate/MyMemory which rate-limit hard).
     const preferLibre = provider === "libretranslate";
+    const allowGtxFallback =
+      !preferLibre && (process.env.TRANSLATE_ALLOW_GTX_FALLBACK ?? "1") !== "0";
 
     // 1) Preferred provider
     if (!preferLibre) {
@@ -325,11 +381,8 @@ async function translateTextChunk(
     try {
       const libreUrl = process.env.LIBRETRANSLATE_URL || "https://libretranslate.com/translate";
       const libreApiKey = process.env.LIBRETRANSLATE_API_KEY;
-      // Create timeout controller
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch(libreUrl, {
+      const response = await fetchJsonWithRetry(libreUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -341,10 +394,11 @@ async function translateTextChunk(
           format: "text",
           ...(libreApiKey ? { api_key: libreApiKey } : {}),
         }),
-        signal: controller.signal,
+      }, {
+        timeoutMs: 10000,
+        retryAttempts: TRANSLATE_RETRY_ATTEMPTS,
+        retryBaseMs: TRANSLATE_RETRY_BASE_MS,
       });
-      
-      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
@@ -389,23 +443,22 @@ async function translateTextChunk(
     }
 
     // 3) Google GTX fallback if LibreTranslate failed or returned same text
-    const gtx2 = await translateWithGoogleGtx(textToTranslate, sourceLang, targetLang);
-    if (gtx2 && gtx2 !== textToTranslate && gtx2 !== text) {
-      console.log(`[TRANSLATE] Google GTX result: "${gtx2.substring(0, 30)}..."`);
-      return isTruncated ? gtx2 + text.substring(MAX_LENGTH) : gtx2;
+    if (allowGtxFallback) {
+      const gtx2 = await translateWithGoogleGtx(textToTranslate, sourceLang, targetLang);
+      if (gtx2 && gtx2 !== textToTranslate && gtx2 !== text) {
+        console.log(`[TRANSLATE] Google GTX result: "${gtx2.substring(0, 30)}..."`);
+        return isTruncated ? gtx2 + text.substring(MAX_LENGTH) : gtx2;
+      }
     }
 
     // 4) Last fallback: MyMemory Translation API (very limited free tier)
     try {
-      const controller2 = new AbortController();
-      const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
-      
       const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=${sourceLang}|${targetLang}`;
-      const response = await fetch(myMemoryUrl, {
-        signal: controller2.signal,
+      const response = await fetchJsonWithRetry(myMemoryUrl, { method: "GET" }, {
+        timeoutMs: 10000,
+        retryAttempts: TRANSLATE_RETRY_ATTEMPTS,
+        retryBaseMs: TRANSLATE_RETRY_BASE_MS,
       });
-      
-      clearTimeout(timeoutId2);
 
       if (response.ok) {
         const data = await response.json();
