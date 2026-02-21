@@ -122,10 +122,6 @@ export default async function PostPage({
     notFound();
   }
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/0343b0e1-3afb-40f5-8781-a0cafdb6da46',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'posts/[slug]/page.tsx:58',message:'Post loaded from DB',data:{contentLength:post.content?.length||0,contentPreview:post.content?.substring(0,200)||'',hasUl:post.content?.includes('<ul')||false,hasOl:post.content?.includes('<ol')||false,excerptLength:post.excerpt?.length||0,excerptPreview:post.excerpt?.substring(0,200)||'',excerptHasUl:post.excerpt?.includes('<ul')||false,excerptHasOl:post.excerpt?.includes('<ol')||false},timestamp:Date.now(),runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
-
   const backLink = getBackLink(post.type, locale);
 
   const meta: any = (post as any).metadata || {};
@@ -249,72 +245,6 @@ export default async function PostPage({
         <div
           className="post-content"
           dangerouslySetInnerHTML={{ __html: processPostContent(post.content) }}
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                if (typeof window === 'undefined') return;
-                setTimeout(function() {
-                  fetch('http://127.0.0.1:7242/ingest/0343b0e1-3afb-40f5-8781-a0cafdb6da46',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'posts/[slug]/page.tsx:script',message:'Client script started',data:{timestamp:Date.now()},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(function(){});
-                  
-                  function processLists(container, className) {
-                    if (!container) return;
-                    fetch('http://127.0.0.1:7242/ingest/0343b0e1-3afb-40f5-8781-a0cafdb6da46',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'posts/[slug]/page.tsx:script',message:'Processing container',data:{className:className,innerHTML:container.innerHTML.substring(0,300)},timestamp:Date.now(),runId:'run1',hypothesisId:'D'})}).catch(function(){});
-                    
-                    // Process ul lists
-                    var uls = container.querySelectorAll('ul');
-                    fetch('http://127.0.0.1:7242/ingest/0343b0e1-3afb-40f5-8781-a0cafdb6da46',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'posts/[slug]/page.tsx:script',message:'Found UL elements',data:{ulCount:uls.length,className:className},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(function(){});
-                    uls.forEach(function(ul) {
-                      ul.style.cssText = 'list-style: none !important; margin: 1em 0 1em 2em !important; padding: 0 !important;';
-                      var lis = ul.querySelectorAll('li');
-                      lis.forEach(function(li) {
-                        if (li.dataset.processed) return;
-                        li.dataset.processed = 'true';
-                        li.style.cssText = 'margin: 0.5em 0 !important; padding: 0 0 0 0.5em !important; position: relative !important; list-style: none !important;';
-                        if (!li.querySelector('.list-bullet')) {
-                          var bullet = document.createElement('span');
-                          bullet.className = 'list-bullet';
-                          bullet.textContent = '•';
-                          bullet.style.cssText = 'position: absolute !important; left: -2em !important; color: #333 !important; font-weight: bold !important; font-size: 1.2em !important; text-align: right !important; min-width: 1.5em !important;';
-                          li.insertBefore(bullet, li.firstChild);
-                          fetch('http://127.0.0.1:7242/ingest/0343b0e1-3afb-40f5-8781-a0cafdb6da46',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'posts/[slug]/page.tsx:script',message:'Bullet added',data:{bulletLeft:window.getComputedStyle(bullet).left,bulletPosition:window.getComputedStyle(bullet).position,liPosition:window.getComputedStyle(li).position},timestamp:Date.now(),runId:'run1',hypothesisId:'C'})}).catch(function(){});
-                        }
-                      });
-                    });
-                    
-                    // Process ol lists
-                    var ols = container.querySelectorAll('ol');
-                    fetch('http://127.0.0.1:7242/ingest/0343b0e1-3afb-40f5-8781-a0cafdb6da46',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'posts/[slug]/page.tsx:script',message:'Found OL elements',data:{olCount:ols.length,className:className},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(function(){});
-                    ols.forEach(function(ol) {
-                      ol.style.cssText = 'list-style: none !important; margin: 1em 0 1em 2em !important; padding: 0 !important;';
-                      var lis = ol.querySelectorAll('li');
-                      var counter = 0;
-                      lis.forEach(function(li) {
-                        counter++;
-                        if (li.dataset.processed) return;
-                        li.dataset.processed = 'true';
-                        li.style.cssText = 'margin: 0.5em 0 !important; padding: 0 0 0 0.5em !important; position: relative !important; list-style: none !important;';
-                        if (!li.querySelector('.list-number')) {
-                          var number = document.createElement('span');
-                          number.className = 'list-number';
-                          number.textContent = counter + '.';
-                          number.style.cssText = 'position: absolute !important; left: -2em !important; color: #333 !important; min-width: 1.5em !important; text-align: right !important;';
-                          li.insertBefore(number, li.firstChild);
-                          fetch('http://127.0.0.1:7242/ingest/0343b0e1-3afb-40f5-8781-a0cafdb6da46',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'posts/[slug]/page.tsx:script',message:'Number added',data:{numberLeft:window.getComputedStyle(number).left,numberPosition:window.getComputedStyle(number).position},timestamp:Date.now(),runId:'run1',hypothesisId:'C'})}).catch(function(){});
-                        }
-                      });
-                    });
-                  }
-                  
-                  var contentContainer = document.querySelector('.post-content');
-                  var excerptContainer = document.querySelector('.post-excerpt');
-                  processLists(contentContainer, 'post-content');
-                  processLists(excerptContainer, 'post-excerpt');
-                }, 100);
-              })();
-            `,
-          }}
         />
       </article>
     </main>

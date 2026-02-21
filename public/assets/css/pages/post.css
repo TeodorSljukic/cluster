@@ -123,6 +123,29 @@
   line-height: 1.8;
   color: rgba(31, 35, 40, 0.92);
 }
+.post-content ul,
+.post-content ol,
+.post-excerpt ul,
+.post-excerpt ol {
+  margin: 0.9em 0 0.9em 1.2em;
+  padding-left: 1.1em;
+}
+.post-content ul,
+.post-excerpt ul {
+  list-style: disc;
+}
+.post-content ol,
+.post-excerpt ol {
+  list-style: decimal;
+}
+.post-content li,
+.post-excerpt li {
+  margin: 0.35em 0;
+}
+.post-content li > p,
+.post-excerpt li > p {
+  margin: 0.25em 0;
+}
 .post-content h1,
 .post-content h2,
 .post-content h3 {
