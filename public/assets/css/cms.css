@@ -198,7 +198,7 @@
 }
 
 .cms-menu-icon {
-  font-size: 18px;
+  font-size: 14px;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
@@ -1203,5 +1203,77 @@
 
   .cms-translation-target-item {
     width: 100%;
+  }
+}
+
+/* Additional Mobile Responsive Styles */
+@media (max-width: 767px) {
+  .cms-sidebar {
+    width: 280px !important;
+    transform: translateX(-100%);
+  }
+
+  .cms-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .cms-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .cms-form-group {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .cms-form-group label {
+    width: 100% !important;
+  }
+
+  .cms-form-group input,
+  .cms-form-group select,
+  .cms-form-group textarea {
+    width: 100% !important;
+  }
+
+  .cms-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .cms-header h1,
+  .cms-header h2 {
+    font-size: 20px !important;
+  }
+
+  .cms-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .cms-table-wrapper table {
+    font-size: 13px !important;
+  }
+
+  .cms-table-wrapper table th,
+  .cms-table-wrapper table td {
+    padding: 8px 6px !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .cms-sidebar {
+    width: 240px !important;
+  }
+
+  .cms-content {
+    margin-left: 240px !important;
+  }
+
+  .cms-dashboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

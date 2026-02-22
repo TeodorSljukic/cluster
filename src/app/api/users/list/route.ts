@@ -27,8 +27,10 @@ export async function GET(request: NextRequest) {
       .collection("users")
       .find(filter)
       .project({
-        password: 0, // Exclude password only
-        // All other fields will be included by default
+        password: 0, // Exclude password
+        about: 0, // Exclude large text field
+        experience: 0, // Exclude array
+        education: 0, // Exclude array
       })
       .sort({ createdAt: -1 })
       .skip(skip)

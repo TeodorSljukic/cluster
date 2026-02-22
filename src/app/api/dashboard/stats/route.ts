@@ -58,18 +58,29 @@ export async function GET() {
       postsByTypeMap[item._id] = item.count;
     });
 
-    // Get recent posts (last 5)
+    // Get recent posts (last 5) - exclude large fields
     const recentPosts = await db
       .collection("posts")
       .find({})
+      .project({
+        content: 0, // Exclude large content
+        excerpt: 0, // Exclude excerpt
+        metadata: 0, // Exclude translations
+      })
       .sort({ createdAt: -1 })
       .limit(5)
       .toArray();
 
-    // Get recent users (last 5)
+    // Get recent users (last 5) - exclude large fields
     const recentUsers = await db
       .collection("users")
       .find({})
+      .project({
+        password: 0,
+        about: 0,
+        experience: 0,
+        education: 0,
+      })
       .sort({ createdAt: -1 })
       .limit(5)
       .toArray();

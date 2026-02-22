@@ -2,6 +2,8 @@ import { Post } from "@/models/Post";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { processPostContent } from "@/lib/processPostContent";
+import { getTranslations } from "@/lib/getTranslations";
+import { defaultLocale } from "@/lib/i18n";
 
 async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
@@ -23,6 +25,7 @@ export default async function NewsPostPage({
   params: { slug: string };
 }) {
   const post = await getPostBySlug(params.slug);
+  const t = getTranslations(defaultLocale);
 
   if (!post || post.type !== "news") {
     notFound();
@@ -42,7 +45,7 @@ export default async function NewsPostPage({
   return (
     <main className="container" style={{ padding: "2rem 0", maxWidth: "800px" }}>
       <Link href="/news" style={{ marginBottom: "1rem", display: "inline-block" }}>
-        ← Back to News
+        ← {t.common.backToNews}
       </Link>
 
       {post.featuredImage && (

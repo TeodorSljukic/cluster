@@ -11,7 +11,19 @@ export async function GET(request: NextRequest) {
     await requireAdmin();
 
     const collection = await getCollection("users");
-    const users = await collection.find({}).project({ password: 0 }).toArray();
+    
+    // Exclude large fields that are not needed for the users list table
+    // These fields are only shown in expanded details view
+    const users = await collection
+      .find({})
+      .project({ 
+        password: 0, // Never include password
+        about: 0, // Large text field - only needed in details
+        experience: 0, // Array - only needed in details
+        education: 0, // Array - only needed in details
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
 
     return NextResponse.json({
       users: users.map((user: any) => {

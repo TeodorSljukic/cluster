@@ -4,7 +4,16 @@ import { getDb } from "@/lib/db";
 export async function GET() {
   try {
     const db = await getDb();
-    const users = await db.collection("users").find({}).toArray();
+    
+    // Only fetch location and interests fields - drastically reduces data transfer
+    const users = await db.collection("users")
+      .find({})
+      .project({
+        location: 1,
+        interests: 1,
+        _id: 0, // Exclude _id to save space
+      })
+      .toArray();
 
     // Process location data (city, region, country) in one pass
     const cityCounts: Record<string, number> = {};
@@ -12,7 +21,7 @@ export async function GET() {
     const countryCounts: Record<string, number> = {};
     const interestCounts: Record<string, number> = {};
 
-    users.forEach((user) => {
+    users.forEach((user: any) => {
       // Process location
       if (user.location) {
         const parts = user.location.split(",").map((p: string) => p.trim());

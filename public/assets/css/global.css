@@ -59,11 +59,27 @@ a {
 
 /* Container */
 .container {
-  width: 100%;
-  max-width: var(--abgc-container);
+  width: 85%;
   margin: 0 auto;
   padding-left: var(--abgc-gutter);
   padding-right: var(--abgc-gutter);
+}
+
+/* Responsive Container */
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 95%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
 
 /* Better focus styles (keyboard users) */

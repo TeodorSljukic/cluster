@@ -1,8 +1,12 @@
 /* ===============================
    Blog Page
 ================================ */
+main.blog-archive {
+  padding-top: 50px;
+}
+
 .blog-archive {
-  padding: 48px 0;
+  padding: 0 0 48px 0;
 }
 
 .blog-archive h2 {

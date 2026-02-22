@@ -18,7 +18,9 @@
     "closeMenu": "Close menu",
     "mainMenu": "Main Menu",
     "chat": "Chat",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "backToNews": "Back to News",
+    "backToHome": "Back to Home"
   },
   "hero": {
     "title": "Welcome to ABGC",
@@ -137,7 +139,7 @@
     "platforms": "Select platforms:",
     "allPlatforms": "All platforms",
     "newsletter": "I want to receive updates and newsletters from ABGC",
-    "terms": "I agree to the Terms and Conditions and the Privacy Policy",
+    "terms": "I agree to the Terms of Use and Privacy Policy",
     "register": "Register",
     "registering": "Registering...",
     "viewer": "Viewer",
@@ -581,7 +583,21 @@
     "syncDMSError": "Sync failed",
     "resetEmailSentTo": "Email has been sent to",
     "resetEmailSendFailedCopied": "Email sending failed. Link copied to clipboard:",
-    "resetEmailSendFailedManual": "Email sending failed. Please copy this link manually:"
+    "resetEmailSendFailedManual": "Email sending failed. Please copy this link manually:",
+    "setPassword": "Set Password",
+    "setting": "Setting...",
+    "enterNewPassword": "Enter new password for this user:",
+    "passwordTooShort": "Password must be at least 6 characters long",
+    "confirmSetPassword": "Are you sure you want to set this password?",
+    "passwordSetSuccess": "Password has been set successfully",
+    "errorSettingPassword": "Error setting password",
+    "sortBy": "Sort by",
+    "sortUsernameAsc": "Username (A-Z)",
+    "sortUsernameDesc": "Username (Z-A)",
+    "sortEmailAsc": "Email (A-Z)",
+    "sortEmailDesc": "Email (Z-A)",
+    "sortRoleAsc": "Role (A-Z)",
+    "sortRoleDesc": "Role (Z-A)"
   },
   "resetPassword": {
     "title": "Reset Your Password",

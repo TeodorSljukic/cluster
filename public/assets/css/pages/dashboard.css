@@ -3,10 +3,26 @@
 =========================== */
 
 .dashboard-container {
-  max-width: var(--abgc-container);
   margin: 0 auto;
   padding: 40px var(--abgc-gutter);
   animation: fadeIn 0.5s ease-in;
+  width: 85%;
+}
+
+/* Responsive Dashboard Container */
+@media (max-width: 768px) {
+  .dashboard-container {
+    width: 95%;
+    padding: 50px 15px 30px 15px;
+    padding-top: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    width: 95%;
+    padding: 20px 12px;
+  }
 }
 
 @keyframes fadeIn {
@@ -87,11 +103,17 @@
 /* Stats Cards Grid */
 .dashboard-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   margin-bottom: 40px;
   animation: fadeInUp 0.6s ease-out 0.1s both;
   align-items: stretch;
+}
+
+@media (min-width: 1200px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .dashboard-stats-grid > * {
@@ -547,38 +569,50 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .activity-item {
-  padding: 16px 0;
+  padding: 20px;
   border-bottom: 1px solid #f1f3f5;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--abgc-radius-md);
+  margin-bottom: 8px;
+  background: #fafbfc;
+  border: 1px solid #e5e7eb;
 }
 
 .activity-item:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid #f1f3f5;
+  margin-bottom: 0;
 }
 
 .activity-item:hover {
-  background: #f8f9fa;
-  margin: 0 -12px;
-  padding: 16px 12px;
-  border-radius: var(--abgc-radius-sm);
+  background: #ffffff;
+  border-color: var(--abgc-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .activity-item-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .activity-item-title {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--abgc-text);
   text-decoration: none;
   transition: color 0.2s ease;
-  line-height: 1.4;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .activity-item-title:hover {
@@ -587,56 +621,63 @@
 
 .activity-item-edit-link {
   font-size: 0.75rem;
-  color: var(--abgc-accent);
+  color: #6b7280;
   text-decoration: none;
-  padding: 4px 8px;
-  border: 1.5px solid var(--abgc-accent);
+  padding: 4px 10px;
+  background: #f3f4f6;
   border-radius: var(--abgc-radius-sm);
   transition: all 0.2s ease;
   font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid #e5e7eb;
 }
 
 .activity-item-edit-link:hover {
   background: var(--abgc-accent);
   color: white;
+  border-color: var(--abgc-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .activity-item-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   font-size: 0.875rem;
 }
 
 .activity-item-type {
-  background: #f1f3f5;
-  color: var(--abgc-text);
-  padding: 4px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 14px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: capitalize;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
 }
 
 .activity-item-status {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-published {
-  background: #d1fae5;
-  color: #065f46;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
 }
 
 .status-draft {
-  background: #fef3c7;
-  color: #92400e;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
 }
 
 .activity-item-role {
@@ -664,6 +705,11 @@
 .activity-item-date {
   color: var(--abgc-muted);
   margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  background: #f1f3f5;
+  border-radius: 999px;
 }
 
 .activity-empty {
@@ -686,7 +732,8 @@
 
 @media (max-width: 768px) {
   .dashboard-container {
-    padding: 24px 16px;
+    padding: 50px 16px 24px 16px;
+    padding-top: 50px;
   }
 
   .dashboard-stats-grid {

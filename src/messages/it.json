@@ -18,7 +18,9 @@
     "closeMenu": "Chiudi menu",
     "mainMenu": "Menu principale",
     "chat": "Chat",
-    "unknown": "Sconosciuto"
+    "unknown": "Sconosciuto",
+    "backToNews": "Torna alle Notizie",
+    "backToHome": "Torna alla Home"
   },
   "hero": {
     "title": "Benvenuti in ABGC",
@@ -581,7 +583,21 @@
     "syncDMSError": "Sincronizzazione fallita",
     "resetEmailSentTo": "Email inviato a",
     "resetEmailSendFailedCopied": "Invio email non riuscito. Link copiato negli appunti:",
-    "resetEmailSendFailedManual": "Invio email non riuscito. Copia manualmente questo link:"
+    "resetEmailSendFailedManual": "Invio email non riuscito. Copia manualmente questo link:",
+    "setPassword": "Imposta Password",
+    "setting": "Impostazione...",
+    "enterNewPassword": "Inserisci nuova password per questo utente:",
+    "passwordTooShort": "La password deve essere di almeno 6 caratteri",
+    "confirmSetPassword": "Sei sicuro di voler impostare questa password?",
+    "passwordSetSuccess": "Password impostata con successo",
+    "errorSettingPassword": "Errore nell'impostazione della password",
+    "sortBy": "Ordina per",
+    "sortUsernameAsc": "Nome utente (A-Z)",
+    "sortUsernameDesc": "Nome utente (Z-A)",
+    "sortEmailAsc": "Email (A-Z)",
+    "sortEmailDesc": "Email (Z-A)",
+    "sortRoleAsc": "Ruolo (A-Z)",
+    "sortRoleDesc": "Ruolo (Z-A)"
   },
   "resetPassword": {
     "title": "Reimposta la Tua Password",

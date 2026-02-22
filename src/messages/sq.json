@@ -18,7 +18,9 @@
     "closeMenu": "Mbyll menunë",
     "mainMenu": "Menyja kryesore",
     "chat": "Chat",
-    "unknown": "E panjohur"
+    "unknown": "E panjohur",
+    "backToNews": "Kthehu te Lajmet",
+    "backToHome": "Kthehu në Shtëpi"
   },
   "hero": {
     "title": "Mirë se vini në ABGC",
@@ -581,7 +583,21 @@
     "syncDMSError": "Sinkronizimi dështoi",
     "resetEmailSentTo": "Email u dërgua te",
     "resetEmailSendFailedCopied": "Dërgimi i email-it dështoi. Linku u kopjua në clipboard:",
-    "resetEmailSendFailedManual": "Dërgimi i email-it dështoi. Ju lutem kopjoni manualisht këtë link:"
+    "resetEmailSendFailedManual": "Dërgimi i email-it dështoi. Ju lutem kopjoni manualisht këtë link:",
+    "setPassword": "Vendos Fjalëkalimin",
+    "setting": "Duke vendosur...",
+    "enterNewPassword": "Shkruani fjalëkalimin e ri për këtë përdorues:",
+    "passwordTooShort": "Fjalëkalimi duhet të ketë të paktën 6 karaktere",
+    "confirmSetPassword": "Jeni të sigurt që dëshironi të vendosni këtë fjalëkalim?",
+    "passwordSetSuccess": "Fjalëkalimi u vendos me sukses",
+    "errorSettingPassword": "Gabim në vendosjen e fjalëkalimit",
+    "sortBy": "Rendit sipas",
+    "sortUsernameAsc": "Emri i përdoruesit (A-Z)",
+    "sortUsernameDesc": "Emri i përdoruesit (Z-A)",
+    "sortEmailAsc": "Email (A-Z)",
+    "sortEmailDesc": "Email (Z-A)",
+    "sortRoleAsc": "Roli (A-Z)",
+    "sortRoleDesc": "Roli (Z-A)"
   },
   "resetPassword": {
     "title": "Rivendos Fjalëkalimin Tënd",

@@ -181,7 +181,22 @@ function PostsPageInner() {
     }
   }
 
-  function handleEdit(post: Post) {
+  async function handleEdit(post: Post) {
+    // If post doesn't have content, fetch full post data
+    if (!post.content && post._id) {
+      try {
+        const res = await fetch(`/api/posts/${post._id}`);
+        if (res.ok) {
+          const fullPost = await res.json();
+          setEditingPost(fullPost);
+          setShowForm(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching full post:", error);
+      }
+    }
+    // Use post from list if it already has content
     setEditingPost(post);
     setShowForm(true);
   }

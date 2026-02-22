@@ -18,7 +18,9 @@
     "closeMenu": "Zatvori meni",
     "mainMenu": "Glavni meni",
     "chat": "Chat",
-    "unknown": "Nepoznato"
+    "unknown": "Nepoznato",
+    "backToNews": "Nazad na vijesti",
+    "backToHome": "Nazad na početnu"
   },
   "hero": {
     "title": "Dobrodošli na ABGC",
@@ -581,7 +583,21 @@
     "syncDMSError": "Greška pri sinhronizaciji",
     "resetEmailSentTo": "Email je poslat na",
     "resetEmailSendFailedCopied": "Slanje emaila nije uspjelo. Link je kopiran u clipboard:",
-    "resetEmailSendFailedManual": "Slanje emaila nije uspjelo. Molimo ručno kopirajte ovaj link:"
+    "resetEmailSendFailedManual": "Slanje emaila nije uspjelo. Molimo ručno kopirajte ovaj link:",
+    "setPassword": "Postavi lozinku",
+    "setting": "Postavljanje...",
+    "enterNewPassword": "Unesite novu lozinku za ovog korisnika:",
+    "passwordTooShort": "Lozinka mora imati najmanje 6 karaktera",
+    "confirmSetPassword": "Da li ste sigurni da želite da postavite ovu lozinku?",
+    "passwordSetSuccess": "Lozinka je uspješno postavljena",
+    "errorSettingPassword": "Greška pri postavljanju lozinke",
+    "sortBy": "Sortiraj po",
+    "sortUsernameAsc": "Korisničko ime (A-Z)",
+    "sortUsernameDesc": "Korisničko ime (Z-A)",
+    "sortEmailAsc": "Email (A-Z)",
+    "sortEmailDesc": "Email (Z-A)",
+    "sortRoleAsc": "Uloga (A-Z)",
+    "sortRoleDesc": "Uloga (Z-A)"
   },
   "resetPassword": {
     "title": "Resetuj svoju lozinku",

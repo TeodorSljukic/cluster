@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const locale = searchParams.get("locale"); // me, en, it, sq
     const limit = parseInt(searchParams.get("limit") || "100"); // Increased limit for admin
     const page = parseInt(searchParams.get("page") || "1");
+    const includeContent = searchParams.get("includeContent") === "true"; // Only include content if explicitly requested
     const skip = (page - 1) * limit;
 
     const collection = await getCollection("posts");
@@ -33,8 +34,17 @@ export async function GET(request: NextRequest) {
       query.locale = locale;
     }
 
+    // Build projection - exclude large content field unless explicitly requested
+    const projection: any = {};
+    if (!includeContent) {
+      projection.content = 0; // Exclude content for list views
+      projection.excerpt = 0; // Exclude excerpt for list views (can be large)
+      projection.metadata = 0; // Exclude metadata (translations can be large)
+    }
+
     const posts = await collection
       .find(query)
+      .project(includeContent ? {} : projection) // Only apply projection if not including content
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

@@ -591,22 +591,12 @@ export default function DashboardPage() {
                 {stats.recentPosts.map((post) => (
                   <li key={post._id} className="activity-item">
                     <div className="activity-item-content">
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                        <Link
-                          href={localeLink(`/posts/${post.slug}`, locale)}
-                          className="activity-item-title"
-                        >
-                          {post.title}
-                        </Link>
-                        {userRole === "admin" && (
-                          <Link
-                            href={`/admin/posts?type=${post.type}&edit=${post._id}`}
-                            className="activity-item-edit-link"
-                          >
-                            Edit
-                          </Link>
-                        )}
-                      </div>
+                      <Link
+                        href={localeLink(`/posts/${post.slug}`, locale)}
+                        className="activity-item-title"
+                      >
+                        {post.title}
+                      </Link>
                       <div className="activity-item-meta">
                         <span className="activity-item-type">{post.type}</span>
                         <span

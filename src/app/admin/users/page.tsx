@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { CMSLayout } from "@/components/CMSLayout";
 import { AdminGuard } from "@/components/AdminGuard";
 import { getTranslations } from "@/lib/getTranslations";
@@ -34,13 +34,23 @@ interface User {
   updatedAt?: string;
 }
 
+type SortKey = "username" | "email" | "role";
+type SortDir = "asc" | "desc";
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [resetPasswordLoading, setResetPasswordLoading] = useState<string | null>(null);
   const [resetPasswordResult, setResetPasswordResult] = useState<{ userId: string; link: string } | null>(null);
+  const [setPasswordUserId, setSetPasswordUserId] = useState<string | null>(null);
+  const [setPasswordValue, setSetPasswordValue] = useState("");
+  const [setPasswordLoading, setSetPasswordLoading] = useState(false);
   const [cmsLocale, setCmsLocale] = useState<Locale>(defaultLocale);
+  const [sortKey, setSortKey] = useState<SortKey>("username");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createUserEmail, setCreateUserEmail] = useState("");
   const [createUserRole, setCreateUserRole] = useState("user");
@@ -175,6 +185,58 @@ export default function UsersPage() {
     }
   }
 
+  // Close sort menu when clicking outside
+  useEffect(() => {
+    if (!showSortMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(e.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [showSortMenu]);
+
+  const sortedUsers = useMemo(() => {
+    const roleRank: Record<string, number> = {
+      admin: 4,
+      moderator: 3,
+      editor: 2,
+      user: 1,
+    };
+
+    const norm = (v: unknown) => String(v ?? "").toLowerCase();
+
+    const decorated = users.map((u, idx) => ({ u, idx }));
+    decorated.sort((a, b) => {
+      let cmp = 0;
+
+      if (sortKey === "role") {
+        const av = roleRank[a.u.role] ?? 0;
+        const bv = roleRank[b.u.role] ?? 0;
+        cmp = av - bv;
+      } else if (sortKey === "email") {
+        cmp = norm(a.u.email).localeCompare(norm(b.u.email));
+      } else {
+        // "username" (but match what we display in the table)
+        const aName = norm(a.u.displayName || a.u.username);
+        const bName = norm(b.u.displayName || b.u.username);
+        cmp = aName.localeCompare(bName);
+      }
+
+      if (cmp === 0) cmp = a.idx - b.idx; // stable tie-breaker
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return decorated.map((d) => d.u);
+  }, [users, sortKey, sortDir]);
+
+  const handleSortOption = useCallback((key: SortKey, dir: SortDir) => {
+    setSortKey(key);
+    setSortDir(dir);
+    setShowSortMenu(false);
+  }, []);
+
 
   const handleToggleCreateForm = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -209,6 +271,53 @@ export default function UsersPage() {
     };
   }, [handleDelete]);
 
+  const handleSetPassword = useCallback(async (userId: string) => {
+    const password = prompt(t.adminUsers.enterNewPassword);
+    if (!password) return;
+    
+    if (password.length < 6) {
+      alert(t.adminUsers.passwordTooShort);
+      return;
+    }
+
+    if (!confirm(t.adminUsers.confirmSetPassword)) {
+      return;
+    }
+
+    setSetPasswordUserId(userId);
+    setSetPasswordLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/set-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert(t.adminUsers.passwordSetSuccess);
+        setSetPasswordUserId(null);
+        setSetPasswordValue("");
+      } else {
+        alert(`${t.adminUsers.errorSettingPassword}: ${data.error || t.cms.unknownError}`);
+      }
+    } catch (error: any) {
+      alert(`${t.adminUsers.errorSettingPassword}: ${error.message || t.cms.unknownError}`);
+    } finally {
+      setSetPasswordLoading(false);
+      setSetPasswordUserId(null);
+    }
+  }, [t.adminUsers.enterNewPassword, t.adminUsers.passwordTooShort, t.adminUsers.confirmSetPassword, t.adminUsers.passwordSetSuccess, t.adminUsers.errorSettingPassword, t.cms.unknownError]);
+
+  const handleSetPasswordClick = useCallback((userId: string) => {
+    return (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleSetPassword(userId);
+    };
+  }, [handleSetPassword]);
+
   return (
     <AdminGuard>
       <CMSLayout>
@@ -217,7 +326,154 @@ export default function UsersPage() {
           <h1 style={{ margin: 0, fontSize: "23px", fontWeight: "400" }}>
             {t.adminUsers.title}
           </h1>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", position: "relative" }}>
+            <div ref={sortMenuRef} style={{ position: "relative" }} data-sort-menu>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowSortMenu(!showSortMenu);
+                }}
+                style={{
+                  padding: "8px 16px",
+                  background: "white",
+                  color: "#50575e",
+                  border: "1px solid #8c8f94",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  position: "relative",
+                  zIndex: 10001,
+                  pointerEvents: "auto",
+                }}
+              >
+                {t.adminUsers.sortBy} ▼
+              </button>
+              {showSortMenu && (
+                <div
+                  key="sort-menu-dropdown"
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    right: 0,
+                    marginTop: "4px",
+                    background: "white",
+                    border: "1px solid #c3c4c7",
+                    borderRadius: "3px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    zIndex: 10002,
+                    minWidth: "200px",
+                    padding: "4px 0",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleSortOption("username", "asc")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: sortKey === "username" && sortDir === "asc" ? "#f0f0f1" : "transparent",
+                      border: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#50575e",
+                    }}
+                  >
+                    {t.adminUsers.sortUsernameAsc}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortOption("username", "desc")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: sortKey === "username" && sortDir === "desc" ? "#f0f0f1" : "transparent",
+                      border: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#50575e",
+                    }}
+                  >
+                    {t.adminUsers.sortUsernameDesc}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortOption("email", "asc")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: sortKey === "email" && sortDir === "asc" ? "#f0f0f1" : "transparent",
+                      border: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#50575e",
+                    }}
+                  >
+                    {t.adminUsers.sortEmailAsc}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortOption("email", "desc")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: sortKey === "email" && sortDir === "desc" ? "#f0f0f1" : "transparent",
+                      border: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#50575e",
+                    }}
+                  >
+                    {t.adminUsers.sortEmailDesc}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortOption("role", "asc")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: sortKey === "role" && sortDir === "asc" ? "#f0f0f1" : "transparent",
+                      border: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#50575e",
+                    }}
+                  >
+                    {t.adminUsers.sortRoleAsc}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSortOption("role", "desc")}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "8px 12px",
+                      background: sortKey === "role" && sortDir === "desc" ? "#f0f0f1" : "transparent",
+                      border: "none",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#50575e",
+                    }}
+                  >
+                    {t.adminUsers.sortRoleDesc}
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={handleToggleCreateForm}
@@ -501,7 +757,7 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {sortedUsers.map((user) => (
                 <React.Fragment key={user._id}>
                   <tr
                     style={{
@@ -580,6 +836,26 @@ export default function UsersPage() {
                           }}
                         >
                           {resetPasswordLoading === user._id ? t.adminUsers.sending : t.adminUsers.resetPassword}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSetPasswordClick(user._id)}
+                          disabled={setPasswordLoading && setPasswordUserId === user._id}
+                          style={{
+                            background: "transparent",
+                            border: "1px solid #2271b1",
+                            color: "#2271b1",
+                            cursor: setPasswordLoading && setPasswordUserId === user._id ? "not-allowed" : "pointer",
+                            fontSize: "13px",
+                            padding: "4px 8px",
+                            borderRadius: "3px",
+                            opacity: setPasswordLoading && setPasswordUserId === user._id ? 0.6 : 1,
+                            position: "relative",
+                            zIndex: 10000,
+                            pointerEvents: setPasswordLoading && setPasswordUserId === user._id ? "none" : "auto",
+                          }}
+                        >
+                          {setPasswordLoading && setPasswordUserId === user._id ? t.adminUsers.setting : t.adminUsers.setPassword}
                         </button>
                         <button
                           type="button"

@@ -16,7 +16,7 @@
   align-self: flex-start;
 }
 
-/* Adjust header position when admin bar is present */
+/* Adjust header position when admin bar is present - header is separate section below admin bar */
 body:has([data-admin-bar="true"]) .site-header {
   top: 32px;
 }
@@ -437,20 +437,35 @@ body:has([data-admin-bar="true"]) .site-header {
 /* Mobile overlay menu */
 .mobile-overlay-menu {
   position: fixed;
-  top: 0;
+  top: 32px;
   right: 0;
   bottom: 0;
+  left: 0;
   width: 100%;
-  max-width: 400px;
+  max-width: 100%;
   background: #fff;
   box-shadow: -2px 0 10px rgba(0,0,0,0.15);
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
   z-index: 10001;
   padding: 40px;
+  padding-top: 100px; /* Start below header */
   overflow-y: auto;
   visibility: hidden;
   opacity: 0;
+}
+
+/* Adjust mobile menu when admin bar is present */
+body:has([data-admin-bar="true"]) .mobile-overlay-menu {
+  top: 32px;
+  padding-top: 100px; /* Header height */
+}
+
+@media (max-width: 1499px) and (min-width: 1000px) {
+  body:has([data-admin-bar="true"]) .mobile-overlay-menu {
+    top: 40px;
+    padding-top: 100px; /* Header height */
+  }
 }
 .mobile-overlay-menu.active {
   transform: translateX(0);
@@ -485,13 +500,21 @@ body:has(.mobile-overlay-menu.active) .chat-main-content {
   list-style: none;
   padding: 0;
   margin: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .mobile-menu-list li {
   margin-bottom: 20px;
+  width: 100%;
+  text-align: center;
 }
 .mobile-menu-list a {
   font-size: 20px;
   color: #333;
+  display: inline-block;
+  text-align: center;
 }
 
 /* Admin Bar Responsive Styles */

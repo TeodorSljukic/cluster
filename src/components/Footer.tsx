@@ -92,11 +92,11 @@ export function Footer() {
       <footer className="site-footer">
         <div className="footer-top container">
           <div className="footer-left">
-            <Link href={localeLink("/", locale)} className="site-title">
-              <img 
-                src="/wp-content/uploads/2025/09/logo header.png" 
+            <Link href={localeLink("/", locale)} className="site-title" style={{ display: "block" }}>
+              <img
+                src="/wp-content/uploads/2025/09/logo header.png"
                 alt="Adriatic Blue Growth Cluster"
-                style={{ height: "70px", width: "auto", objectFit: "contain", marginBottom: "16px" }}
+                style={{ height: "70px", width: "auto", objectFit: "contain" }}
               />
             </Link>
           </div>
@@ -105,10 +105,11 @@ export function Footer() {
             flex: "1",
             maxWidth: "600px",
             margin: "0 40px",
+            padding: "40px 0",
             fontSize: "12px",
             lineHeight: "1.5",
             color: "#666",
-            textAlign: "left"
+            textAlign: "center"
           }}>
             {/* EU Disclaimer */}
             <p style={{ margin: 0 }}>
@@ -120,10 +121,10 @@ export function Footer() {
             <nav className="footer-nav">
               <ul>
                 <li>
-                  <Link href={localeLink("/contact", locale)}>{t.common.contact}</Link>
+                  <Link href={localeLink("/contact", locale)} className="footer-link">{t.common.contact}</Link>
                 </li>
                 <li>
-                  <Link href={localeLink("/terms", locale)}>{t.contact.privacyPolicy}</Link>
+                  <Link href={localeLink("/terms", locale)} className="footer-link">{t.contact.privacyPolicy}</Link>
                 </li>
               </ul>
             </nav>
@@ -150,9 +151,9 @@ export function Footer() {
 
       {/* Floating Chat Button - Always visible when user is logged in */}
       {!loading && user && (
-        <div 
-          id="chat-widget" 
-          style={{ 
+        <div
+          id="chat-widget"
+          style={{
             position: "fixed",
             bottom: "20px",
             right: "20px",
@@ -162,8 +163,8 @@ export function Footer() {
             opacity: 1,
           }}
         >
-          <Link 
-            href={localeLink("/chat", locale)} 
+          <Link
+            href={localeLink("/chat", locale)}
             title={t.common.chat || "Chat"}
             style={{
               display: "flex",

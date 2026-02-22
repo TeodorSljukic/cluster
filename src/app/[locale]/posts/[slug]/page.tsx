@@ -7,6 +7,7 @@ import { getCollection } from "@/lib/db";
 import { PostViewTracker } from "@/components/PostViewTracker";
 import { processPostContent } from "@/lib/processPostContent";
 import { srCyrToLat } from "@/lib/transliterate";
+import { getTranslations } from "@/lib/getTranslations";
 
 export const dynamic = "force-dynamic";
 
@@ -97,14 +98,14 @@ async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null>
   }
 }
 
-function getBackLink(type: string, locale: Locale): { href: string; label: string } {
+function getBackLink(type: string, locale: Locale, t: any): { href: string; label: string } {
   switch (type) {
     case "news":
-      return { href: localeLink("/news", locale), label: "Back to News" };
+      return { href: localeLink("/news", locale), label: t.common.backToNews };
     case "event":
-      return { href: localeLink("/", locale), label: "Back to Home" };
+      return { href: localeLink("/", locale), label: t.common.backToHome };
     default:
-      return { href: localeLink("/", locale), label: "Back to Home" };
+      return { href: localeLink("/", locale), label: t.common.backToHome };
   }
 }
 
@@ -116,13 +117,14 @@ export default async function PostPage({
   // Handle params as Promise (Next.js 16) or direct object
   const resolvedParams = params instanceof Promise ? await params : params;
   const locale = (resolvedParams.locale as Locale) || "me";
+  const t = getTranslations(locale);
   const post = await getPostBySlug(resolvedParams.slug, locale);
 
   if (!post || post.status !== "published") {
     notFound();
   }
 
-  const backLink = getBackLink(post.type, locale);
+  const backLink = getBackLink(post.type, locale, t);
 
   const meta: any = (post as any).metadata || {};
   const sourceLocale = ((post as any).locale as Locale) || "me";
