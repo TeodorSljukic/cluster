@@ -1,7 +1,8 @@
+import type { Metadata } from "next";
 import { Post } from "@/models/Post";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { locales, localeFlagEmojis, localeNames, type Locale } from "@/lib/i18n";
+import { locales, localeFlagEmojis, localeNames, localeHreflang, type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
 import { PostViewTracker } from "@/components/PostViewTracker";
@@ -10,6 +11,71 @@ import { srCyrToLat } from "@/lib/transliterate";
 import { getTranslations } from "@/lib/getTranslations";
 
 export const dynamic = "force-dynamic";
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL || "https://southadriaticskills.org";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}): Promise<Metadata> {
+  const { locale: loc, slug } = await params;
+  const locale = (loc as Locale) || "en";
+
+  try {
+    const collection = await getCollection("posts");
+    const post = await collection.findOne({ slug, status: "published" });
+    if (!post) return { title: "Post Not Found" };
+
+    let title = post.title || "";
+    let description = post.excerpt || post.content?.substring(0, 160) || "";
+
+    // Use translation if available
+    if (post.metadata?.titleTranslations?.[locale]) {
+      title = post.metadata.titleTranslations[locale];
+    }
+    if (post.metadata?.excerptTranslations?.[locale]) {
+      description = post.metadata.excerptTranslations[locale];
+    }
+
+    // Strip HTML tags from description
+    description = description.replace(/<[^>]*>/g, "").substring(0, 160);
+
+    const languages: Record<string, string> = {};
+    for (const l of locales) {
+      languages[localeHreflang[l]] = `${BASE_URL}/${l}/posts/${slug}`;
+    }
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: `${BASE_URL}/${locale}/posts/${slug}`,
+        languages,
+      },
+      openGraph: {
+        title,
+        description,
+        type: "article",
+        url: `${BASE_URL}/${locale}/posts/${slug}`,
+        publishedTime: post.publishedAt?.toISOString(),
+        modifiedTime: post.updatedAt?.toISOString(),
+        ...(post.featuredImage && {
+          images: [{ url: post.featuredImage, alt: title }],
+        }),
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        ...(post.featuredImage && { images: [post.featuredImage] }),
+      },
+    };
+  } catch {
+    return { title: "Post" };
+  }
+}
 
 async function getPostBySlug(slug: string, locale: Locale): Promise<Post | null> {
   try {
@@ -163,8 +229,38 @@ export default async function PostPage({
     return date.toLocaleDateString("en-US", options);
   }
 
+  // JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": post.type === "event" ? "Event" : "Article",
+    headline: post.title,
+    description: post.excerpt || post.content?.replace(/<[^>]*>/g, "").substring(0, 160),
+    ...(post.featuredImage && { image: post.featuredImage }),
+    datePublished: post.publishedAt || post.createdAt,
+    dateModified: (post as any).updatedAt || post.createdAt,
+    author: {
+      "@type": "Organization",
+      name: "Adriatic Blue Growth Cluster",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Adriatic Blue Growth Cluster",
+      url: "https://southadriaticskills.org",
+    },
+    ...(post.type === "event" && post.eventDate && {
+      startDate: post.eventDate,
+      ...(post.eventLocation && {
+        location: { "@type": "Place", name: post.eventLocation },
+      }),
+    }),
+  };
+
   return (
     <main className="container post-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {post._id && <PostViewTracker postId={post._id} />}
       <div className="post-shell">
         <Link href={backLink.href} className="post-back">

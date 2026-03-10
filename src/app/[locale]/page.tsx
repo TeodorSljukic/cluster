@@ -13,6 +13,18 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Adriatic Blue Growth Cluster",
+  alternateName: "ABGC",
+  url: "https://southadriaticskills.org",
+  logo: "https://southadriaticskills.org/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp",
+  description:
+    "Connecting maritime professionals, researchers, and organizations across the Adriatic region for sustainable blue economy growth.",
+  sameAs: ["https://adriaticbgc.org/"],
+};
+
 export default async function Home({
   params,
 }: {
@@ -25,6 +37,10 @@ export default async function Home({
 
   return (
     <main className="site-main">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
       {user ? (
         <>
           <section className="hero">

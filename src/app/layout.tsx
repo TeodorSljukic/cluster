@@ -3,9 +3,73 @@ import Script from "next/script";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL || "https://southadriaticskills.org";
+
 export const metadata: Metadata = {
-  title: "Adriatic Blue Growth Cluster",
-  description: "Adriatic Blue Growth Cluster (ABGC)",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "Adriatic Blue Growth Cluster",
+    template: "%s | ABGC",
+  },
+  description:
+    "Adriatic Blue Growth Cluster (ABGC) - Connecting maritime professionals, researchers, and organizations across the Adriatic region for sustainable blue economy growth.",
+  keywords: [
+    "Adriatic",
+    "Blue Growth",
+    "Cluster",
+    "ABGC",
+    "maritime",
+    "blue economy",
+    "Montenegro",
+    "South Adriatic",
+  ],
+  authors: [{ name: "Adriatic Blue Growth Cluster" }],
+  openGraph: {
+    type: "website",
+    siteName: "Adriatic Blue Growth Cluster",
+    title: "Adriatic Blue Growth Cluster",
+    description:
+      "Connecting maritime professionals, researchers, and organizations across the Adriatic region for sustainable blue economy growth.",
+    url: BASE_URL,
+    images: [
+      {
+        url: `${BASE_URL}/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp`,
+        width: 800,
+        height: 600,
+        alt: "Adriatic Blue Growth Cluster",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Adriatic Blue Growth Cluster",
+    description:
+      "Connecting maritime professionals, researchers, and organizations across the Adriatic region.",
+    images: [
+      `${BASE_URL}/wp-content/uploads/2025/09/00ad0771c445ce2057c0b8cf1fc2e6dd9b6d84b8-scaled.webp`,
+    ],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: BASE_URL,
+    languages: {
+      en: `${BASE_URL}/en`,
+      "sr-Latn-ME": `${BASE_URL}/me`,
+      it: `${BASE_URL}/it`,
+      sq: `${BASE_URL}/sq`,
+    },
+  },
 };
 
 export default function RootLayout({

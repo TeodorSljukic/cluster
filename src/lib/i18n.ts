@@ -22,3 +22,11 @@ export const localeFlagEmojis: Record<Locale, string> = {
   it: "🇮🇹",
   sq: "🇦🇱",
 };
+
+/** Map internal locale to valid BCP 47 / hreflang tag for SEO */
+export const localeHreflang: Record<Locale, string> = {
+  me: "sr-Latn-ME",
+  en: "en",
+  it: "it",
+  sq: "sq",
+};

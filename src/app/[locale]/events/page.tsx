@@ -1,12 +1,40 @@
+import type { Metadata } from "next";
 import { Post } from "@/models/Post";
 import Link from "next/link";
-import { type Locale } from "@/lib/i18n";
+import { locales, localeHreflang, type Locale } from "@/lib/i18n";
 import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
 import { getTranslations } from "@/lib/getTranslations";
 import Pagination from "@/components/Pagination";
 
 export const dynamic = "force-dynamic";
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL || "https://southadriaticskills.org";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: loc } = await params;
+  const locale = (loc as Locale) || "en";
+  const t = getTranslations(locale);
+  const languages: Record<string, string> = {};
+  for (const l of locales) {
+    languages[localeHreflang[l]] = `${BASE_URL}/${l}/events`;
+  }
+  return {
+    title: t.eventsPage.title,
+    description: `Upcoming events from the Adriatic Blue Growth Cluster.`,
+    alternates: { canonical: `${BASE_URL}/${locale}/events`, languages },
+    openGraph: {
+      title: t.eventsPage.title,
+      description: `Upcoming events from the Adriatic Blue Growth Cluster.`,
+      url: `${BASE_URL}/${locale}/events`,
+    },
+  };
+}
 
 async function getEvents(locale: Locale, page: number = 1, limit: number = 50) {
   try {
