@@ -1,14 +1,13 @@
 import { Post } from "@/models/Post";
-import Link from "next/link";
 import { getTranslations, type Locale } from "@/lib/getTranslations";
-import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
+import { PostsCarousel } from "./PostsCarousel";
 
 async function getUpcomingEvents(locale: Locale) {
   try {
     // Directly query database instead of HTTP request for better performance and reliability
     const collection = await getCollection("posts");
-    
+
     // Get all published event posts (regardless of locale)
     // We'll use translations from metadata to display in current locale
     const posts = await collection
@@ -16,8 +15,7 @@ async function getUpcomingEvents(locale: Locale) {
         type: "event",
         status: "published",
       })
-      .sort({ createdAt: -1 })
-      .limit(6)
+      .sort({ eventDate: -1, createdAt: -1 })
       .toArray();
 
     return posts.map((post) => {
@@ -63,16 +61,6 @@ export async function EventsSection({ locale = "en" }: EventsSectionProps) {
   const posts = await getUpcomingEvents(locale);
   const t = getTranslations(locale);
 
-  function formatDate(dateValue?: string | Date) {
-    if (!dateValue) return "";
-    const date = typeof dateValue === "string" ? new Date(dateValue) : dateValue;
-    if (isNaN(date.getTime())) return "";
-    return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
-  }
-
-  // Get first 2 posts
-  const displayPosts = posts.slice(0, 2);
-
   return (
     <section className="events">
       <div className="container">
@@ -83,38 +71,14 @@ export async function EventsSection({ locale = "en" }: EventsSectionProps) {
           {t.events.subtitle}
         </p>
 
-        {displayPosts.length > 0 && (
-          <div className="news-grid" data-aos="fade-up">
-            {displayPosts.map((post: Post) => (
-              <div key={post._id} className="news-item">
-                {post.featuredImage && (
-                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>
-                    <img
-                      src={post.featuredImage}
-                      alt={post.title}
-                      className="news-thumb"
-                    />
-                  </Link>
-                )}
-
-                <div className="news-meta">
-                  <span className="news-date">
-                    {formatDate(post.eventDate || post.publishedAt || post.createdAt)}
-                  </span>
-                </div>
-                <h3 className="news-item-title">
-                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
-                </h3>
-
-                <div className="news-button-wrapper">
-                  <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
-                    {t.events.readMore}
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <div data-aos="fade-up">
+          <PostsCarousel
+            posts={posts}
+            locale={locale}
+            readMoreLabel={t.events.readMore}
+            dateField="eventDate"
+          />
+        </div>
       </div>
     </section>
   );

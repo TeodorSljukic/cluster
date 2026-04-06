@@ -1,14 +1,13 @@
 import { Post } from "@/models/Post";
-import Link from "next/link";
 import { getTranslations, type Locale } from "@/lib/getTranslations";
-import { localeLink } from "@/lib/localeLink";
 import { getCollection } from "@/lib/db";
+import { PostsCarousel } from "./PostsCarousel";
 
 async function getLatestNews(locale: Locale) {
   try {
     // Directly query database instead of HTTP request for better performance and reliability
     const collection = await getCollection("posts");
-    
+
     // Get all published news posts (regardless of locale)
     // We'll use translations from metadata to display in current locale
     const posts = await collection
@@ -17,7 +16,6 @@ async function getLatestNews(locale: Locale) {
         status: "published",
       })
       .sort({ createdAt: -1 })
-      .limit(10)
       .toArray();
 
     return posts.map((post) => {
@@ -63,16 +61,6 @@ export async function NewsSection({ locale = "en" }: NewsSectionProps) {
   const posts = await getLatestNews(locale);
   const t = getTranslations(locale);
 
-  function formatDate(dateValue?: string | Date) {
-    if (!dateValue) return "";
-    const date = typeof dateValue === "string" ? new Date(dateValue) : dateValue;
-    if (isNaN(date.getTime())) return "";
-    return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
-  }
-
-  // Get first 4 posts
-  const displayPosts = posts.slice(0, 4);
-
   return (
     <section className="news">
       <div className="container">
@@ -83,38 +71,14 @@ export async function NewsSection({ locale = "en" }: NewsSectionProps) {
           {t.news.subtitle}
         </p>
 
-        {displayPosts.length > 0 && (
-          <div className="news-grid" data-aos="fade-up">
-            {displayPosts.map((post: Post) => (
-              <div key={post._id} className="news-item">
-                {post.featuredImage && (
-                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>
-                    <img
-                      src={post.featuredImage}
-                      alt={post.title}
-                      className="news-thumb"
-                    />
-                  </Link>
-                )}
-
-                <div className="news-meta">
-                  <span className="news-date">
-                    {formatDate(post.publishedAt || post.createdAt)}
-                  </span>
-                </div>
-                <h3 className="news-item-title">
-                  <Link href={localeLink(`/posts/${post.slug}`, locale)}>{post.title}</Link>
-                </h3>
-
-                <div className="news-button-wrapper">
-                  <Link href={localeLink(`/posts/${post.slug}`, locale)} className="news-button">
-                    {t.news.readMore}
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <div data-aos="fade-up">
+          <PostsCarousel
+            posts={posts}
+            locale={locale}
+            readMoreLabel={t.news.readMore}
+            dateField="publishedAt"
+          />
+        </div>
       </div>
     </section>
   );
