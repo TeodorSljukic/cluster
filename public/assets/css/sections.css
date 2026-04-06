@@ -696,7 +696,7 @@
 /* ========== Posts Carousel ========== */
 .posts-carousel {
   position: relative;
-  margin: 0 -8px;
+  margin: 0 60px;
 }
 .posts-carousel .carousel-track {
   display: flex;
@@ -757,10 +757,10 @@
   pointer-events: none;
 }
 .posts-carousel .carousel-arrow-left {
-  left: -24px;
+  left: -72px;
 }
 .posts-carousel .carousel-arrow-right {
-  right: -24px;
+  right: -72px;
 }
 @media (max-width: 1200px) {
   .posts-carousel .carousel-card {
