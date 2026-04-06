@@ -56,6 +56,9 @@ export default function UsersPage() {
   const [createUserRole, setCreateUserRole] = useState("user");
   const [createUserLoading, setCreateUserLoading] = useState(false);
   const [createdUserCredentials, setCreatedUserCredentials] = useState<{ username: string; password: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const t = getTranslations(cmsLocale);
 
@@ -230,6 +233,33 @@ export default function UsersPage() {
 
     return decorated.map((d) => d.u);
   }, [users, sortKey, sortDir]);
+
+  const filteredUsers = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return sortedUsers;
+    return sortedUsers.filter((u) => {
+      return (
+        (u.displayName || "").toLowerCase().includes(q) ||
+        (u.username || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q) ||
+        (u.role || "").toLowerCase().includes(q) ||
+        (u.organization || "").toLowerCase().includes(q) ||
+        (u.country || "").toLowerCase().includes(q)
+      );
+    });
+  }, [sortedUsers, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageUsers = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, safePage, pageSize]);
+
+  // Reset to first page when search or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, pageSize]);
 
   const handleSortOption = useCallback((key: SortKey, dir: SortDir) => {
     setSortKey(key);
@@ -686,6 +716,65 @@ export default function UsersPage() {
           </div>
         )}
 
+        {!loading && users.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "12px",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "16px",
+              padding: "12px",
+              background: "#f6f7f7",
+              border: "1px solid #e0e0e1",
+              borderRadius: "4px",
+            }}
+          >
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name, email, role, org..."
+              style={{
+                flex: "1 1 260px",
+                padding: "8px 12px",
+                border: "1px solid #8c8f94",
+                borderRadius: "3px",
+                fontSize: "13px",
+                minWidth: "200px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "13px", color: "#50575e" }}>
+              <span>
+                Showing <strong>{filteredUsers.length === 0 ? 0 : (safePage - 1) * pageSize + 1}</strong>
+                {"–"}
+                <strong>{Math.min(safePage * pageSize, filteredUsers.length)}</strong> of{" "}
+                <strong>{filteredUsers.length}</strong>
+                {searchQuery && ` (filtered from ${users.length})`}
+              </span>
+              <label style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                Per page:
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  style={{
+                    padding: "6px 8px",
+                    border: "1px solid #8c8f94",
+                    borderRadius: "3px",
+                    fontSize: "13px",
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <p>{t.adminUsers.loading}</p>
         ) : (
@@ -757,7 +846,7 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {sortedUsers.map((user) => (
+              {pageUsers.map((user) => (
                 <React.Fragment key={user._id}>
                   <tr
                     style={{
@@ -1073,6 +1162,93 @@ export default function UsersPage() {
             </tbody>
           </table>
           </div>
+        )}
+
+        {!loading && filteredUsers.length > 0 && totalPages > 1 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "6px",
+              marginTop: "20px",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setCurrentPage(1)}
+              disabled={safePage === 1}
+              style={{
+                padding: "6px 12px",
+                background: "white",
+                color: safePage === 1 ? "#a7aaad" : "#50575e",
+                border: "1px solid #c3c4c7",
+                borderRadius: "3px",
+                cursor: safePage === 1 ? "not-allowed" : "pointer",
+                fontSize: "13px",
+              }}
+            >
+              « First
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              style={{
+                padding: "6px 12px",
+                background: "white",
+                color: safePage === 1 ? "#a7aaad" : "#50575e",
+                border: "1px solid #c3c4c7",
+                borderRadius: "3px",
+                cursor: safePage === 1 ? "not-allowed" : "pointer",
+                fontSize: "13px",
+              }}
+            >
+              ‹ Prev
+            </button>
+            <span style={{ padding: "6px 12px", fontSize: "13px", color: "#50575e" }}>
+              Page <strong>{safePage}</strong> of <strong>{totalPages}</strong>
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              style={{
+                padding: "6px 12px",
+                background: "white",
+                color: safePage === totalPages ? "#a7aaad" : "#50575e",
+                border: "1px solid #c3c4c7",
+                borderRadius: "3px",
+                cursor: safePage === totalPages ? "not-allowed" : "pointer",
+                fontSize: "13px",
+              }}
+            >
+              Next ›
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={safePage === totalPages}
+              style={{
+                padding: "6px 12px",
+                background: "white",
+                color: safePage === totalPages ? "#a7aaad" : "#50575e",
+                border: "1px solid #c3c4c7",
+                borderRadius: "3px",
+                cursor: safePage === totalPages ? "not-allowed" : "pointer",
+                fontSize: "13px",
+              }}
+            >
+              Last »
+            </button>
+          </div>
+        )}
+
+        {!loading && users.length > 0 && filteredUsers.length === 0 && (
+          <p style={{ marginTop: "2rem", color: "#666", textAlign: "center" }}>
+            No users match your search.
+          </p>
         )}
 
         {!loading && users.length === 0 && (
