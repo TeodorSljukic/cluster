@@ -20,7 +20,8 @@
     "chat": "Chat",
     "unknown": "Sconosciuto",
     "backToNews": "Torna alle Notizie",
-    "backToHome": "Torna alla Home"
+    "backToHome": "Torna alla Home",
+    "usersGuide": "Guida Utente"
   },
   "hero": {
     "title": "Benvenuti in ABGC",

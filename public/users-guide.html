@@ -167,6 +167,12 @@ p+p{margin-top:10px}
   .toc-item{border:1px solid #ddd}
 }
 
+/* LANG SWITCHER */
+.lang-bar{background:#0f4f94;padding:10px 20px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.lang-bar a{display:inline-block;padding:6px 14px;border-radius:4px;color:#fff;font-size:13px;font-weight:600;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);text-decoration:none;transition:background .2s}
+.lang-bar a:hover{background:rgba(255,255,255,0.2);text-decoration:none}
+.lang-bar a.active{background:#fff;color:#0f4f94}
+
 @media(max-width:780px){
   .cover{padding:40px 24px}
   .cover-meta-grid{grid-template-columns:1fr 1fr}
@@ -184,6 +190,13 @@ p+p{margin-top:10px}
 </head>
 <body>
 <div class="page-wrapper">
+
+<div class="lang-bar">
+  <a href="/users-guide.html" class="active">🇬🇧 English</a>
+  <a href="/users-guide-me.html">🇲🇪 Crnogorski</a>
+  <a href="/users-guide-it.html">🇮🇹 Italiano</a>
+  <a href="/users-guide-sq.html">🇦🇱 Shqip</a>
+</div>
 
 <!-- COVER -->
 <section class="cover" id="cover">
