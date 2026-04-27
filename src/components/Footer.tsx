@@ -124,6 +124,9 @@ export function Footer() {
                   <Link href={localeLink("/contact", locale)} className="footer-link">{t.common.contact}</Link>
                 </li>
                 <li>
+                  <a href="/users-guide.html" target="_blank" rel="noopener" className="footer-link">Users Guide</a>
+                </li>
+                <li>
                   <Link href={localeLink("/terms", locale)} className="footer-link">{t.contact.privacyPolicy}</Link>
                 </li>
               </ul>

@@ -54,5 +54,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Error generating sitemap posts:", error);
   }
 
+  // Static HTML guide
+  entries.push({
+    url: `${BASE_URL}/users-guide.html`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  });
+
   return entries;
 }
