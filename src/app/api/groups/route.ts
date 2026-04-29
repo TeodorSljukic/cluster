@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const members = await db
       .collection("users")
       .find({ _id: { $in: Array.from(allMemberIds).map((id) => new ObjectId(id)) } })
+      .project({ username: 1, displayName: 1, profilePicture: 1 })
       .toArray();
 
     const memberMap = new Map(members.map((m) => [m._id.toString(), m]));

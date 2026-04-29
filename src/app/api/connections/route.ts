@@ -36,6 +36,13 @@ export async function GET(request: NextRequest) {
       .find({
         _id: { $in: Array.from(userIds).map((id) => new ObjectId(id)) },
       })
+      .project({
+        username: 1,
+        email: 1,
+        displayName: 1,
+        profilePicture: 1,
+        headline: 1,
+      })
       .toArray();
 
     const userMap = new Map(users.map((u) => [u._id.toString(), u]));

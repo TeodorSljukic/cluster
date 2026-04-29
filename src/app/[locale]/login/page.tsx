@@ -31,11 +31,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // Small delay to ensure cookie is set
         await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Redirect all users to homepage
-        window.location.href = `/${locale}`;
+
+        const role = data?.user?.role;
+        const adminRoles = ["admin", "moderator", "editor"];
+        window.location.href = adminRoles.includes(role) ? "/admin" : `/${locale}`;
       } else {
         setError(data.error || t.login.loginFailed);
       }

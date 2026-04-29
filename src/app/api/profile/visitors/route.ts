@@ -116,6 +116,7 @@ export async function GET(request: NextRequest) {
       .find({
         _id: { $in: visitorIds },
       })
+      .project({ username: 1, displayName: 1, profilePicture: 1 })
       .toArray();
 
     // Create a map for quick lookup

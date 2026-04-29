@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, getCurrentUser } from "@/lib/auth";
+import { put } from "@vercel/blob";
+import { getCurrentUser } from "@/lib/auth";
 import { getCollection } from "@/lib/db";
 import { Media } from "@/models/Media";
 
@@ -10,9 +11,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin
     if (user.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json({ error: "Blob storage not configured (BLOB_READ_WRITE_TOKEN)" }, { status: 500 });
     }
 
     const formData = await request.formData();
@@ -22,51 +26,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Check file size (max 5MB for base64 encoding)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 25 * 1024 * 1024;
     if (file.size > maxSize) {
-      return NextResponse.json({ 
-        error: "File too large", 
-        details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (5MB)` 
+      return NextResponse.json({
+        error: "File too large",
+        details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (25MB)`,
       }, { status: 400 });
     }
 
-    // Convert file to base64
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64String = buffer.toString('base64');
-    
-    // Create data URI for easy display
-    const dataUri = `data:${file.type};base64,${base64String}`;
-
-    // Generate unique filename for reference
     const timestamp = Date.now();
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `${timestamp}-${originalName}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const pathname = `media/${timestamp}-${safeName}`;
 
-    // Determine file type and extension
-    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    const blob = await put(pathname, file, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: file.type,
+    });
+
+    const extension = file.name.split(".").pop()?.toLowerCase() || "";
     let fileType = "other";
-    if (file.type.startsWith("image/")) {
-      fileType = "image";
-    } else if (file.type === "application/pdf") {
-      fileType = "pdf";
-    } else if (file.type.includes("document") || file.type.includes("word") || file.type.includes("text")) {
-      fileType = "document";
-    } else if (file.type.startsWith("video/")) {
-      fileType = "video";
-    } else if (file.type.startsWith("audio/")) {
-      fileType = "audio";
-    } else if (file.type.includes("zip") || file.type.includes("archive") || file.type.includes("compressed")) {
-      fileType = "archive";
-    }
+    if (file.type.startsWith("image/")) fileType = "image";
+    else if (file.type === "application/pdf") fileType = "pdf";
+    else if (file.type.includes("document") || file.type.includes("word") || file.type.includes("text")) fileType = "document";
+    else if (file.type.startsWith("video/")) fileType = "video";
+    else if (file.type.startsWith("audio/")) fileType = "audio";
+    else if (file.type.includes("zip") || file.type.includes("archive") || file.type.includes("compressed")) fileType = "archive";
 
-    // Save to database
     const mediaCollection = await getCollection("media");
     const mediaDoc: Omit<Media, "_id"> = {
-      filename,
+      filename: blob.pathname,
       originalName: file.name,
-      url: dataUri,
+      url: blob.url,
       size: file.size,
       type: fileType,
       extension,
@@ -76,10 +67,9 @@ export async function POST(request: NextRequest) {
 
     const result = await mediaCollection.insertOne(mediaDoc);
 
-    // Return data URI as URL
     return NextResponse.json({
-      url: dataUri,
-      filename: filename,
+      url: blob.url,
+      filename: blob.pathname,
       originalName: file.name,
       size: file.size,
       type: fileType,
@@ -87,9 +77,6 @@ export async function POST(request: NextRequest) {
       _id: result.insertedId.toString(),
     });
   } catch (error: any) {
-    if (error.message === "Unauthorized" || error.message.includes("Forbidden")) {
-      return NextResponse.json({ error: error.message }, { status: 403 });
-    }
     console.error("Upload error:", error);
     return NextResponse.json(
       { error: error.message || "Upload failed" },
