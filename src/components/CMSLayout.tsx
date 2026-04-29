@@ -229,7 +229,7 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
                           <Link
                             key={childIndex}
                             href={child.href}
-                            prefetch={true}
+                            prefetch={false}
                             className={`cms-submenu-item ${isChildActive ? "cms-submenu-item-active" : ""}`}
                           >
                             {child.title}
@@ -242,7 +242,7 @@ export function CMSLayout({ children, locale: propLocale }: CMSLayoutProps) {
               ) : (
                 <Link
                   href={item.href || "#"}
-                  prefetch={true}
+                  prefetch={false}
                   className={`cms-menu-item ${isActive(item.href || "", item.exact) ? "cms-menu-item-active" : ""}`}
                 >
                   <span className="cms-menu-icon">{item.icon}</span>
