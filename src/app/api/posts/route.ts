@@ -37,9 +37,10 @@ export async function GET(request: NextRequest) {
     // Build projection - exclude large content field unless explicitly requested
     const projection: any = {};
     if (!includeContent) {
-      projection.content = 0; // Exclude content for list views
-      projection.excerpt = 0; // Exclude excerpt for list views (can be large)
-      projection.metadata = 0; // Exclude metadata (translations can be large)
+      projection.content = 0;
+      projection.excerpt = 0;
+      projection.metadata = 0;
+      projection.featuredImage = 0;
     }
 
     const posts = await collection

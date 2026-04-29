@@ -11,9 +11,23 @@ export async function GET() {
     }
 
     const collection = await getCollection("users");
-    const user = await collection.findOne({
-      _id: new ObjectId(currentUser.userId),
-    });
+    const user = await collection.findOne(
+      { _id: new ObjectId(currentUser.userId) },
+      {
+        projection: {
+          username: 1,
+          email: 1,
+          role: 1,
+          displayName: 1,
+          organization: 1,
+          location: 1,
+          role_custom: 1,
+          interests: 1,
+          profilePicture: 1,
+          registeredPlatforms: 1,
+        },
+      }
+    );
 
     if (!user) {
       return NextResponse.json({ user: null });

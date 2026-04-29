@@ -16,11 +16,16 @@ export async function GET(request: NextRequest) {
     // These fields are only shown in expanded details view
     const users = await collection
       .find({})
-      .project({ 
-        password: 0, // Never include password
-        about: 0, // Large text field - only needed in details
-        experience: 0, // Array - only needed in details
-        education: 0, // Array - only needed in details
+      .project({
+        password: 0,
+        about: 0,
+        experience: 0,
+        education: 0,
+        profilePicture: 0,
+        coverImage: 0,
+        aboutTranslations: 0,
+        skillsTranslations: 0,
+        headlineTranslations: 0,
       })
       .sort({ createdAt: -1 })
       .toArray();

@@ -4,7 +4,10 @@ import { getCollection } from "@/lib/db";
 export async function GET() {
   try {
     const collection = await getCollection("users");
-    const users = await collection.find({ interests: { $exists: true, $ne: "" } }).toArray();
+    const users = await collection
+      .find({ interests: { $exists: true, $ne: "" } })
+      .project({ interests: 1 })
+      .toArray();
 
     const interestCounts: Record<string, number> = {};
     users.forEach((user) => {

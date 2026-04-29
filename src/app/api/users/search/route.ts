@@ -39,7 +39,20 @@ export async function GET(request: NextRequest) {
     filter.city = city;
   }
 
-  const users = await db.collection("users").find(filter).limit(50).toArray();
+  const users = await db
+    .collection("users")
+    .find(filter)
+    .project({
+      username: 1,
+      email: 1,
+      displayName: 1,
+      profilePicture: 1,
+      headline: 1,
+      organization: 1,
+      location: 1,
+    })
+    .limit(50)
+    .toArray();
 
     // Ukloni password iz rezultata
     const sanitizedUsers = users.map((u) => ({

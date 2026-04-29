@@ -4,7 +4,7 @@ import { getCollection } from "@/lib/db";
 export async function GET() {
   try {
     const collection = await getCollection("users");
-    const users = await collection.find({}).toArray();
+    const users = await collection.find({}).project({ location: 1 }).toArray();
 
     const cityCounts: Record<string, number> = {};
     users.forEach((user) => {

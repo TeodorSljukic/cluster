@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { put } from "@vercel/blob";
 import { getDb } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { ObjectId } from "mongodb";
@@ -65,6 +66,7 @@ export async function GET(request: NextRequest) {
     const senders = await db
       .collection("users")
       .find({ _id: { $in: senderIds.map((id) => new ObjectId(id)) } })
+      .project({ username: 1, displayName: 1, profilePicture: 1 })
       .toArray();
 
     const senderMap = new Map(senders.map((s) => [s._id.toString(), s]));
@@ -131,54 +133,35 @@ export async function POST(request: NextRequest) {
     let fileName = "";
     let fileType = "";
 
-    // Convert file to base64 and store directly in message (no filesystem needed)
     if (file && file.size > 0) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        return NextResponse.json({ error: "Blob storage not configured (BLOB_READ_WRITE_TOKEN)" }, { status: 500 });
+      }
+
+      const maxSize = 25 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return NextResponse.json({
+          error: "File too large",
+          details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (25MB).`,
+        }, { status: 400 });
+      }
+
       try {
-        console.log("Processing file upload:", {
-          name: file.name,
-          size: file.size,
-          type: file.type,
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const pathname = `messages/${user.userId}/${Date.now()}-${safeName}`;
+        const blob = await put(pathname, file, {
+          access: "public",
+          addRandomSuffix: true,
+          contentType: file.type,
         });
-
-        // Check file size (limit to 2MB original file = ~2.7MB base64 to avoid MongoDB 16MB document limit)
-        const maxSize = 2 * 1024 * 1024; // 2MB original file
-        if (file.size > maxSize) {
-          return NextResponse.json({ 
-            error: "File too large", 
-            details: `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (2MB). Base64 encoding increases size by ~33%.` 
-          }, { status: 400 });
-        }
-
-        // Convert file to base64
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const base64String = buffer.toString('base64');
-        
-        // Create data URI for easy display
-        fileData = `data:${file.type};base64,${base64String}`;
+        fileData = blob.url;
         fileName = file.name;
         fileType = file.type;
-        
-        // Check final size (base64 is ~33% larger)
-        const base64Size = fileData.length;
-        const maxBase64Size = 10 * 1024 * 1024; // 10MB max for base64 string
-        if (base64Size > maxBase64Size) {
-          return NextResponse.json({ 
-            error: "File too large after encoding", 
-            details: `Encoded file size (${(base64Size / 1024 / 1024).toFixed(2)}MB) exceeds maximum allowed size (10MB)` 
-          }, { status: 400 });
-        }
-        
-        console.log("File converted to base64:", {
-          originalSize: file.size,
-          base64Size: base64Size,
-          fileName: file.name
-        });
       } catch (fileError: any) {
-        console.error("File processing error:", fileError);
-        return NextResponse.json({ 
-          error: "Failed to process file",
-          details: fileError?.message || "Unknown error"
+        console.error("File upload error:", fileError);
+        return NextResponse.json({
+          error: "Failed to upload file",
+          details: fileError?.message || "Unknown error",
         }, { status: 500 });
       }
     }

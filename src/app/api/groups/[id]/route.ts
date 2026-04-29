@@ -33,6 +33,7 @@ export async function GET(
     const members = await db
       .collection("users")
       .find({ _id: { $in: group.members.map((m: any) => new ObjectId(m.toString())) } })
+      .project({ username: 1, displayName: 1, profilePicture: 1, headline: 1 })
       .toArray();
 
     const memberMap = new Map(members.map((m) => [m._id.toString(), m]));
