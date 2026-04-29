@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { ObjectId } from "mongodb";
+import { invalidateUser } from "@/lib/userCache";
 
 // PUT - Update user (role change)
 export async function PUT(
@@ -33,6 +34,8 @@ export async function PUT(
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    invalidateUser(resolvedParams.id);
 
     const updated = await collection.findOne({
       _id: new ObjectId(resolvedParams.id),
@@ -77,6 +80,8 @@ export async function DELETE(
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    invalidateUser(resolvedParams.id);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

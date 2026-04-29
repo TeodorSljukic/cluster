@@ -4,6 +4,7 @@ import { getCollection } from "@/lib/db";
 import { ObjectId } from "mongodb";
 import { autoTranslate } from "@/lib/translate";
 import { type Locale } from "@/lib/i18n";
+import { invalidateUser } from "@/lib/userCache";
 
 // GET - Fetch current user profile
 export async function GET() {
@@ -271,6 +272,8 @@ export async function PUT(request: NextRequest) {
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    invalidateUser(currentUser.userId);
 
     const updated = await collection.findOne({
       _id: new ObjectId(currentUser.userId),
