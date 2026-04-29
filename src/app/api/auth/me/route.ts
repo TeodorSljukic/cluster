@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getCollection } from "@/lib/db";
-import { ObjectId } from "mongodb";
+import { getCachedAuthUser } from "@/lib/userCache";
 
 export async function GET() {
   try {
@@ -10,34 +9,12 @@ export async function GET() {
       return NextResponse.json({ user: null });
     }
 
-    const collection = await getCollection("users");
-    const user = await collection.findOne({
-      _id: new ObjectId(currentUser.userId),
-    });
-
+    const user = await getCachedAuthUser(currentUser.userId);
     if (!user) {
       return NextResponse.json({ user: null });
     }
 
-    return NextResponse.json({
-      user: {
-        _id: user._id.toString(),
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        displayName: user.displayName || user.username,
-        organization: user.organization,
-        location: user.location,
-        role_custom: user.role_custom,
-        interests: user.interests,
-        profilePicture: user.profilePicture,
-        registeredPlatforms: user.registeredPlatforms || {
-          lms: false,
-          ecommerce: false,
-          dms: false,
-        },
-      },
-    });
+    return NextResponse.json({ user });
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message },
