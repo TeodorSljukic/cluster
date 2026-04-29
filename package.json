@@ -7,7 +7,8 @@
     "start": "next start",
     "dev": "next dev",
     "register": "node registerAll.mjs",
-    "test:registration": "node test-registration.mjs"
+    "test:registration": "node test-registration.mjs",
+    "db:setup": "node scripts/setup-indexes.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4",
