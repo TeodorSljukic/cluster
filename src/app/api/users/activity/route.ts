@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { ObjectId } from "mongodb";
 
+const MIN_UPDATE_GAP_MS = 4 * 60 * 1000;
+
 // POST - Update user activity
 export async function POST(request: NextRequest) {
   try {
@@ -15,11 +17,12 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const userId = new ObjectId(user.userId);
     const now = new Date();
+    const cutoff = new Date(now.getTime() - MIN_UPDATE_GAP_MS);
 
-    // Update last activity (with error handling)
+    // Server-side throttle: only write if last update older than cutoff.
     try {
       await db.collection("users").updateOne(
-        { _id: userId },
+        { _id: userId, $or: [{ lastActivity: { $lt: cutoff } }, { lastActivity: { $exists: false } }] },
         {
           $set: {
             lastActivity: now,
