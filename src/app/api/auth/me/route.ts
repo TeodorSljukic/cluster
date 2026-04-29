@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getCollection } from "@/lib/db";
-import { ObjectId } from "mongodb";
+import { getCachedAuthUser } from "@/lib/userCache";
 
 const CACHE_HEADER = "private, max-age=30, stale-while-revalidate=60";
 
@@ -13,62 +12,31 @@ export async function GET(request: NextRequest) {
     request.headers.get("sec-purpose")?.includes("prefetch");
 
   if (isPrefetch) {
-    return NextResponse.json({ user: null }, {
-      headers: { "Cache-Control": "private, max-age=30" },
-    });
+    return NextResponse.json(
+      { user: null },
+      { headers: { "Cache-Control": "private, max-age=30" } }
+    );
   }
 
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return NextResponse.json({ user: null }, {
-        headers: { "Cache-Control": CACHE_HEADER },
-      });
+      return NextResponse.json(
+        { user: null },
+        { headers: { "Cache-Control": CACHE_HEADER } }
+      );
     }
 
-    const collection = await getCollection("users");
-    const user = await collection.findOne(
-      { _id: new ObjectId(currentUser.userId) },
-      {
-        projection: {
-          username: 1,
-          email: 1,
-          role: 1,
-          displayName: 1,
-          organization: 1,
-          location: 1,
-          role_custom: 1,
-          interests: 1,
-          profilePicture: 1,
-          registeredPlatforms: 1,
-        },
-      }
-    );
-
+    const user = await getCachedAuthUser(currentUser.userId);
     if (!user) {
-      return NextResponse.json({ user: null });
+      return NextResponse.json(
+        { user: null },
+        { headers: { "Cache-Control": CACHE_HEADER } }
+      );
     }
 
     return NextResponse.json(
-      {
-        user: {
-          _id: user._id.toString(),
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          displayName: user.displayName || user.username,
-          organization: user.organization,
-          location: user.location,
-          role_custom: user.role_custom,
-          interests: user.interests,
-          profilePicture: user.profilePicture,
-          registeredPlatforms: user.registeredPlatforms || {
-            lms: false,
-            ecommerce: false,
-            dms: false,
-          },
-        },
-      },
+      { user },
       { headers: { "Cache-Control": CACHE_HEADER } }
     );
   } catch (error: any) {
