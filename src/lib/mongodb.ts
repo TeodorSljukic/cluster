@@ -23,9 +23,11 @@ export function getMongoClientPromise(): Promise<MongoClient> {
 
   if (!global._mongoClientPromise) {
     const client = new MongoClient(uri, {
-      // Add connection options for better reliability
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      // Add connection options for better reliability across regions / cold starts
+      serverSelectionTimeoutMS: 30000, // 30s — bilo 5s, premalo za cross-region + DNS SRV lookup
+      connectTimeoutMS: 30000, // 30s da driver stigne da otvori TCP konekciju
       socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      maxPoolSize: 10, // limit pool po lambda instanci da ne preliva Atlas free tier
     });
     global._mongoClientPromise = client.connect().catch((error) => {
       // Clear the promise on error so we can retry
